@@ -1,0 +1,369 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:LiveViewer.Styles">
+
+    <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+    <!-- Colors -->
+    <SolidColorBrush x:Key="Toolbar">#F2F2F2</SolidColorBrush>
+    <SolidColorBrush x:Key="LightBlue">#7EC0EE</SolidColorBrush>
+    <SolidColorBrush x:Key="DarkBlue">#075CEF</SolidColorBrush>
+    <SolidColorBrush x:Key="LighterGray">#e5e5e5</SolidColorBrush>
+    <SolidColorBrush x:Key="TextBoxForeground">#6D6D6D</SolidColorBrush>
+    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextColorKey}" Color="Black"/>
+    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Black"/>
+    <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="Transparent" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+
+    <Style x:Key="RoundButton" TargetType="{x:Type Button}">
+        <Setter Property="Height" Value="35"/>
+        <Setter Property="Width" Value="35"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="Transparent" Cursor="Hand" x:Name="brd" BorderThickness="1.5" BorderBrush="Transparent" CornerRadius="0">
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" TargetName="brd" Value="{StaticResource DarkBlue}"/>
+                            <Setter Property="Background" TargetName="brd" Value="{StaticResource Toolbar}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ButtonWithTextAndCounter" TargetType="{x:Type RadioButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RadioButton}">
+                    <Border Background="Transparent" Height="30" Cursor="Hand" x:Name="brd" BorderThickness="1" BorderBrush="LightGray" CornerRadius="0" VerticalAlignment="Center">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Text}" x:Name="text" Grid.Column="0" TextTrimming="WordEllipsis" FontSize="13" Margin="2.5,0" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBoxForeground}"/>
+                            <TextBlock Text="{Binding Counter}" Grid.Column="1" Margin="2.5,0" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="Bold" Foreground="{Binding TextColor}"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter Property="BorderBrush" TargetName="brd" Value="{StaticResource DarkBlue}"/>
+                            <Setter Property="Background" TargetName="brd" Value="{StaticResource Toolbar}"/>
+                            <Setter Property="BorderThickness" TargetName="brd" Value="1.5"/>
+                            <Setter Property="FontWeight" TargetName="text" Value="SemiBold"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" TargetName="brd" Value="{StaticResource DarkBlue}"/>
+                            <Setter Property="Background" TargetName="brd" Value="{StaticResource Toolbar}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CustomImage" TargetType="{x:Type Image}">
+        <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <!--<Setter Property="Margin" Value="5"/>-->
+        <Setter Property="Opacity" Value="0.8"/>
+        <Setter Property="Stretch" Value="Uniform"/>
+        <Setter Property="RenderTransformOrigin" Value=".5,.5"/>
+    </Style>
+
+    <Style x:Key="CustomTextBox" TargetType="{x:Type TextBox}">
+        <Setter Property="BorderBrush" Value="LightBlue"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1.5"/>
+        <Setter Property="Cursor" Value="IBeam"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="TextAlignment" Value="Left"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontFamily" Value="Segoe UI" />
+        <Setter Property="AcceptsTab" Value="False" />
+        <Style.Triggers>
+            <Trigger Property="IsReadOnly" Value="True">
+                <Setter Property="Background" Value="LightGray" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ImageAndTextButton" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Margin" Value="0.5"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="Height" Value="70"/>
+        <Setter Property="ToolTip" Value="Search"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="{TemplateBinding Background}" Cursor="Hand" x:Name="brd" BorderThickness="0" CornerRadius="0">
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CustomProgressBar" TargetType="{x:Type ProgressBar}">
+        <Setter Property="IsIndeterminate" Value="True"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="Height" Value="6"/>
+        <Setter Property="BorderBrush" Value="LightGray"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource DarkBlue}"/>
+    </Style>
+
+    <Style x:Key="CustomImageAndTextAndCounterListbox" TargetType="{x:Type ListBox}">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <Border Height="25" CornerRadius="2" BorderThickness="0,0,0,1" BorderBrush="LightGray" Margin="0,1,0,0" Width="auto" HorizontalAlignment="Stretch" x:Name="borda" Background="Transparent" Cursor="Hand">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Source="{Binding Image}" x:Name="image" Grid.Column="0" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{StaticResource CustomImage}" Height="15" Margin="2.5,0"/>
+                            <TextBlock Text="{Binding Text}" Grid.Column="1" Margin="2.5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding Counter}" Grid.Column="2" Margin="2.5,0" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CustomTextListbox" TargetType="{x:Type ListBox}">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <Border Height="23" CornerRadius="2" BorderThickness="0,0,0,1" BorderBrush="LightGray" Margin="0,1,0,0" Width="auto" HorizontalAlignment="Stretch" x:Name="borda" Background="Transparent" Cursor="Hand">
+                        <TextBlock Text="{Binding Text}" Margin="2.5,0" VerticalAlignment="Center"/>
+                    </Border>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CustomMessagesListbox" TargetType="{x:Type ListBox}">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <Border Height="23" CornerRadius="2" BorderThickness="0,0,0,1" BorderBrush="LightGray" Margin="0,1,0,0" Width="auto" HorizontalAlignment="Stretch" x:Name="borda" Background="Transparent">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Timestamp}" x:Name="timestamp" Grid.Column="0" Margin="5,0" DockPanel.Dock="Left" HorizontalAlignment="Left" Foreground="{StaticResource TextBoxForeground}"/>
+                            <TextBlock Text="{Binding Level}" x:Name="level" Grid.Column="1" Margin="5,0" DockPanel.Dock="Left" HorizontalAlignment="Left" FontWeight="Bold" Foreground="{Binding LevelColor}"/>
+                            <TextBlock Text="{Binding RenderedMessage}" x:Name="message" Grid.Column="2" TextTrimming="WordEllipsis" FontSize="13" Margin="5,0" HorizontalAlignment="Left"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CustomTabSelectorListbox" TargetType="{x:Type ListBox}">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Margin" Value="5"/>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <Border Grid.Column="0" BorderThickness="0" CornerRadius="0" ToolTip="{Binding Name}" Margin="5">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Image Grid.Column="0" Style="{StaticResource CustomImage}" Source="{Binding ComponentImage}" VerticalAlignment="Center" Height="20" Margin="5"/>
+                                <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3,0">
+                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding HttpPath}" Foreground="{StaticResource TextBoxForeground}" />
+                                    <TextBlock Text="{Binding HttpRoute}" Foreground="{StaticResource TextBoxForeground}" />
+                                </StackPanel>
+                                <Button Grid.Column="2" Style="{StaticResource RoundButton}" Command="{Binding StartStopListenerCommand}" ToolTip="Start/Stop Listener" Height="30" Width="30" VerticalAlignment="Center">
+                                    <Image Style="{StaticResource CustomImage}" Source="{Binding StartStopButtonImage}" Margin="5"/>
+                                </Button>
+                            </Grid>
+                            <ProgressBar Grid.Row="1" Visibility="{Binding Path=IsRunning, Converter={StaticResource BoolToVis}}" Style="{StaticResource CustomProgressBar}" VerticalAlignment="Center" Margin="5"/>
+                        </Grid>
+                    </Border>
+                    <!--<DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" Value="True">
+                            <Setter Property="BorderBrush" TargetName="rdb" Value="{StaticResource DarkBlue}"/>
+                            <Setter Property="BorderThickness" TargetName="rdb" Value="0,0,3,0"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" Value="True">
+                            <Setter Property="Background" TargetName="rdb" Value="{StaticResource LightBlue}"/>
+                            <Setter Property="BorderBrush" TargetName="rdb" Value="LightGray"/>
+                            <Setter Property="BorderThickness" TargetName="rdb" Value="0,0,3,0"/>
+                        </DataTrigger>
+                    </DataTemplate.Triggers>-->
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CustomTabControl" TargetType="{x:Type TabControl}">
+        <Setter Property="TabStripPlacement" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Style.Resources>
+            <Style TargetType="{x:Type TabControl}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TabControl">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible" >
+                                    <TabPanel x:Name="HeaderPanel" 
+                                              Grid.Column="0" 
+                                              Margin="2,2,2,0" 
+                                              IsItemsHost="true"/>
+                                </ScrollViewer>
+                                <ContentPresenter x:Name="PART_SelectedContentHost" 
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                  Margin="{TemplateBinding Padding}"
+                                                  ContentSource="SelectedContent" Grid.Column="1"/>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style TargetType="TabItem">
+                <Setter Property="Background" Value="{StaticResource Toolbar}"/>
+                <Setter Property="Padding" Value="3" />
+                <Setter Property="HeaderTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <Border Grid.Column="0" BorderThickness="0" CornerRadius="0" ToolTip="{Binding Name}" Margin="5" Background="Transparent" Cursor="Hand" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Image Grid.Column="0" Style="{StaticResource CustomImage}" Source="{Binding ComponentImage}" VerticalAlignment="Center" Height="20" Margin="5"/>
+                                        <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3,0">
+                                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding HttpPath}" Foreground="{StaticResource TextBoxForeground}" />
+                                            <TextBlock Text="{Binding HttpRoute}" Foreground="{StaticResource TextBoxForeground}" />
+                                        </StackPanel>
+                                        <Button Grid.Column="2" Style="{StaticResource RoundButton}" Command="{Binding StartStopListenerCommand}" ToolTip="Start/Stop Listener" Height="30" Width="30" VerticalAlignment="Center">
+                                            <Image Style="{StaticResource CustomImage}" Source="{Binding StartStopButtonImage}" Margin="5"/>
+                                        </Button>
+                                    </Grid>
+                                    <ProgressBar Grid.Row="1" Visibility="{Binding Path=IsRunning, Converter={StaticResource BoolToVis}}" Style="{StaticResource CustomProgressBar}" VerticalAlignment="Center" Margin="5"/>
+                                </Grid>
+
+                                <Border.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Edit" Command="{Binding EditComponentCommand}" IsEnabled="{Binding AllowChanges}">
+                                            <MenuItem.Icon>
+                                                <Image Source="{Binding EditImage}" Height="15" Width="15"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Remove" Command="{Binding RemoveComponentCommand}" IsEnabled="{Binding AllowChanges}">
+                                            <MenuItem.Icon>
+                                                <Image Source="{Binding RemoveImage}" Height="15" Width="15"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </Border.ContextMenu>
+                            </Border>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="ContentTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="0">
+                                <Grid Grid.Column="2" Margin="5">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <!-- Levels -->
+                                    <Grid Grid.Row="0" Margin="5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                                            <Image Height="20" Width="20" HorizontalAlignment="Left" ToolTip="Messages" VerticalAlignment="Center" Style="{StaticResource CustomImage}" Source="{Binding MonitorImage}" Opacity="1"/>
+                                            <TextBlock Text="Levels" Margin="5,0" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBoxForeground}"/>
+                                        </StackPanel>
+
+                                        <RadioButton Grid.Row="1" Grid.Column="0" Command="{Binding ClickCommand}" DataContext="{Binding AllLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="0,0,5,0" IsChecked="True"/>
+                                        <RadioButton Grid.Row="1" Grid.Column="1" Command="{Binding ClickCommand}" DataContext="{Binding DebugLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0"/>
+                                        <RadioButton Grid.Row="1" Grid.Column="2" Command="{Binding ClickCommand}" DataContext="{Binding InformationLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0"/>
+                                        <RadioButton Grid.Row="1" Grid.Column="3" Command="{Binding ClickCommand}" DataContext="{Binding WarningLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0"/>
+                                        <RadioButton Grid.Row="1" Grid.Column="4" Command="{Binding ClickCommand}" DataContext="{Binding ErrorLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0"/>
+                                        <RadioButton Grid.Row="1" Grid.Column="5" Command="{Binding ClickCommand}" DataContext="{Binding FatalLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0,0,0"/>
+                                    </Grid>
+                                    <Grid Grid.Row="1" Margin="5,5,5,0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,10">
+                                            <Image Height="20" Width="20" HorizontalAlignment="Left" ToolTip="Messages" VerticalAlignment="Center" Style="{StaticResource CustomImage}" Source="{Binding TerminalImage}" Opacity="1"/>
+                                            <TextBlock Text="Messages" Margin="5,0" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBoxForeground}"/>
+                                        </StackPanel>
+                                        <ListBox Grid.Row="1" x:Name="lst_entries" Style="{StaticResource CustomMessagesListbox}" ItemsSource="{Binding VisibleConsoleMessages, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Style.Resources>
+    </Style>
+</ResourceDictionary>

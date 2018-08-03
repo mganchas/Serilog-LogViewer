@@ -1,0 +1,72 @@
+﻿<Window x:Class="LiveViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LiveViewer"
+        xmlns:vm="clr-namespace:LiveViewer.ViewModel"
+        mc:Ignorable="d"
+        Title="Live Viewer" MinHeight="600" MinWidth="1100">
+
+    <Window.DataContext>
+        <vm:MainVM/>
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Start options -->
+        <Grid Grid.Row="0" Height="55" Background="{StaticResource Toolbar}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <!-- Component name -->
+                <DockPanel Grid.Column="0" HorizontalAlignment="Stretch" Margin="5,0" VerticalAlignment="Center">
+                    <TextBlock Text="Component Name:" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                    <TextBox Text="{Binding ComponentName}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
+                </DockPanel>
+                <!-- Http path -->
+                <DockPanel Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0" VerticalAlignment="Center">
+                    <TextBlock Text="Http path:" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                    <TextBox Text="{Binding HttpPath}" IsReadOnly="{Binding IsRunning}" Foreground="Blue" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
+                </DockPanel>
+                <!-- Http route -->
+                <DockPanel Grid.Column="2" HorizontalAlignment="Stretch" Margin="5,0" VerticalAlignment="Center">
+                    <TextBlock Text="Http Route:" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                    <TextBox Text="{Binding HttpRoute}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
+                </DockPanel>
+            </Grid>
+
+            <!-- Action buttons -->
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,5,0" VerticalAlignment="Center">
+                <Button Style="{StaticResource RoundButton}" Command="{Binding AddListenerCommand}" ToolTip="Start/Stop Listener">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding AddImage}" Margin="5"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Components -->
+        <TabControl Grid.Row="1" BorderThickness="0" Margin="5" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" />
+
+        <!-- Export options -->
+        <Grid Grid.Row="2" Height="50" Background="{StaticResource Toolbar}">
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
+                <Button x:Name="btn_cleanup" Style="{StaticResource RoundButton}" Command="{Binding CleanUpCommand}" ToolTip="Clean data">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding ClearButtonImage}" Margin="5"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
