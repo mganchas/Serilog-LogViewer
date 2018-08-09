@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using GalaSoft.MvvmLight.Command;
 using LiveViewer.Utils;
 using Microsoft.Owin.Hosting;
 using static LiveViewer.ViewModel.LogEventsVM;
@@ -14,9 +15,68 @@ namespace LiveViewer.ViewModel
     {
         private readonly BackgroundWorker asyncWorker = new BackgroundWorker();
 
-        public string Name { get; set; }
-        public string HttpPath { get; set; }
-        public string HttpRoute { get; set; }
+        public ComponentVM Self => this;
+
+        #region Visual properties
+        private string name;
+        public string Name
+        {
+            get { return name; }
+            set { name = value; NotifyPropertyChanged(); }
+        }
+
+        private string httpPath = Constants.DefaultHttpPath;
+        public string HttpPath
+        {
+            get { return httpPath; }
+            set { httpPath = value; NotifyPropertyChanged(); }
+        }
+
+        private string httpRoute = Constants.DefaultHttpRoute;
+        public string HttpRoute
+        {
+            get { return httpRoute; }
+            set { httpRoute = value; NotifyPropertyChanged(); }
+        }
+
+        private bool isFiltered => !String.IsNullOrEmpty(FilterText);
+        private string filterText;
+        public string FilterText
+        {
+            get { return filterText; }
+            set { filterText = value; NotifyPropertyChanged(); }
+        }
+
+        private bool isRunning;
+        public bool IsRunning
+        {
+            get { return isRunning; }
+            set
+            {
+                isRunning = value;
+                AllowChanges = !value;
+                NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(startStopButtonImage));
+                NotifyPropertyChanged(nameof(allowChanged));
+            }
+        }
+
+        private bool allowChanged = true;
+        public bool AllowChanges
+        {
+            get { return allowChanged; }
+            set { allowChanged = value; NotifyPropertyChanged(); }
+        }
+
+        public ObservableCollection<LogEvent> ConsoleMessages { get; set; } = new ObservableCollection<LogEvent>();
+        public ObservableCollection<LogEvent> VisibleConsoleMessages { get; set; } = new ObservableCollection<LogEvent>();
+        #endregion
+
+        #region Labels
+        public string TerminalTitle => Constants.Labels.Messages;
+        public string FilterTitle => Constants.Labels.Filters;
+        public string LevelsTitle => Constants.Labels.Levels;
+        #endregion
 
         #region Images
         private static readonly string SearchImage = $"{Constants.ImagePath}{Constants.ImageSearch}";
@@ -27,11 +87,7 @@ namespace LiveViewer.ViewModel
         public string EditImage => $"{Constants.ImagePath}{Constants.ImageEdit}";
         public string TerminalImage => $"{Constants.ImagePath}{Constants.ImageTerminal}";
         public string MonitorImage => $"{Constants.ImagePath}{Constants.ImageMonitor}";
-        #endregion
-
-        #region Collections
-        public ObservableCollection<LogEvent> ConsoleMessages { get; set; } = new ObservableCollection<LogEvent>();
-        public ObservableCollection<LogEvent> VisibleConsoleMessages { get; set; } = new ObservableCollection<LogEvent>();
+        public string FilterImage => $"{Constants.ImagePath}{Constants.ImageFilter}";
         #endregion
 
         #region Levels
@@ -69,77 +125,52 @@ namespace LiveViewer.ViewModel
             }
         }
 
-        private bool isRunning;
-        public bool IsRunning
-        {
-            get { return isRunning; }
-            set
-            {
-                isRunning = value;
-                AllowChanges = !value;
-                NotifyPropertyChanged();
-                NotifyPropertyChanged(nameof(startStopButtonImage));
-                NotifyPropertyChanged(nameof(allowChanged));
-            }
-        }
-
-        private bool allowChanged;
-        public bool AllowChanges
-        {
-            get { return allowChanged; }
-            set { allowChanged = value; NotifyPropertyChanged(); }
-        }
-
         #region Commands
         public ICommand StartStopListenerCommand { get; set; }
         public ICommand CleanUpCommand { get; set; }
         public ICommand EditComponentCommand { get; set; }
         public ICommand RemoveComponentCommand { get; set; }
+        public ICommand FilterTextChangedCommand { get; set; }
         #endregion
 
         public ComponentVM()
         {
-            /* Set background worker */
-            InitializeBackWorker();
-
             /* Set start/stop command */
-            StartStopListenerCommand = new GenericCommand(() =>
+            StartStopListenerCommand = new RelayCommand(() =>
             {
                 IsRunning = !IsRunning;
-                //try
-                //{
-                    //if (asyncWorker.IsBusy) {
-                    //    asyncWorker.CancelAsync();
-                    //}
-                    //else {
-                    //    asyncWorker.RunWorkerAsync();
-                    //}
-                //}
-                //catch (Exception ex)
-                //{
-                //    MessageBox.Show($"Exception occurred: {ex.Message}");
-                //    asyncWorker.CancelAsync();
-                //}
+                try
+                {
+                    if (asyncWorker.IsBusy)
+                    {
+                        asyncWorker.CancelAsync();
+                    }
+                    else
+                    {
+                        /* Set background worker */
+                        InitializeBackWorker();
+                        asyncWorker.RunWorkerAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Exception occurred: {ex.Message}");
+                    asyncWorker.CancelAsync();
+                }
             });
 
             /* Set edit component command */
 
-            /* Set remove component command */
-            RemoveComponentCommand = new GenericCommand(() =>
-            {
-                
-            });
-
             /* Set messages filter commands */
-            AllLevel = new LevelsVM { LevelType = Levels.LevelTypes.All, TextColor = Levels.GetLevelColor(Levels.LevelTypes.All), ClickCommand = new GenericCommand(() => FilterMessages(Levels.LevelTypes.All)) };
-            DebugLevel = new LevelsVM { LevelType = Levels.LevelTypes.Debug, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Debug), ClickCommand = new GenericCommand(() => FilterMessages(Levels.LevelTypes.Debug)) };
-            InformationLevel = new LevelsVM { LevelType = Levels.LevelTypes.Information, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Information), ClickCommand = new GenericCommand(() => FilterMessages(Levels.LevelTypes.Information)) };
-            WarningLevel = new LevelsVM { LevelType = Levels.LevelTypes.Warning, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Warning), ClickCommand = new GenericCommand(() => FilterMessages(Levels.LevelTypes.Warning)) };
-            ErrorLevel = new LevelsVM { LevelType = Levels.LevelTypes.Error, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Error), ClickCommand = new GenericCommand(() => FilterMessages(Levels.LevelTypes.Error)) };
-            FatalLevel = new LevelsVM { LevelType = Levels.LevelTypes.Fatal, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Fatal), ClickCommand = new GenericCommand(() => FilterMessages(Levels.LevelTypes.Fatal)) };
+            AllLevel = new LevelsVM { LevelType = Levels.LevelTypes.All, TextColor = Levels.GetLevelColor(Levels.LevelTypes.All), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.All)) };
+            DebugLevel = new LevelsVM { LevelType = Levels.LevelTypes.Debug, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Debug), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.Debug)) };
+            InformationLevel = new LevelsVM { LevelType = Levels.LevelTypes.Information, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Information), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.Information)) };
+            WarningLevel = new LevelsVM { LevelType = Levels.LevelTypes.Warning, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Warning), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.Warning)) };
+            ErrorLevel = new LevelsVM { LevelType = Levels.LevelTypes.Error, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Error), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.Error)) };
+            FatalLevel = new LevelsVM { LevelType = Levels.LevelTypes.Fatal, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Fatal), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.Fatal)) };
 
             /* Set cleanup command */
-            CleanUpCommand = new GenericCommand(() =>
+            CleanUpCommand = new RelayCommand(() =>
             {
                 /* Clear collections */
                 ConsoleMessages.Clear();
@@ -153,7 +184,16 @@ namespace LiveViewer.ViewModel
                 ErrorLevel.Counter = 0;
                 FatalLevel.Counter = 0;
 
-            }, (s) => { return true; });
+            });
+
+            /* Set filter text changed command */
+            FilterTextChangedCommand = new RelayCommand(() =>
+            {
+                App.Current.Dispatcher.Invoke(delegate
+                {
+                    FilterMessages(CurrentLevel, filterText: !String.IsNullOrEmpty(FilterText));
+                });
+            });
 
             /* Set message collection onchanged event */
             MessageContainer.Messages.CollectionChanged += (sender, e) =>
@@ -195,7 +235,8 @@ namespace LiveViewer.ViewModel
                                 AllLevel.Counter++;
 
                                 /* add item to current level */
-                                if ((CurrentLevel == Levels.LevelTypes.All) || (CurrentLevel == levelConverted))
+                                if (((CurrentLevel == Levels.LevelTypes.All) || (CurrentLevel == levelConverted)) &&
+                                    (!isFiltered || (isFiltered && msg.RenderedMessage.ToLower().Contains(FilterText.ToLower()))))
                                 {
                                     VisibleConsoleMessages.Add(msg);
                                 }
@@ -223,37 +264,47 @@ namespace LiveViewer.ViewModel
                 {
                     BackgroundWorker bwAsync = sender as BackgroundWorker;
 
-                    using (WebApp.Start<Startup>(HttpPath))
+                    try
                     {
-                        while (!e.Cancel)
+                        using (WebApp.Start<Startup>(HttpPath))
                         {
-                            if (bwAsync.CancellationPending)
+                            while (!e.Cancel)
                             {
-                                e.Cancel = true;
+                                if (bwAsync.CancellationPending)
+                                {
+                                    e.Cancel = true;
+                                }
                             }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Error");
+                    }
                 };
-                
+
             }
 
-            void FilterMessages(Levels.LevelTypes level)
+            void FilterMessages(Levels.LevelTypes level, bool filterText = false)
             {
                 App.Current.Dispatcher.Invoke(delegate
                 {
                     /* reset visible collection */
                     VisibleConsoleMessages.Clear();
 
-                    /* fill visible collection according to filter */
-                    if (level == Levels.LevelTypes.All)
-                    {
-                        ConsoleMessages.ToList().ForEach(x => VisibleConsoleMessages.Add(x));
+                    var levelStr = Levels.GetLevelStringFromType(level);
+                    var consMsgs = ConsoleMessages.AsEnumerable();
+
+                    /* apply filters */
+                    if (level != Levels.LevelTypes.All) {
+                        consMsgs = consMsgs.Where(x => x.Level == levelStr);
                     }
-                    else
-                    {
-                        var levelStr = Levels.GetLevelStringFromType(level);
-                        ConsoleMessages.Where(x => x.Level == levelStr).ToList().ForEach(x => VisibleConsoleMessages.Add(x));
+                    if (filterText) {
+                        consMsgs = consMsgs.Where(x => x.RenderedMessage.ToLower().Contains(FilterText?.ToLower()));
                     }
+
+                    /* filter observable list */
+                    consMsgs.ToList().ForEach(x => VisibleConsoleMessages.Add(x));
 
                     /* set current selected level */
                     CurrentLevel = level;

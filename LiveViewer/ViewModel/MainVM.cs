@@ -8,11 +8,15 @@ using Microsoft.Owin.Hosting;
 using LiveViewer.Utils;
 using static LiveViewer.ViewModel.LogEventsVM;
 using static LiveViewer.Utils.States;
+using GalaSoft.MvvmLight.Command;
 
 namespace LiveViewer.ViewModel
 {
     public class MainVM : BaseVM
     {
+        #region Visual properties
+        public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
+
         private string componentName = Constants.DefaultName;
         public string ComponentName
         {
@@ -20,12 +24,26 @@ namespace LiveViewer.ViewModel
             set { componentName = value; NotifyPropertyChanged(); }
         }
 
-        public string HttpPath { get; set; } = Constants.DefaultHttpPath;
-        public string HttpRoute { get; set; } = Constants.DefaultHttpRoute;
-        public ComponentVM SelectedComponent { get; set; }
+        private string httpPath = Constants.DefaultHttpPath;
+        public string HttpPath
+        {
+            get { return httpPath; }
+            set { httpPath = value; NotifyPropertyChanged(); }
+        }
 
-        #region Collections
-        public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
+        private string httpRoute = Constants.DefaultHttpRoute;
+        public string HttpRoute
+        {
+            get { return httpRoute; }
+            set { httpRoute = value; NotifyPropertyChanged(); }
+        }
+
+        private ComponentVM selectedComponent;
+        public ComponentVM SelectedComponent
+        {
+            get { return selectedComponent; }
+            set { selectedComponent = value; NotifyPropertyChanged(); }
+        }
         #endregion
 
         #region Commands
@@ -45,15 +63,8 @@ namespace LiveViewer.ViewModel
 
         public MainVM()
         {
-            /* add dummy components */
-            Components.Add(new ComponentVM { Name = "Batatas", HttpPath = Constants.DefaultHttpPath, IsRunning = true, HttpRoute = Constants.DefaultHttpRoute });
-            Components.Add(new ComponentVM { Name = "Couves", HttpPath = Constants.DefaultHttpPath, IsRunning = false, HttpRoute = Constants.DefaultHttpRoute });
-            Components.Add(new ComponentVM { Name = "Cenouras", HttpPath = Constants.DefaultHttpPath, IsRunning = true, HttpRoute = Constants.DefaultHttpRoute });
-            Components.Add(new ComponentVM { Name = "Alho Francês", HttpPath = Constants.DefaultHttpPath, IsRunning = true, HttpRoute = Constants.DefaultHttpRoute });
-            Components.Add(new ComponentVM { Name = "Couve-Flor", HttpPath = Constants.DefaultHttpPath, IsRunning = true, HttpRoute = Constants.DefaultHttpRoute });
-
             /* Set remove command for components list */
-            RemoveComponentCommand = new GenericCommand(() =>
+            RemoveComponentCommand = new RelayCommand(() =>
             {
                 /* Stop listening for component (if it's running) */
                 if (SelectedComponent.IsRunning) { SelectedComponent.StartStopListenerCommand.Execute(null); }
@@ -62,7 +73,7 @@ namespace LiveViewer.ViewModel
                 Components.Remove(SelectedComponent);
             });
 
-            AddListenerCommand = new GenericCommand(() =>
+            AddListenerCommand = new RelayCommand(() =>
             {
                 if (String.IsNullOrEmpty(HttpPath) || String.IsNullOrEmpty(HttpRoute) || String.IsNullOrEmpty(ComponentName))
                 {
@@ -70,32 +81,52 @@ namespace LiveViewer.ViewModel
                     return;
                 }
 
+                if (!HttpPath.Contains("http"))
+                {
+                    MessageBox.Show("Invalid Http path", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    return;
+                }
+
                 /* Check if component already exists */
-                if (Components.Any(x => x.Name == this.ComponentName))
+                if (Components.Any(x => x.Name == this.ComponentName || x.HttpPath == this.HttpPath || x.HttpRoute == this.HttpRoute))
                 {
                     MessageBox.Show("Component already on the Components list", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
                 else
                 {
-                    Components.Add(new ComponentVM
+                    // add new listener to list
+                    var newComponent = new ComponentVM
                     {
                         HttpPath = this.HttpPath,
                         HttpRoute = this.HttpRoute,
-                        Name = this.ComponentName
-                    });
+                        Name = this.ComponentName,
+                        RemoveComponentCommand = new RelayCommand<object>(comp =>
+                        {
+                            Components.Remove(comp as ComponentVM);
+                        })
+                    };
+                    Components.Add(newComponent);
+
+                    // select last added component
+                    SelectedComponent = Components.First(x => x == newComponent);
+
+                    // clear input data
+                    this.HttpPath = string.Empty;
+                    this.HttpRoute = string.Empty;
                     this.ComponentName = String.Empty;
                 }
             });
 
             /* Set cleanup command */
-            CleanUpCommand = new GenericCommand(() =>
+            CleanUpCommand = new RelayCommand(() =>
             {
                 /* Clear data for each component */
                 foreach (var item in Components)
                 {
                     item.CleanUpCommand.Execute(null);
                 }
-            }, (s) => { return true; });
+            });
+
         }
     }
 }

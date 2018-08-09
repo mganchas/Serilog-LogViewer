@@ -20,5 +20,13 @@
         public const string ImageComponent = "component.png";
         public const string ImageTerminal = "terminal.png";
         public const string ImageMonitor = "monitor.png";
+        public const string ImageFilter = "filter.png";
+
+        public class Labels
+        {
+            public const string Messages = nameof(Messages);
+            public const string Filters = nameof(Filters);
+            public const string Levels = nameof(Levels);
+        }
     }
 }

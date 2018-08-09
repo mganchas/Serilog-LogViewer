@@ -12,7 +12,7 @@
         <vm:MainVM/>
     </Window.DataContext>
 
-    <Grid>
+    <Grid Margin="-1,0,-0.4,-0.4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
@@ -20,7 +20,7 @@
         </Grid.RowDefinitions>
 
         <!-- Start options -->
-        <Grid Grid.Row="0" Height="55" Background="{StaticResource Toolbar}">
+        <Grid Grid.Row="0" Height="55" Background="{StaticResource Toolbar}" Margin="0,0,1,0.2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
@@ -57,11 +57,14 @@
             </StackPanel>
         </Grid>
 
+        <!-- Dummy Textbox -->
+        <TextBlock Grid.Row="1" Text="Please add a listener" Margin="328,192.8,328,192" VerticalAlignment="Center" HorizontalAlignment="Center" FontStyle="Italic"/>
+
         <!-- Components -->
-        <TabControl Grid.Row="1" BorderThickness="0" Margin="5" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" />
+        <TabControl Grid.Row="1" BorderThickness="0" Margin="5,4.8,6,5" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" />
 
         <!-- Export options -->
-        <Grid Grid.Row="2" Height="50" Background="{StaticResource Toolbar}">
+        <Grid Grid.Row="2" Height="50" Background="{StaticResource Toolbar}" Margin="0,0,1,-0.4">
             <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
                 <Button x:Name="btn_cleanup" Style="{StaticResource RoundButton}" Command="{Binding CleanUpCommand}" ToolTip="Clean data">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding ClearButtonImage}" Margin="5"/>
