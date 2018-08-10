@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows.Media;
 
 namespace LiveViewer.Utils
@@ -8,10 +9,23 @@ namespace LiveViewer.Utils
         public enum LevelTypes
         {
             All,
+
+            [Description("VRB")]
+            Verbose,
+
+            [Description("DBG")]
             Debug,
+
+            [Description("INF")]
             Information,
+
+            [Description("WRN")]
             Warning,
+
+            [Description("ERR")]
             Error,
+
+            [Description("FTL")]
             Fatal
         }
 
@@ -19,6 +33,8 @@ namespace LiveViewer.Utils
         {
             switch (level)
             {
+                case LevelTypes.Verbose:
+                    return Brushes.Purple;
                 case LevelTypes.Debug:
                     return Brushes.Gray;
                 case LevelTypes.Information:
@@ -39,7 +55,11 @@ namespace LiveViewer.Utils
         {
             foreach (var item in Enum.GetNames(typeof(LevelTypes)))
             {
-                if (item == levelString) {
+                var field = typeof(LevelTypes).GetField(item);
+                var attr = field?.GetCustomAttributes(typeof(DescriptionAttribute), false);
+                var desc = (attr == null || attr.Length == 0) ? string.Empty : (attr[0] as DescriptionAttribute).Description;
+
+                if (item == levelString || desc == levelString) {
                     return (LevelTypes)Enum.Parse(typeof(LevelTypes), item);
                 }
             }

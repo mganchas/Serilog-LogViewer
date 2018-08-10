@@ -1,21 +1,26 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using GalaSoft.MvvmLight.Command;
 using LiveViewer.Utils;
 using Microsoft.Owin.Hosting;
+using Newtonsoft.Json;
 using static LiveViewer.ViewModel.LogEventsVM;
 
 namespace LiveViewer.ViewModel
 {
-    public class ComponentVM : BaseVM
+    public abstract class ComponentVM : BaseVM
     {
-        private readonly BackgroundWorker asyncWorker = new BackgroundWorker();
-
         public ComponentVM Self => this;
+        protected BackgroundWorker asyncWorker = new BackgroundWorker();
+        private readonly ComponentTypes componentType;
 
         #region Visual properties
         private string name;
@@ -25,21 +30,23 @@ namespace LiveViewer.ViewModel
             set { name = value; NotifyPropertyChanged(); }
         }
 
-        private string httpPath = Constants.DefaultHttpPath;
-        public string HttpPath
+        protected string transfPath => !Path.EndsWith("/") ? $"{Path}/" : Path;
+        private string path = Constants.Component.DefaultHttpPath;
+        public string Path
         {
-            get { return httpPath; }
-            set { httpPath = value; NotifyPropertyChanged(); }
+            get { return path; }
+            set { path = value; NotifyPropertyChanged(); }
         }
 
-        private string httpRoute = Constants.DefaultHttpRoute;
+        protected string transfHttpRoute => !HttpRoute.EndsWith("/") ? $"{HttpRoute}/" : HttpRoute;
+        private string httpRoute = Constants.Component.DefaultHttpRoute;
         public string HttpRoute
         {
             get { return httpRoute; }
             set { httpRoute = value; NotifyPropertyChanged(); }
         }
 
-        private bool isFiltered => !String.IsNullOrEmpty(FilterText);
+        protected bool IsFiltered => !String.IsNullOrEmpty(FilterText);
         private string filterText;
         public string FilterText
         {
@@ -79,20 +86,21 @@ namespace LiveViewer.ViewModel
         #endregion
 
         #region Images
-        private static readonly string SearchImage = $"{Constants.ImagePath}{Constants.ImageSearch}";
-        private static readonly string CancelImage = $"{Constants.ImagePath}{Constants.ImageCancel}";
+        private readonly string SearchImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
+        private readonly string CancelImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
 
-        public string RemoveImage => $"{Constants.ImagePath}{Constants.ImageDelete}";
-        public string ComponentImage => $"{Constants.ImagePath}{Constants.ImageComponent}";
-        public string EditImage => $"{Constants.ImagePath}{Constants.ImageEdit}";
-        public string TerminalImage => $"{Constants.ImagePath}{Constants.ImageTerminal}";
-        public string MonitorImage => $"{Constants.ImagePath}{Constants.ImageMonitor}";
-        public string FilterImage => $"{Constants.ImagePath}{Constants.ImageFilter}";
+        public string RemoveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageDelete}";
+        public abstract string ComponentImage { get; }
+        public string EditImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageEdit}";
+        public string TerminalImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageTerminal}";
+        public string MonitorImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageMonitor}";
+        public string FilterImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFilter}";
         #endregion
 
         #region Levels
         public Levels.LevelTypes CurrentLevel { get; set; } = Levels.LevelTypes.All;
         public LevelsVM AllLevel { get; set; }
+        public LevelsVM VerboseLevel { get; set; }
         public LevelsVM DebugLevel { get; set; }
         public LevelsVM InformationLevel { get; set; }
         public LevelsVM WarningLevel { get; set; }
@@ -100,7 +108,7 @@ namespace LiveViewer.ViewModel
         public LevelsVM FatalLevel { get; set; }
         #endregion
 
-        private string startStopButtonImage = SearchImage;
+        private string startStopButtonImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
         public string StartStopButtonImage
         {
             get
@@ -133,36 +141,14 @@ namespace LiveViewer.ViewModel
         public ICommand FilterTextChangedCommand { get; set; }
         #endregion
 
-        public ComponentVM()
+        protected ComponentVM(ComponentTypes componentType, string name)
         {
-            /* Set start/stop command */
-            StartStopListenerCommand = new RelayCommand(() =>
-            {
-                IsRunning = !IsRunning;
-                try
-                {
-                    if (asyncWorker.IsBusy)
-                    {
-                        asyncWorker.CancelAsync();
-                    }
-                    else
-                    {
-                        /* Set background worker */
-                        InitializeBackWorker();
-                        asyncWorker.RunWorkerAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Exception occurred: {ex.Message}");
-                    asyncWorker.CancelAsync();
-                }
-            });
-
-            /* Set edit component command */
+            this.Name = name;
+            this.componentType = componentType;
 
             /* Set messages filter commands */
             AllLevel = new LevelsVM { LevelType = Levels.LevelTypes.All, TextColor = Levels.GetLevelColor(Levels.LevelTypes.All), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.All)) };
+            VerboseLevel = new LevelsVM { LevelType = Levels.LevelTypes.Verbose, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Verbose), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.Verbose)) };
             DebugLevel = new LevelsVM { LevelType = Levels.LevelTypes.Debug, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Debug), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.Debug)) };
             InformationLevel = new LevelsVM { LevelType = Levels.LevelTypes.Information, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Information), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.Information)) };
             WarningLevel = new LevelsVM { LevelType = Levels.LevelTypes.Warning, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Warning), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.Warning)) };
@@ -178,6 +164,7 @@ namespace LiveViewer.ViewModel
 
                 /* Clear counters */
                 AllLevel.Counter = 0;
+                VerboseLevel.Counter = 0;
                 DebugLevel.Counter = 0;
                 InformationLevel.Counter = 0;
                 WarningLevel.Counter = 0;
@@ -195,96 +182,7 @@ namespace LiveViewer.ViewModel
                 });
             });
 
-            /* Set message collection onchanged event */
-            MessageContainer.Messages.CollectionChanged += (sender, e) =>
-            {
-                if (e.NewItems != null)
-                {
-                    try
-                    {
-                        foreach (LogEvent msg in e.NewItems)
-                        {
-                            var levelConverted = Levels.GetLevelTypeFromString(msg.Level);
-                            msg.LevelColor = Levels.GetLevelColor(levelConverted);
-
-                            App.Current.Dispatcher.Invoke(delegate
-                            {
-                                /* increment specific button counter */
-                                switch (levelConverted)
-                                {
-                                    case Levels.LevelTypes.Debug:
-                                        DebugLevel.Counter++;
-                                        break;
-                                    case Levels.LevelTypes.Information:
-                                        InformationLevel.Counter++;
-                                        break;
-                                    case Levels.LevelTypes.Warning:
-                                        WarningLevel.Counter++;
-                                        break;
-                                    case Levels.LevelTypes.Error:
-                                        ErrorLevel.Counter++;
-                                        break;
-                                    case Levels.LevelTypes.Fatal:
-                                        FatalLevel.Counter++;
-                                        break;
-                                    default:
-                                        break;
-                                }
-
-                                /* increment all category */
-                                AllLevel.Counter++;
-
-                                /* add item to current level */
-                                if (((CurrentLevel == Levels.LevelTypes.All) || (CurrentLevel == levelConverted)) &&
-                                    (!isFiltered || (isFiltered && msg.RenderedMessage.ToLower().Contains(FilterText.ToLower()))))
-                                {
-                                    VisibleConsoleMessages.Add(msg);
-                                }
-
-                                /* add item to console messages */
-                                ConsoleMessages.Add(msg);
-                            });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message);
-                        throw;
-                    }
-                }
-            };
-
             #region Local functions
-            void InitializeBackWorker()
-            {
-                asyncWorker.WorkerReportsProgress = true;
-                asyncWorker.WorkerSupportsCancellation = true;
-                asyncWorker.RunWorkerCompleted += delegate { if (IsRunning) IsRunning = false; };
-                asyncWorker.DoWork += (sender, e) =>
-                {
-                    BackgroundWorker bwAsync = sender as BackgroundWorker;
-
-                    try
-                    {
-                        using (WebApp.Start<Startup>(HttpPath))
-                        {
-                            while (!e.Cancel)
-                            {
-                                if (bwAsync.CancellationPending)
-                                {
-                                    e.Cancel = true;
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Error");
-                    }
-                };
-
-            }
-
             void FilterMessages(Levels.LevelTypes level, bool filterText = false)
             {
                 App.Current.Dispatcher.Invoke(delegate
@@ -292,12 +190,11 @@ namespace LiveViewer.ViewModel
                     /* reset visible collection */
                     VisibleConsoleMessages.Clear();
 
-                    var levelStr = Levels.GetLevelStringFromType(level);
                     var consMsgs = ConsoleMessages.AsEnumerable();
 
                     /* apply filters */
                     if (level != Levels.LevelTypes.All) {
-                        consMsgs = consMsgs.Where(x => x.Level == levelStr);
+                        consMsgs = consMsgs.Where(x => x.LevelType == level);
                     }
                     if (filterText) {
                         consMsgs = consMsgs.Where(x => x.RenderedMessage.ToLower().Contains(FilterText?.ToLower()));
@@ -312,5 +209,7 @@ namespace LiveViewer.ViewModel
             }
             #endregion
         }
+
+        protected abstract void InitializeBackWorker();
     }
 }

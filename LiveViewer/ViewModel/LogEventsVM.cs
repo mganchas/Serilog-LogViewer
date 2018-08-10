@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Media;
+using static LiveViewer.Utils.Levels;
 
 namespace LiveViewer.ViewModel
 {
@@ -9,6 +10,7 @@ namespace LiveViewer.ViewModel
         {
             public DateTime Timestamp { get; set; }
             public string Level { get; set; }
+            public LevelTypes LevelType { get; set; }
             public string SourceContext { get; set; }
             public string RenderedMessage { get; set; }
             public string Exception { get; set; }

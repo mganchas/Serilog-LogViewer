@@ -118,6 +118,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controllers\LogEventsController.cs" />
+    <Compile Include="Utils\ComponentTypes.cs" />
+    <Compile Include="Utils\FileProcessor.cs" />
     <Compile Include="Utils\Startup.cs" />
     <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\LevelTypes.cs" />
@@ -125,6 +127,8 @@
     <Compile Include="Utils\StateTypes.cs" />
     <Compile Include="ViewModel\BaseVM.cs" />
     <Compile Include="ViewModel\ComponentVM.cs" />
+    <Compile Include="ViewModel\FileComponentVM.cs" />
+    <Compile Include="ViewModel\HttpComponentVM.cs" />
     <Compile Include="ViewModel\LevelsVM.cs" />
     <Compile Include="ViewModel\LogEventsVM.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
@@ -220,6 +224,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\filter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\file.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

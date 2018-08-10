@@ -6,13 +6,13 @@
         xmlns:local="clr-namespace:LiveViewer"
         xmlns:vm="clr-namespace:LiveViewer.ViewModel"
         mc:Ignorable="d"
-        Title="Live Viewer" MinHeight="600" MinWidth="1100">
+        Title="Live Viewer" MinHeight="600" MinWidth="1100" Height="600" Width="1100">
 
     <Window.DataContext>
         <vm:MainVM/>
     </Window.DataContext>
 
-    <Grid Margin="-1,0,-0.4,-0.4">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
@@ -20,7 +20,7 @@
         </Grid.RowDefinitions>
 
         <!-- Start options -->
-        <Grid Grid.Row="0" Height="55" Background="{StaticResource Toolbar}" Margin="0,0,1,0.2">
+        <Grid Grid.Row="0" Height="65" Background="{StaticResource Toolbar}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
@@ -28,29 +28,48 @@
 
             <Grid Grid.Column="0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
                 <!-- Component name -->
-                <DockPanel Grid.Column="0" HorizontalAlignment="Stretch" Margin="5,0" VerticalAlignment="Center">
-                    <TextBlock Text="Component Name:" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
-                    <TextBox Text="{Binding ComponentName}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
-                </DockPanel>
+                <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding ComponentNameLabel}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding ComponentName}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
+                
                 <!-- Http path -->
-                <DockPanel Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0" VerticalAlignment="Center">
-                    <TextBlock Text="Http path:" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
-                    <TextBox Text="{Binding HttpPath}" IsReadOnly="{Binding IsRunning}" Foreground="Blue" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
-                </DockPanel>
+                <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding HttpPathLabel}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                <TextBox Grid.Column="3" Grid.Row="0" Text="{Binding HttpPath}" IsReadOnly="{Binding IsRunning}" Foreground="Blue" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
+                
                 <!-- Http route -->
-                <DockPanel Grid.Column="2" HorizontalAlignment="Stretch" Margin="5,0" VerticalAlignment="Center">
-                    <TextBlock Text="Http Route:" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
-                    <TextBox Text="{Binding HttpRoute}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
-                </DockPanel>
+                <TextBlock Grid.Column="4" Grid.Row="0" Text="{Binding HttpRouteLabel}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                <TextBox Grid.Column="5" Grid.Row="0" Text="{Binding HttpRoute}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
+
+                <!-- Http Selector -->
+                <RadioButton Grid.Column="6" Grid.Row="0" VerticalAlignment="Center" Margin="3.8,9,5.8,9" IsChecked="{Binding HttpSelector}"/>
+
+                <!-- 'File' name -->
+                <TextBlock Grid.Column="0" Grid.Row="1" Text="{Binding FileNameLabel}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding FileName}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
+
+                <!-- File path -->
+                <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding FilePathLabel}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                <TextBox Grid.Column="3" Grid.ColumnSpan="3" Grid.Row="1" Text="{Binding FilePath}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
+
+                <!-- File Selector -->
+                <RadioButton Grid.Column="6" Grid.Row="1" VerticalAlignment="Center" Margin="5" IsChecked="{Binding FileSelector}"/>
             </Grid>
 
             <!-- Action buttons -->
-            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,5,0" VerticalAlignment="Center">
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center">
                 <Button Style="{StaticResource RoundButton}" Command="{Binding AddListenerCommand}" ToolTip="Start/Stop Listener">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding AddImage}" Margin="5"/>
                 </Button>
@@ -58,13 +77,13 @@
         </Grid>
 
         <!-- Dummy Textbox -->
-        <TextBlock Grid.Row="1" Text="Please add a listener" Margin="328,192.8,328,192" VerticalAlignment="Center" HorizontalAlignment="Center" FontStyle="Italic"/>
+        <TextBlock Grid.Row="1" Text="Please add a listener" VerticalAlignment="Center" HorizontalAlignment="Center" FontStyle="Italic"/>
 
         <!-- Components -->
-        <TabControl Grid.Row="1" BorderThickness="0" Margin="5,4.8,6,5" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" />
+        <TabControl Grid.Row="1" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" />
 
         <!-- Export options -->
-        <Grid Grid.Row="2" Height="50" Background="{StaticResource Toolbar}" Margin="0,0,1,-0.4">
+        <Grid Grid.Row="2" Height="50" Background="{StaticResource Toolbar}">
             <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
                 <Button x:Name="btn_cleanup" Style="{StaticResource RoundButton}" Command="{Binding CleanUpCommand}" ToolTip="Clean data">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding ClearButtonImage}" Margin="5"/>
