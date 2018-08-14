@@ -20,7 +20,6 @@ namespace LiveViewer.ViewModel
     {
         public ComponentVM Self => this;
         protected BackgroundWorker asyncWorker = new BackgroundWorker();
-        private readonly ComponentTypes componentType;
 
         #region Visual properties
         private string name;
@@ -30,20 +29,11 @@ namespace LiveViewer.ViewModel
             set { name = value; NotifyPropertyChanged(); }
         }
 
-        protected string transfPath => !Path.EndsWith("/") ? $"{Path}/" : Path;
         private string path = Constants.Component.DefaultHttpPath;
         public string Path
         {
             get { return path; }
             set { path = value; NotifyPropertyChanged(); }
-        }
-
-        protected string transfHttpRoute => !HttpRoute.EndsWith("/") ? $"{HttpRoute}/" : HttpRoute;
-        private string httpRoute = Constants.Component.DefaultHttpRoute;
-        public string HttpRoute
-        {
-            get { return httpRoute; }
-            set { httpRoute = value; NotifyPropertyChanged(); }
         }
 
         protected bool IsFiltered => !String.IsNullOrEmpty(FilterText);
@@ -63,16 +53,36 @@ namespace LiveViewer.ViewModel
                 isRunning = value;
                 AllowChanges = !value;
                 NotifyPropertyChanged();
-                NotifyPropertyChanged(nameof(startStopButtonImage));
-                NotifyPropertyChanged(nameof(allowChanged));
+                NotifyPropertyChanged(nameof(StartStopButtonImage));
+                NotifyPropertyChanged(nameof(AllowChanges));
             }
         }
 
-        private bool allowChanged = true;
+        private bool allowChanges = true;
         public bool AllowChanges
         {
-            get { return allowChanged; }
-            set { allowChanged = value; NotifyPropertyChanged(); }
+            get { return allowChanges; }
+            set { allowChanges = value; NotifyPropertyChanged(); }
+        }
+
+        private bool editMode = false;
+        public bool EditMode
+        {
+            get { return editMode; }
+            set
+            {
+                editMode = value;
+                ReadMode = !value;
+                NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(ReadMode));
+            }
+        }
+
+        private bool readMode = true;
+        public bool ReadMode
+        {
+            get { return readMode; }
+            set { readMode = value; NotifyPropertyChanged(); }
         }
 
         public ObservableCollection<LogEvent> ConsoleMessages { get; set; } = new ObservableCollection<LogEvent>();
@@ -83,15 +93,19 @@ namespace LiveViewer.ViewModel
         public string TerminalTitle => Constants.Labels.Messages;
         public string FilterTitle => Constants.Labels.Filters;
         public string LevelsTitle => Constants.Labels.Levels;
+        public string EditTitle => Constants.Labels.Edit;
+        public string RemoveTitle => Constants.Labels.Remove;
+        public string StartStopTitle => Constants.Labels.StartStop;
+        public string SaveChangesTitle => Constants.Labels.SaveChanges;
         #endregion
 
         #region Images
-        private readonly string SearchImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
-        private readonly string CancelImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
-
-        public string RemoveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageDelete}";
         public abstract string ComponentImage { get; }
+        private string SearchImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
+        private string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
+        public string RemoveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageDelete}";
         public string EditImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageEdit}";
+        public string SaveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSave}";
         public string TerminalImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageTerminal}";
         public string MonitorImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageMonitor}";
         public string FilterImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFilter}";
@@ -138,13 +152,14 @@ namespace LiveViewer.ViewModel
         public ICommand CleanUpCommand { get; set; }
         public ICommand EditComponentCommand { get; set; }
         public ICommand RemoveComponentCommand { get; set; }
+        public ICommand SaveChangesCommand { get; set; }
         public ICommand FilterTextChangedCommand { get; set; }
         #endregion
 
-        protected ComponentVM(ComponentTypes componentType, string name)
+        protected ComponentVM(string name, string path)
         {
             this.Name = name;
-            this.componentType = componentType;
+            this.Path = path;
 
             /* Set messages filter commands */
             AllLevel = new LevelsVM { LevelType = Levels.LevelTypes.All, TextColor = Levels.GetLevelColor(Levels.LevelTypes.All), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.All)) };
@@ -156,8 +171,13 @@ namespace LiveViewer.ViewModel
             FatalLevel = new LevelsVM { LevelType = Levels.LevelTypes.Fatal, TextColor = Levels.GetLevelColor(Levels.LevelTypes.Fatal), ClickCommand = new RelayCommand(() => FilterMessages(Levels.LevelTypes.Fatal)) };
 
             /* Set cleanup command */
-            CleanUpCommand = new RelayCommand(() =>
+            CleanUpCommand = new RelayCommand<bool>((canClean) =>
             {
+                if (!canClean) { return; }
+
+                /* Specific clean actions */
+                ClearComponent();
+
                 /* Clear collections */
                 ConsoleMessages.Clear();
                 VisibleConsoleMessages.Clear();
@@ -171,6 +191,18 @@ namespace LiveViewer.ViewModel
                 ErrorLevel.Counter = 0;
                 FatalLevel.Counter = 0;
 
+            });
+
+            /* Set edit component command */
+            EditComponentCommand = new RelayCommand(() =>
+            {
+                EditMode = !EditMode;
+            });
+
+            /* Set save changes command */
+            SaveChangesCommand = new RelayCommand(() =>
+            {
+                EditMode = false;
             });
 
             /* Set filter text changed command */
@@ -193,10 +225,12 @@ namespace LiveViewer.ViewModel
                     var consMsgs = ConsoleMessages.AsEnumerable();
 
                     /* apply filters */
-                    if (level != Levels.LevelTypes.All) {
+                    if (level != Levels.LevelTypes.All)
+                    {
                         consMsgs = consMsgs.Where(x => x.LevelType == level);
                     }
-                    if (filterText) {
+                    if (filterText)
+                    {
                         consMsgs = consMsgs.Where(x => x.RenderedMessage.ToLower().Contains(FilterText?.ToLower()));
                     }
 
@@ -211,5 +245,7 @@ namespace LiveViewer.ViewModel
         }
 
         protected abstract void InitializeBackWorker();
+        public abstract void RemoveComponent();
+        public abstract void ClearComponent();
     }
 }

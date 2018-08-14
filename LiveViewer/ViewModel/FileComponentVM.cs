@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using GalaSoft.MvvmLight.Command;
 using LiveViewer.Utils;
@@ -16,7 +12,7 @@ namespace LiveViewer.ViewModel
     {
         public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}";
 
-        public FileComponentVM(string name) : base(ComponentTypes.Http, name)
+        public FileComponentVM(string name, string path) : base(name, path)
         {
             /* Add new message queue */
             MessageContainer.FileMessages.Add(Name, new System.Collections.ObjectModel.ObservableCollection<LogEvent>());
@@ -33,8 +29,8 @@ namespace LiveViewer.ViewModel
                     }
                     else
                     {
-                        /* Clear previous entries (if file) */
-                        CleanUpCommand.Execute(null);
+                        /* Clear previous entries */
+                        CleanUpCommand.Execute(true);
 
                         /* Set background worker */
                         InitializeBackWorker();
@@ -141,6 +137,16 @@ namespace LiveViewer.ViewModel
                     MessageBox.Show(ex.Message, "Error");
                 }
             };
+        }
+
+        public override void RemoveComponent()
+        {
+            MessageContainer.FileMessages.Remove(this.Name);
+        }
+
+        public override void ClearComponent()
+        {
+            MessageContainer.FileMessages[this.Name].Clear();
         }
     }
 }

@@ -11,11 +11,23 @@ namespace LiveViewer.ViewModel
     public class HttpComponentVM : ComponentVM
     {
         public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}";
+        private string transfPath => !Path.EndsWith("/") ? $"{Path}/" : Path;
+        //private string transfHttpRoute => !HttpRoute.EndsWith("/") ? $"{HttpRoute}/" : HttpRoute;
+        private string transfFullHttp => $"{transfPath}{HttpRoute}";
 
-        public HttpComponentVM(string name) : base(ComponentTypes.Http, name)
+        private string httpRoute = Constants.Component.DefaultHttpRoute;
+        public string HttpRoute
         {
+            get { return httpRoute; }
+            set { httpRoute = value; NotifyPropertyChanged(); }
+        }
+
+        public HttpComponentVM(string name, string path, string httpRoute) : base(name, path)
+        {
+            this.HttpRoute = httpRoute;
+
             /* Add new message queue */
-            MessageContainer.HttpMessages.Add(Name, new System.Collections.ObjectModel.ObservableCollection<LogEvent>());
+            MessageContainer.HttpMessages.Add(transfFullHttp, new System.Collections.ObjectModel.ObservableCollection<LogEvent>());
 
             /* Set start/stop command */
             StartStopListenerCommand = new RelayCommand(() =>
@@ -42,7 +54,7 @@ namespace LiveViewer.ViewModel
             });
 
             /* Set message collection onchanged event */
-            MessageContainer.HttpMessages[this.Name].CollectionChanged += (sender, e) =>
+            MessageContainer.HttpMessages[transfFullHttp].CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning) { return; }
 
@@ -116,7 +128,7 @@ namespace LiveViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
-                    using (WebApp.Start<Startup>($"{transfPath}{transfHttpRoute}"))
+                    using (WebApp.Start<Startup>(transfFullHttp))
                     {
                         while (!e.Cancel)
                         {
@@ -132,6 +144,16 @@ namespace LiveViewer.ViewModel
                     MessageBox.Show(ex.Message, "Error");
                 }
             };
+        }
+
+        public override void RemoveComponent()
+        {
+            MessageContainer.HttpMessages.Remove(this.transfFullHttp);
+        }
+
+        public override void ClearComponent()
+        {
+            MessageContainer.HttpMessages[this.transfFullHttp].Clear();
         }
     }
 }

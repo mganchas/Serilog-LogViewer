@@ -38,30 +38,40 @@ namespace LiveViewer.Utils
                     var level_end = line.IndexOf(']');
                     var split = line.Split(' ');
 
-                    sb.Append(line);
                     isValid = !(split.Length < 5 || level_init == -1 || level_end == -1 || (level_end - level_init) != 4);
 
-                    if (isValid && sb.Length > 0)
+                    if (!isValid) // add to queue
                     {
-                        // previous event lines
-                        string prevLines = sb.ToString();
-                        prevLines = prevLines.Remove(prevLines.IndexOf(line));
-
-                        if (!String.IsNullOrEmpty(prevLines))
+                        sb.AppendLine(line);
+                    }
+                    else
+                    {
+                        if (sb.Length == 0) // first valid line
                         {
-                            // convert to class obj
+                            sb.AppendLine(line);
+                        }
+                        else
+                        {
+                            // previous event lines
+                            string prevLines = sb.ToString();
+                            
+                            // convert previous event to class obj
                             var logEvent = new LogEvent
                             {
-                                Timestamp = DateTime.Parse(line.Substring(0, 29)),
-                                Level = line.Substring(level_init + 1, 3),
-                                RenderedMessage = line.Substring(level_end + 1)
+                                Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
+                                Level = prevLines.Substring(level_init + 1, 3),
+                                RenderedMessage = prevLines.Substring(level_end + 1)
                             };
                             MessageContainer.FileMessages[componentName].Add(logEvent);
 
-                            // remove inserted event
-                            sb.Remove(sb.ToString().IndexOf(prevLines), prevLines.Length);
+                            // remove previous event
+                            sb.Clear();
+
+                            // add current event to queue
+                            sb.AppendLine(line);
                         }
                     }
+
                     read++;
                     if ((read % 10000) == 0) { GC.Collect(); }
                 }

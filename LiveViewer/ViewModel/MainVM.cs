@@ -20,7 +20,6 @@ namespace LiveViewer.ViewModel
         public string HttpRouteLabel => $"{Constants.Labels.HttpRoute}:";
         public string FileNameLabel => $"{Constants.Labels.FileName}:";
         public string FilePathLabel => $"{Constants.Labels.FilePath}:";
-        
 
         public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
 
@@ -66,6 +65,13 @@ namespace LiveViewer.ViewModel
             set { selectedComponent = value; NotifyPropertyChanged(); }
         }
 
+        private int selectedIndex;
+        public int SelectedIndex
+        {
+            get { return selectedIndex; }
+            set { selectedIndex = value; NotifyPropertyChanged(); }
+        }
+
         private bool httpSelector = true;
         public bool HttpSelector
         {
@@ -84,37 +90,20 @@ namespace LiveViewer.ViewModel
         #region Commands
         public ICommand AddListenerCommand { get; set; }
         public ICommand CleanUpCommand { get; set; }
-        public ICommand RemoveComponentCommand { get; set; }
-        public ICommand EditComponentCommand { get; set; }
         #endregion
 
         #region Images
-        private static readonly string SearchImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
-        private static readonly string CancelImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
-
         public string ClearButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageClear}";
         public string AddImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageAdd}";
         #endregion
 
         public MainVM()
         {
-            /* Set remove command for components list */
-            RemoveComponentCommand = new RelayCommand(() =>
-            {
-                /* Stop listening for component (if it's running) */
-                if (SelectedComponent.IsRunning) { SelectedComponent.StartStopListenerCommand.Execute(null); }
-
-                /* Remove from components list */
-                Components.Remove(SelectedComponent);
-            });
-
-
             AddListenerCommand = new RelayCommand(() =>
             {
                 ComponentVM newComponent;
                 if (httpSelector)
                 {
-                    #region Http listener
                     /* Check mandatory fields */
                     if (String.IsNullOrEmpty(HttpPath) || String.IsNullOrEmpty(HttpRoute) || String.IsNullOrEmpty(ComponentName))
                     {
@@ -135,25 +124,23 @@ namespace LiveViewer.ViewModel
                     }
 
                     // create new component
-                    newComponent = new HttpComponentVM(this.ComponentName)
+                    newComponent = new HttpComponentVM(this.ComponentName, HttpPath, HttpRoute)
                     {
-                        Path = this.HttpPath,
-                        HttpRoute = this.HttpRoute,
                         RemoveComponentCommand = new RelayCommand<object>(comp =>
                         {
-                            Components.Remove(comp as ComponentVM);
+                            var compVM = comp as ComponentVM;
+                            compVM.RemoveComponent();
+                            Components.Remove(compVM);
                         })
                     };
 
                     // clear input data
-                    this.HttpPath = string.Empty;
-                    this.HttpRoute = string.Empty;
+                    //this.HttpPath = string.Empty;
+                    //this.HttpRoute = string.Empty;
                     this.ComponentName = String.Empty;
-                    #endregion
                 }
                 else
                 {
-                    #region File                    
                     /* Check mandatory fields */
                     if (String.IsNullOrEmpty(FilePath) || String.IsNullOrEmpty(FileName))
                     {
@@ -176,20 +163,19 @@ namespace LiveViewer.ViewModel
                     }
 
                     // create new component
-                    newComponent = new FileComponentVM(this.FileName)
+                    newComponent = new FileComponentVM(this.FileName, this.FilePath)
                     {
-                        Path = this.FilePath,
-                        HttpRoute = "",
                         RemoveComponentCommand = new RelayCommand<object>(comp =>
                         {
-                            Components.Remove(comp as ComponentVM);
+                            var compVM = comp as ComponentVM;
+                            compVM.RemoveComponent();
+                            Components.Remove(compVM);
                         })
                     };
 
                     // clear input data
                     this.FileName = string.Empty;
-                    this.FilePath = string.Empty;
-                    #endregion
+                    //this.FilePath = string.Empty;
                 }
 
                 #region Global
@@ -207,10 +193,9 @@ namespace LiveViewer.ViewModel
                 /* Clear data for each component */
                 foreach (var item in Components)
                 {
-                    item.CleanUpCommand.Execute(null);
+                    item.CleanUpCommand.Execute(!item.IsRunning);
                 }
             });
-
         }
     }
 }

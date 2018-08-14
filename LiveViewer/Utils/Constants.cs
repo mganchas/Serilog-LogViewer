@@ -21,6 +21,7 @@
             public const string ImageClear = "clear.png";
             public const string ImageDelete = "delete.png";
             public const string ImageEdit = "edit.png";
+            public const string ImageSave = "save.png";
             public const string ImageAdd = "add.png";
             public const string ImageHttp = "component.png";
             public const string ImageFile = "file.png";
@@ -34,6 +35,12 @@
             public const string Messages = nameof(Messages);
             public const string Filters = nameof(Filters);
             public const string Levels = nameof(Levels);
+            public const string Edit = nameof(Edit);
+            public const string Remove = nameof(Remove);
+            public const string StartStop = "Start/Stop execution";
+            public const string SaveChanges = "Save changes";
+
+
 
             public const string ComponentName = "Component Name";
             public const string HttpPath = "Http path";

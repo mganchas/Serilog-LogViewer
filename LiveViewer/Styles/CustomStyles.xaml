@@ -67,6 +67,34 @@
         </Setter>
     </Style>
 
+    <Style TargetType="RadioButton">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RadioButton}">
+                    <StackPanel Orientation="Horizontal" >
+                        <Ellipse x:Name="elipse" Height="15" Width="15" StrokeThickness="1" Stroke="Gray" Cursor="Hand" />
+                        <TextBlock FontSize="{Binding Path=FontSize, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding Path=Content, RelativeSource={RelativeSource AncestorType=RadioButton}}" VerticalAlignment="Center" Margin="5,0,0,0" Cursor="Hand" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True" >
+                            <Setter TargetName="elipse" Property="Fill">
+                                <Setter.Value>
+                                    <RadialGradientBrush>
+                                        <GradientStop Color="White" Offset="1" />
+                                        <GradientStop Color="#FF838383" Offset="0.536" />
+                                    </RadialGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="False" >
+                            <Setter TargetName="elipse" Property="Fill" Value="Transparent" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="CustomImage" TargetType="{x:Type Image}">
         <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
@@ -181,91 +209,16 @@
             </Setter.Value>
         </Setter>
     </Style>
+    
 
     <Style x:Key="CustomTabControl" TargetType="{x:Type TabControl}">
         <Setter Property="TabStripPlacement" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Stretch"/>
-        <Setter Property="HorizontalAlignment" Value="Stretch"/>
         <Style.Resources>
-            <Style TargetType="{x:Type TabControl}">
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="TabControl">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="auto"/>
-                                </Grid.ColumnDefinitions>
-                                <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible" >
-                                    <TabPanel x:Name="HeaderPanel" 
-                                              Grid.Column="0" 
-                                              Margin="2,2,2,0" 
-                                              IsItemsHost="true"/>
-                                </ScrollViewer>
-                                <ContentPresenter x:Name="PART_SelectedContentHost" 
-                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                                  Margin="{TemplateBinding Padding}"
-                                                  ContentSource="SelectedContent" Grid.Column="1"/>
-                            </Grid>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
+
             <Style TargetType="TabItem">
+                <Setter Property="Visibility" Value="Collapsed"/>
                 <Setter Property="Background" Value="{StaticResource Toolbar}"/>
-                <Setter Property="Padding" Value="3" />
-                <Setter Property="HeaderTemplate">
-                    <Setter.Value>
-                        <DataTemplate>
-                            <Border Grid.Column="0" BorderThickness="0" CornerRadius="0" ToolTip="{Binding Name}" Margin="5" Background="Transparent" Cursor="Hand" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" Width="300">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto"/>
-                                        <RowDefinition Height="auto"/>
-                                    </Grid.RowDefinitions>
-
-                                    <Grid Grid.Row="0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Image Grid.Column="0" Style="{StaticResource CustomImage}" Source="{Binding ComponentImage}" VerticalAlignment="Center" Height="20" Margin="5"/>
-                                        <Grid Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3,0">
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="*"/>
-                                            </Grid.RowDefinitions>
-                                            <TextBlock Text="{Binding Name}" Grid.Row="0" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding HttpRoute}" Grid.Row="2" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap"/>
-                                        </Grid>
-                                        <Button Grid.Column="2" Style="{StaticResource RoundButton}" Command="{Binding StartStopListenerCommand}" ToolTip="Start/Stop Listener" Height="30" Width="30" VerticalAlignment="Center">
-                                            <Image Style="{StaticResource CustomImage}" Source="{Binding StartStopButtonImage}" Margin="5"/>
-                                        </Button>
-                                    </Grid>
-                                    <ProgressBar Grid.Row="1" Visibility="{Binding Path=IsRunning, Converter={StaticResource BoolToVis}}" Style="{StaticResource CustomProgressBar}" VerticalAlignment="Center" Margin="5"/>
-                                </Grid>
-
-                                <Border.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="Edit" Command="{Binding EditComponentCommand}" CommandParameter="{Binding Self}" IsEnabled="{Binding AllowChanges}">
-                                            <MenuItem.Icon>
-                                                <Image Source="{Binding EditImage}" Height="15" Width="15"/>
-                                            </MenuItem.Icon>
-                                        </MenuItem>
-                                        <MenuItem Header="Remove" Command="{Binding RemoveComponentCommand}" CommandParameter="{Binding Self}" IsEnabled="{Binding AllowChanges}">
-                                            <MenuItem.Icon>
-                                                <Image Source="{Binding RemoveImage}" Height="15" Width="15"/>
-                                            </MenuItem.Icon>
-                                        </MenuItem>
-                                    </ContextMenu>
-                                </Border.ContextMenu>
-                            </Border>
-                        </DataTemplate>
-                    </Setter.Value>
-                </Setter>
+                <Setter Property="Padding" Value="3"/>
                 <Setter Property="ContentTemplate">
                     <Setter.Value>
                         <DataTemplate>
@@ -276,7 +229,7 @@
                                         <RowDefinition Height="auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    
+
                                     <!-- Levels -->
                                     <Grid Grid.Row="0" Margin="5">
                                         <Grid.ColumnDefinitions>
@@ -306,7 +259,7 @@
                                         <RadioButton Grid.Row="1" Grid.Column="5" Command="{Binding ClickCommand}" DataContext="{Binding ErrorLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0"/>
                                         <RadioButton Grid.Row="1" Grid.Column="6" Command="{Binding ClickCommand}" DataContext="{Binding FatalLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0,0,0"/>
                                     </Grid>
-                                    
+
                                     <!-- Filters -->
                                     <Grid Grid.Row="1" Margin="5">
                                         <Grid.RowDefinitions>
@@ -327,7 +280,7 @@
                                             </i:Interaction.Triggers>
                                         </TextBox>
                                     </Grid>
-                                    
+
                                     <!-- Messages -->
                                     <Grid Grid.Row="2" Margin="5">
                                         <Grid.RowDefinitions>
@@ -335,10 +288,20 @@
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
 
-                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,10">
-                                            <Image Height="20" Width="20" HorizontalAlignment="Left" ToolTip="{Binding TerminalTitle}" VerticalAlignment="Center" Style="{StaticResource CustomImage}" Source="{Binding TerminalImage}" Opacity="1"/>
-                                            <TextBlock Text="{Binding TerminalTitle}" Margin="5,0" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBoxForeground}"/>
-                                        </StackPanel>
+                                        <Grid Grid.Row="0" Margin="0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left">
+                                                <Image Height="20" Width="20" HorizontalAlignment="Left" ToolTip="{Binding TerminalTitle}" VerticalAlignment="Center" Style="{StaticResource CustomImage}" Source="{Binding TerminalImage}" Opacity="1"/>
+                                                <TextBlock Text="{Binding TerminalTitle}" Margin="5,0" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBoxForeground}"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <TextBlock Text="Showing:" Foreground="{StaticResource TextBoxForeground}" Margin="5,0"/>
+                                                <TextBlock Text="{Binding VisibleConsoleMessages.Count, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
                                         <ListBox Grid.Row="1" x:Name="lst_entries" Style="{StaticResource CustomMessagesListbox}" ItemsSource="{Binding VisibleConsoleMessages, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     </Grid>
                                 </Grid>
@@ -349,4 +312,77 @@
             </Style>
         </Style.Resources>
     </Style>
+
+    <Style x:Key="ComponentHeader" TargetType="ListBox">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <Border x:Name="brd" Grid.Column="0" BorderBrush="Transparent" BorderThickness="0, 0, 4, 0" CornerRadius="0" ToolTip="{Binding Name}" Margin="5" Background="Transparent" Cursor="Hand" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" Width="250">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Image Grid.Column="0" Style="{StaticResource CustomImage}" Source="{Binding ComponentImage}" VerticalAlignment="Center" Height="20" Margin="5"/>
+                                <Grid Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="{Binding Name}" Grid.Row="0" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold" TextWrapping="Wrap" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}"/>
+                                    <TextBlock Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}"/>
+                                    <TextBlock Text="{Binding HttpRoute}" Grid.Row="2" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}"/>
+
+                                    <TextBox Text="{Binding Name}" Grid.Row="0" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold" TextWrapping="Wrap" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}"/>
+                                    <TextBox Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}"/>
+                                    <TextBox Text="{Binding HttpRoute}" Grid.Row="2" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}"/>
+                                </Grid>
+                                <Button Grid.Column="2" Style="{StaticResource RoundButton}" Command="{Binding StartStopListenerCommand}" ToolTip="{Binding StartStopTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}">
+                                    <Image Style="{StaticResource CustomImage}" Source="{Binding StartStopButtonImage}" Margin="5"/>
+                                </Button>
+                                <Button Grid.Column="2" Style="{StaticResource RoundButton}" Command="{Binding SaveChangesCommand}" ToolTip="{Binding SaveChangesTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}">
+                                    <Image Style="{StaticResource CustomImage}" Source="{Binding SaveImage}" Margin="5"/>
+                                </Button>
+                            </Grid>
+                            <ProgressBar Grid.Row="1" Visibility="{Binding Path=IsRunning, Converter={StaticResource BoolToVis}}" Style="{StaticResource CustomProgressBar}" VerticalAlignment="Center" Margin="5"/>
+                        </Grid>
+
+                        <Border.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="{Binding EditTitle}" Command="{Binding EditComponentCommand}" CommandParameter="{Binding Self}" IsEnabled="{Binding AllowChanges}">
+                                    <MenuItem.Icon>
+                                        <Image Source="{Binding EditImage}" Height="15" Width="15"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="{Binding RemoveTitle}" Command="{Binding RemoveComponentCommand}" CommandParameter="{Binding Self}" IsEnabled="{Binding AllowChanges}">
+                                    <MenuItem.Icon>
+                                        <Image Source="{Binding RemoveImage}" Height="15" Width="15"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Border.ContextMenu>
+                    </Border>
+
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" Value="True">
+                            <Setter TargetName="brd" Property="BorderBrush" Value="{StaticResource LightBlue}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" Value="True">
+                            <Setter TargetName="brd" Property="BorderBrush" Value="{StaticResource DarkBlue}"/>
+                        </DataTrigger>                      
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>    
 </ResourceDictionary>

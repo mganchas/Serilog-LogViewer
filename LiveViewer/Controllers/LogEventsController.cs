@@ -16,6 +16,8 @@ namespace LiveViewer.Controllers
         {
             foreach (var logEvent in body.Events)
             {
+                string path = this.Url.Request.RequestUri.AbsoluteUri;
+                MessageContainer.HttpMessages[path].Add(logEvent);
                 //MessageContainer.Messages.Add(logEvent);
             }
         }
