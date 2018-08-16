@@ -1,4 +1,7 @@
-﻿using System;
+﻿using GalaSoft.MvvmLight.Command;
+using LiveViewer.Utils;
+using System;
+using System.Windows.Input;
 using System.Windows.Media;
 using static LiveViewer.Utils.Levels;
 
@@ -14,13 +17,18 @@ namespace LiveViewer.ViewModel
             public string SourceContext { get; set; }
             public string RenderedMessage { get; set; }
             public string Exception { get; set; }
-
-            private Brush levelColor;
-            public Brush LevelColor
+            public Brush LevelColor { get; set; }
+            public string OpenDialogButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
+            public ICommand OpenDetailCommand => new RelayCommand(() =>
             {
-                get { return levelColor; }
-                set { levelColor = value; NotifyPropertyChanged(); }
-            }
+                var wind = new EntryDetailWindow(new EntryDetailVM
+                {
+                    Level = this.LevelType.ToString(),
+                    Message = this.RenderedMessage,
+                    Timestamp = this.Timestamp
+                });
+                wind.Show();
+            });
         }
 
         public class LogEvents

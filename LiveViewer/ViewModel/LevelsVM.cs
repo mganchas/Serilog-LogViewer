@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LiveViewer.Utils;
+using System;
 using System.Windows.Input;
 using System.Windows.Media;
 using static LiveViewer.Utils.Levels;
@@ -7,10 +8,21 @@ namespace LiveViewer.ViewModel
 {
     public class LevelsVM : BaseVM
     {
-        public ICommand ClickCommand { get; set; }
+        public LevelTypes LevelType { get; private set; }
 
-        public string Text { get { return Enum.GetName(typeof(LevelTypes), LevelType); } }
-        public LevelTypes LevelType { get; set; }
+        private string text;
+        public string Text
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(text))
+                {
+                    text = Enum.GetName(typeof(LevelTypes), LevelType);
+                    NotifyPropertyChanged();
+                }
+                return text;
+            }
+        }
 
         private int counter;
         public int Counter
@@ -22,8 +34,24 @@ namespace LiveViewer.ViewModel
         private Brush textColor;
         public Brush TextColor
         {
-            get { return textColor; }
-            set { textColor = value; NotifyPropertyChanged(); }
+            get
+            {
+                if (textColor == null)
+                {
+                    textColor = Levels.GetLevelColor(LevelType);
+                    NotifyPropertyChanged();
+                }
+                return textColor;
+            }
         }
+
+        private bool isSelected;
+        public bool IsSelected
+        {
+            get { return isSelected; }
+            set { isSelected = value; NotifyPropertyChanged(); }
+        }
+
+        public LevelsVM(LevelTypes level) => LevelType = level;
     }
 }

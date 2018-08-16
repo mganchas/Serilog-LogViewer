@@ -28,6 +28,7 @@
             public const string ImageTerminal = "terminal.png";
             public const string ImageMonitor = "monitor.png";
             public const string ImageFilter = "filter.png";
+            public const string ImagePlay = "play.png";
         }
 
         public class Labels
@@ -39,9 +40,8 @@
             public const string Remove = nameof(Remove);
             public const string StartStop = "Start/Stop execution";
             public const string SaveChanges = "Save changes";
-
-
-
+            public const string Timestamp = nameof(Timestamp);
+            public const string Level = nameof(Level);
             public const string ComponentName = "Component Name";
             public const string HttpPath = "Http path";
             public const string HttpRoute = "Http Route";

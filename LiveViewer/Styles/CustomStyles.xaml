@@ -15,7 +15,16 @@
     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Black"/>
     <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="Transparent" />
     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
 
+    <Style x:Key="TextBlockTitles" TargetType="TextBlock">
+        <Setter Property="Margin" Value="5"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}"/>
+    </Style>
+    
     <Style x:Key="RoundButton" TargetType="{x:Type Button}">
         <Setter Property="Height" Value="35"/>
         <Setter Property="Width" Value="35"/>
@@ -188,33 +197,86 @@
     </Style>
 
     <Style x:Key="CustomMessagesListbox" TargetType="{x:Type ListBox}">
+        <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="SelectionMode" Value="Single"/>
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <Border Height="23" CornerRadius="2" BorderThickness="0,0,0,1" BorderBrush="LightGray" Margin="0,1,0,0" Width="auto" HorizontalAlignment="Stretch" x:Name="borda" Background="Transparent">
+                    <Border CornerRadius="2" Height="40" BorderThickness="0,0,0,1" BorderBrush="LightGray" Margin="0,1,0,0" Width="auto" HorizontalAlignment="Stretch" x:Name="borda" Background="Transparent">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="85"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="{Binding Timestamp}" x:Name="timestamp" Grid.Column="0" Margin="5,0" DockPanel.Dock="Left" HorizontalAlignment="Left" Foreground="{StaticResource TextBoxForeground}" FontFamily="Consoles"/>
-                            <TextBlock Text="{Binding LevelType}" x:Name="level" Grid.Column="1" Margin="5,0" DockPanel.Dock="Left" HorizontalAlignment="Left" FontWeight="Bold" Foreground="{Binding LevelColor}" FontFamily="Consoles"/>
-                            <TextBox Text="{Binding RenderedMessage}" Grid.Column="2"  BorderThickness="0" FontSize="13" Margin="5,0" HorizontalAlignment="Stretch" FontFamily="Consoles" IsReadOnly="True" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap"/>
+                            <TextBlock Text="{Binding Timestamp}" x:Name="timestamp" Grid.Column="0" Margin="5,0" DockPanel.Dock="Left" HorizontalAlignment="Left" Foreground="{StaticResource TextBoxForeground}" FontFamily="Consoles" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding LevelType}" x:Name="level" Grid.Column="1" Margin="5,0" DockPanel.Dock="Left" HorizontalAlignment="Left" FontWeight="Bold" Foreground="{Binding LevelColor}" FontFamily="Consoles" VerticalAlignment="Center"/>
+                            <TextBox Text="{Binding RenderedMessage}" Grid.Column="2"  BorderThickness="0" FontSize="13" Margin="5,0" HorizontalAlignment="Stretch" FontFamily="Consoles" IsReadOnly="True" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled" TextWrapping="Wrap" VerticalAlignment="Stretch"/>
+                            <Button Grid.Column="3" Style="{StaticResource RoundButton}" Command="{Binding OpenDetailCommand}" ToolTip="Clean data">
+                                <Image Style="{StaticResource CustomImage}" Source="{Binding OpenDialogButtonImage}" Margin="5"/>
+                            </Button>
                         </Grid>
                     </Border>
                 </DataTemplate>
             </Setter.Value>
         </Setter>
     </Style>
-    
+
+    <Style x:Key="LevelsListbox" TargetType="{x:Type ListBox}">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="SelectionMode" Value="Multiple"/>
+        <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="IsSelected" Value="{Binding Value.IsSelected, UpdateSourceTrigger=PropertyChanged}" />
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <Border Background="Transparent" Height="30" Cursor="Hand" x:Name="brd" BorderThickness="1.5" BorderBrush="LightGray" CornerRadius="0" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Value.Text, UpdateSourceTrigger=PropertyChanged}" x:Name="text" Grid.Column="0" TextTrimming="WordEllipsis" FontSize="13" Margin="2.5,0" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBoxForeground}"/>
+                            <TextBlock Text="{Binding Value.Counter, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Margin="2.5,0" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="Bold" Foreground="{Binding Value.TextColor}"/>
+                        </Grid>
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" Value="True">
+                            <Setter Property="BorderBrush" TargetName="brd" Value="{StaticResource LightBlue}"/>
+                            <Setter Property="Background" TargetName="brd" Value="{StaticResource Toolbar}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" Value="True">
+                            <Setter Property="BorderBrush" TargetName="brd" Value="{StaticResource DarkBlue}"/>
+                            <Setter Property="Background" TargetName="brd" Value="{StaticResource Toolbar}"/>
+                            <Setter Property="BorderThickness" TargetName="brd" Value="1.5"/>
+                            <Setter Property="FontWeight" TargetName="text" Value="SemiBold"/>
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <Style x:Key="CustomTabControl" TargetType="{x:Type TabControl}">
         <Setter Property="TabStripPlacement" Value="Left" />
         <Style.Resources>
-
             <Style TargetType="TabItem">
                 <Setter Property="Visibility" Value="Collapsed"/>
                 <Setter Property="Background" Value="{StaticResource Toolbar}"/>
@@ -246,18 +308,18 @@
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
 
-                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,10">
                                             <Image Height="20" Width="20" HorizontalAlignment="Left" ToolTip="{Binding LevelsTitle}" VerticalAlignment="Center" Style="{StaticResource CustomImage}" Source="{Binding MonitorImage}" Opacity="1"/>
                                             <TextBlock Text="{Binding LevelsTitle}" Margin="5,0" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBoxForeground}"/>
                                         </StackPanel>
 
-                                        <RadioButton Grid.Row="1" Grid.Column="0" Command="{Binding ClickCommand}" DataContext="{Binding AllLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="0,0,5,0" IsChecked="True"/>
-                                        <RadioButton Grid.Row="1" Grid.Column="1" Command="{Binding ClickCommand}" DataContext="{Binding VerboseLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0"/>
-                                        <RadioButton Grid.Row="1" Grid.Column="2" Command="{Binding ClickCommand}" DataContext="{Binding DebugLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0"/>
-                                        <RadioButton Grid.Row="1" Grid.Column="3" Command="{Binding ClickCommand}" DataContext="{Binding InformationLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0"/>
-                                        <RadioButton Grid.Row="1" Grid.Column="4" Command="{Binding ClickCommand}" DataContext="{Binding WarningLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0"/>
-                                        <RadioButton Grid.Row="1" Grid.Column="5" Command="{Binding ClickCommand}" DataContext="{Binding ErrorLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0"/>
-                                        <RadioButton Grid.Row="1" Grid.Column="6" Command="{Binding ClickCommand}" DataContext="{Binding FatalLevel}" Style="{StaticResource ButtonWithTextAndCounter}" Margin="5,0,0,0"/>
+                                        <ListBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="7" Style="{StaticResource LevelsListbox}" ItemsSource="{Binding ComponentLevels}" Margin="0,0,5,0">
+                                            <i:Interaction.Triggers>
+                                                <i:EventTrigger EventName="SelectionChanged">
+                                                    <i:InvokeCommandAction Command="{Binding FilterLevelCommand}"/>
+                                                </i:EventTrigger>
+                                            </i:Interaction.Triggers>
+                                        </ListBox>
                                     </Grid>
 
                                     <!-- Filters -->
@@ -272,10 +334,10 @@
                                             <TextBlock Text="{Binding FilterTitle}" Margin="5,0" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBoxForeground}"/>
                                         </StackPanel>
 
-                                        <TextBox Grid.Row="1" Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBox Grid.Row="1" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}">
                                             <i:Interaction.Triggers>
                                                 <i:EventTrigger EventName="TextChanged">
-                                                    <i:InvokeCommandAction Command="{Binding FilterTextChangedCommand}" CommandParameter="{Binding FilterText}"/>
+                                                    <i:InvokeCommandAction Command="{Binding FilterTextChangedCommand}"/>
                                                 </i:EventTrigger>
                                             </i:Interaction.Triggers>
                                         </TextBox>
@@ -302,7 +364,7 @@
                                                 <TextBlock Text="{Binding VisibleConsoleMessages.Count, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
                                             </StackPanel>
                                         </Grid>
-                                        <ListBox Grid.Row="1" x:Name="lst_entries" Style="{StaticResource CustomMessagesListbox}" ItemsSource="{Binding VisibleConsoleMessages, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <ListBox Grid.Row="1" x:Name="lst_entries" Style="{StaticResource CustomMessagesListbox}" ItemsSource="{Binding VisibleConsoleMessages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     </Grid>
                                 </Grid>
                             </Border>
@@ -379,10 +441,10 @@
                         </DataTrigger>
                         <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" Value="True">
                             <Setter TargetName="brd" Property="BorderBrush" Value="{StaticResource DarkBlue}"/>
-                        </DataTrigger>                      
+                        </DataTrigger>
                     </DataTemplate.Triggers>
                 </DataTemplate>
             </Setter.Value>
         </Setter>
-    </Style>    
+    </Style>
 </ResourceDictionary>

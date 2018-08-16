@@ -1,10 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Web.Http;
-using System.Windows;
-using System.Web.Http;
+﻿using System.Web.Http;
 using LiveViewer.Utils;
-using LiveViewer.ViewModel;
 using static LiveViewer.ViewModel.LogEventsVM;
 
 namespace LiveViewer.Controllers
@@ -18,7 +13,6 @@ namespace LiveViewer.Controllers
             {
                 string path = this.Url.Request.RequestUri.AbsoluteUri;
                 MessageContainer.HttpMessages[path].Add(logEvent);
-                //MessageContainer.Messages.Add(logEvent);
             }
         }
     }

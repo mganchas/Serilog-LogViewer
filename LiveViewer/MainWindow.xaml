@@ -42,26 +42,26 @@
                 </Grid.RowDefinitions>
                 
                 <!-- Component name -->
-                <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding ComponentNameLabel}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding ComponentNameLabel}" Style="{StaticResource TextBlockTitles}"/>
                 <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding ComponentName}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
                 
                 <!-- Http path -->
-                <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding HttpPathLabel}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding HttpPathLabel}" Style="{StaticResource TextBlockTitles}"/>
                 <TextBox Grid.Column="3" Grid.Row="0" Text="{Binding HttpPath}" IsReadOnly="{Binding IsRunning}" Foreground="Blue" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
                 
                 <!-- Http route -->
-                <TextBlock Grid.Column="4" Grid.Row="0" Text="{Binding HttpRouteLabel}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                <TextBlock Grid.Column="4" Grid.Row="0" Text="{Binding HttpRouteLabel}" Style="{StaticResource TextBlockTitles}"/>
                 <TextBox Grid.Column="5" Grid.Row="0" Text="{Binding HttpRoute}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
 
                 <!-- Http Selector -->
                 <RadioButton Grid.Column="6" Grid.Row="0" VerticalAlignment="Center" Margin="3.8,9,5.8,9" IsChecked="{Binding HttpSelector}"/>
 
                 <!-- 'File' name -->
-                <TextBlock Grid.Column="0" Grid.Row="1" Text="{Binding FileNameLabel}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                <TextBlock Grid.Column="0" Grid.Row="1" Text="{Binding FileNameLabel}" Style="{StaticResource TextBlockTitles}"/>
                 <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding FileName}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
 
                 <!-- File path -->
-                <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding FilePathLabel}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource TextBoxForeground}"/>
+                <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding FilePathLabel}" Style="{StaticResource TextBlockTitles}"/>
                 <TextBox Grid.Column="3" Grid.ColumnSpan="3" Grid.Row="1" Text="{Binding FilePath}" IsReadOnly="{Binding IsRunning}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch"/>
 
                 <!-- File Selector -->
@@ -94,7 +94,7 @@
         <!-- Export options -->
         <Grid Grid.Row="2" Height="50" Background="{StaticResource Toolbar}">
             <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
-                <Button x:Name="btn_cleanup" Style="{StaticResource RoundButton}" Command="{Binding CleanUpCommand}" ToolTip="Clean data">
+                <Button Style="{StaticResource RoundButton}" Command="{Binding CleanUpCommand}" ToolTip="Clean data">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding ClearButtonImage}" Margin="5"/>
                 </Button>
             </StackPanel>

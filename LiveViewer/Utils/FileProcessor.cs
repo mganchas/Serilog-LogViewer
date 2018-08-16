@@ -53,7 +53,7 @@ namespace LiveViewer.Utils
                         else
                         {
                             // previous event lines
-                            string prevLines = sb.ToString();
+                            string prevLines = sb.ToString().TrimEnd();
                             
                             // convert previous event to class obj
                             var logEvent = new LogEvent
