@@ -1,6 +1,6 @@
-﻿using System.Web.Http;
-using LiveViewer.Utils;
-using static LiveViewer.ViewModel.LogEventsVM;
+﻿using LiveViewer.Services;
+using LiveViewer.ViewModel;
+using System.Web.Http;
 
 namespace LiveViewer.Controllers
 {
@@ -9,11 +9,16 @@ namespace LiveViewer.Controllers
         [Route("{route?}")]
         public void Post([FromBody] LogEvents body)
         {
-            foreach (var logEvent in body.Events)
+            string path = this.Url.Request.RequestUri.AbsoluteUri;
+            string dbColl = HttpComponentVM.HttpListeners[path];
+
+            foreach (var item in body.Events)
             {
-                string path = this.Url.Request.RequestUri.AbsoluteUri;
-                MessageContainer.HttpMessages[path].Add(logEvent);
+                item.Component = dbColl;
             }
+            
+            // insert all entries into db
+            new DbProcessor().InsertMany(body.Events);
         }
     }
 }

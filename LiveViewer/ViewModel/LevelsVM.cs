@@ -1,8 +1,7 @@
-﻿using LiveViewer.Utils;
+﻿using LiveViewer.Types;
 using System;
-using System.Windows.Input;
 using System.Windows.Media;
-using static LiveViewer.Utils.Levels;
+using static LiveViewer.Types.Levels;
 
 namespace LiveViewer.ViewModel
 {

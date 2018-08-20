@@ -1,4 +1,4 @@
-﻿<Window x:Class="LiveViewer.EntryDetailWindow"
+﻿<Window x:Class="LiveViewer.View.EntryDetailWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -27,7 +27,6 @@
             <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding LevelTitle}" Style="{StaticResource TextBlockTitles}"/>
             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Level}" Margin="5" IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consoles" VerticalAlignment="Center"/>
         </Grid>
-
 
         <TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Message}" Margin="5,10" IsReadOnly="True" TextWrapping="Wrap" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderThickness="0" FontFamily="Consoles"/>
     </Grid>

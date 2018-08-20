@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Owin.Hosting;
-using LiveViewer.Utils;
-using static LiveViewer.ViewModel.LogEventsVM;
-using static LiveViewer.Utils.States;
 using GalaSoft.MvvmLight.Command;
+using LiveViewer.Services;
+using LiveViewer.Configs;
 
 namespace LiveViewer.ViewModel
 {
@@ -23,11 +20,11 @@ namespace LiveViewer.ViewModel
 
         public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
 
-        private string componentName = Constants.Component.DefaultHttpName;
-        public string ComponentName
+        private string httpName = Constants.Component.DefaultHttpName;
+        public string HttpName
         {
-            get { return componentName; }
-            set { componentName = value; NotifyPropertyChanged(); }
+            get { return httpName; }
+            set { httpName = value; NotifyPropertyChanged(); }
         }
 
         private string httpPath = Constants.Component.DefaultHttpPath;
@@ -90,6 +87,7 @@ namespace LiveViewer.ViewModel
         #region Commands
         public ICommand AddListenerCommand { get; set; }
         public ICommand CleanUpCommand { get; set; }
+        public ICommand DropCommand { get; set; }
         #endregion
 
         #region Images
@@ -104,63 +102,23 @@ namespace LiveViewer.ViewModel
                 ComponentVM newComponent;
                 if (httpSelector)
                 {
-                    /* Check mandatory fields */
-                    if (String.IsNullOrEmpty(HttpPath) || String.IsNullOrEmpty(HttpRoute) || String.IsNullOrEmpty(ComponentName))
-                    {
-                        MessageBox.Show("Component name, Http path and route are mandatory", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                        return;
-                    }
-                    if (!HttpPath.Contains("http"))
-                    {
-                        MessageBox.Show("Invalid Http path", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                        return;
-                    }
-
-                    /* Check if component already exists */
-                    if (Components.Any(x => x.Name == this.ComponentName || x.Path == this.HttpPath))
-                    {
-                        MessageBox.Show("Component already on the Components list", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                        return;
-                    }
+                    // check if component is valid
+                    if (!HttpComponentVM.IsValidComponent(HttpName, HttpPath, HttpRoute, Components)) { return; }
 
                     // create new component
-                    newComponent = new HttpComponentVM(this.ComponentName, HttpPath, HttpRoute)
+                    newComponent = new HttpComponentVM(this.HttpName, HttpPath, HttpRoute)
                     {
                         RemoveComponentCommand = new RelayCommand<object>(comp =>
                         {
                             var compVM = comp as ComponentVM;
-                            compVM.RemoveComponent();
                             Components.Remove(compVM);
                         })
                     };
-
-                    // clear input data
-                    //this.HttpPath = string.Empty;
-                    //this.HttpRoute = string.Empty;
-                    this.ComponentName = String.Empty;
                 }
                 else
                 {
-                    /* Check mandatory fields */
-                    if (String.IsNullOrEmpty(FilePath) || String.IsNullOrEmpty(FileName))
-                    {
-                        MessageBox.Show("File path and name are mandatory", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                        return;
-                    }
-
-                    /* Check if component already exists */
-                    if (Components.Any(x => x.Name == this.FileName || x.Path == this.FilePath))
-                    {
-                        MessageBox.Show("Component already on the Components list", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                        return;
-                    }
-
-                    /* Check if file exists */
-                    if (!FileProcessor.Exists(FilePath))
-                    {
-                        MessageBox.Show("File doesn't exist", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                        return;
-                    }
+                    // check if component is valid
+                    if (!FileComponentVM.IsValidComponent(FileName, FilePath, Components)) { return; } 
 
                     // create new component
                     newComponent = new FileComponentVM(this.FileName, this.FilePath)
@@ -168,14 +126,9 @@ namespace LiveViewer.ViewModel
                         RemoveComponentCommand = new RelayCommand<object>(comp =>
                         {
                             var compVM = comp as ComponentVM;
-                            compVM.RemoveComponent();
                             Components.Remove(compVM);
                         })
                     };
-
-                    // clear input data
-                    this.FileName = string.Empty;
-                    //this.FilePath = string.Empty;
                 }
 
                 #region Global
@@ -187,14 +140,19 @@ namespace LiveViewer.ViewModel
                 #endregion
             });
 
-            /* Set cleanup command */
+            // Set cleanup command 
             CleanUpCommand = new RelayCommand(() =>
             {
-                /* Clear data for each component */
+                // Clear data for each component 
                 foreach (var item in Components)
                 {
                     item.CleanUpCommand.Execute(!item.IsRunning);
                 }
+            });
+
+            // Set drag and drop command
+            DropCommand = new RelayCommand(() => {
+                MessageBox.Show("çpç");
             });
         }
     }

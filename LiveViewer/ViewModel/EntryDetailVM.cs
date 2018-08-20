@@ -1,4 +1,4 @@
-﻿using LiveViewer.Utils;
+﻿using LiveViewer.Configs;
 using System;
 
 namespace LiveViewer.ViewModel

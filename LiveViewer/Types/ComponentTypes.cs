@@ -1,4 +1,4 @@
-﻿namespace LiveViewer.Utils
+﻿namespace LiveViewer.Types
 {
     public enum ComponentTypes
     {

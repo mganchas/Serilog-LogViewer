@@ -1,9 +1,9 @@
 ﻿using System.Web.Http;
 using Owin;
 
-namespace LiveViewer.Utils
+namespace LiveViewer.Services
 {
-    public class Startup
+    public sealed class Startup
     {
         public void Configuration(IAppBuilder appBuilder)
         {

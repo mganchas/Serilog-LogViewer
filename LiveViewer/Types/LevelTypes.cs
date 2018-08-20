@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Windows.Media;
 
-namespace LiveViewer.Utils
+namespace LiveViewer.Types
 {
     public static class Levels
     {

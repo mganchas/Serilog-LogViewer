@@ -1,10 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using System.Net;
+using System.Net.Security;
+using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
+using System.Timers;
 using System.Windows;
 using GalaSoft.MvvmLight.Command;
-using LiveViewer.Utils;
+using LiveViewer.Configs;
+using LiveViewer.Services;
 using Microsoft.Owin.Hosting;
-using static LiveViewer.ViewModel.LogEventsVM;
 
 namespace LiveViewer.ViewModel
 {
@@ -14,7 +22,9 @@ namespace LiveViewer.ViewModel
         public override string SearchImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
         public override string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
         private string TransfPath => !Path.EndsWith("/") ? $"{Path}/" : Path;
-        private string TransfFullHttp => $"{TransfPath}{HttpRoute}";
+        private string TransfRoute => HttpRoute.EndsWith("/") ? $"{HttpRoute.Substring(0, httpRoute.Length-1)}" : HttpRoute;
+        public string HttpFullName => $"{TransfPath}{TransfRoute}";
+        public static Dictionary<string, string> HttpListeners = new Dictionary<string, string>();
 
         private string httpRoute = Constants.Component.DefaultHttpRoute;
         public string HttpRoute
@@ -27,10 +37,10 @@ namespace LiveViewer.ViewModel
         {
             this.HttpRoute = httpRoute;
 
-            /* Add new message queue */
-            MessageContainer.HttpMessages.Add(TransfFullHttp, new System.Collections.ObjectModel.ObservableCollection<LogEvent>());
+            // Add to http listeners' list
+            HttpListeners.Add(HttpFullName, ComponentRegisterName);
 
-            /* Set start/stop command */
+            // Set start/stop command 
             StartStopListenerCommand = new RelayCommand(() =>
             {
                 IsRunning = !IsRunning;
@@ -39,10 +49,19 @@ namespace LiveViewer.ViewModel
                     if (asyncWorker.IsBusy)
                     {
                         asyncWorker.CancelAsync();
+                        timer.Stop();
                     }
                     else
                     {
-                        /* Set background worker */
+                        // Set timer event
+                        timer = new Timer(Constants.Component.DefaultTimer);
+                        timer.Elapsed += delegate
+                        {
+                            FilterMessages();
+                        };
+                        timer.Enabled = true;
+
+                        // Set background worker 
                         InitializeBackWorker();
                         asyncWorker.RunWorkerAsync();
                     }
@@ -53,37 +72,6 @@ namespace LiveViewer.ViewModel
                     MessageBox.Show($"Exception occurred: {ex.Message}");
                 }
             });
-
-            /* Set message collection onchanged event */
-            MessageContainer.HttpMessages[TransfFullHttp].CollectionChanged += (sender, e) =>
-            {
-                if (!IsRunning || e.NewItems == null) { return; }
-
-                try
-                {
-                    foreach (LogEvent msg in e?.NewItems)
-                    {
-                        msg.LevelType = Levels.GetLevelTypeFromString(msg.Level);
-                        msg.LevelColor = Levels.GetLevelColor(msg.LevelType);
-
-                        App.Current.Dispatcher.Invoke(delegate
-                        {
-                                /* increment specific button counter */
-                            ComponentLevels[msg.LevelType].Counter++;
-                            ComponentLevels[Levels.LevelTypes.All].Counter++;
-
-                                /* add item to console messages */
-                            ConsoleMessages[msg.LevelType].Add(msg);
-                        });
-                        //App.Current.Dispatcher.Invoke(new Action(delegate { }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    asyncWorker.CancelAsync();
-                    MessageBox.Show(ex.Message);
-                }
-            };
         }
 
         protected override void InitializeBackWorker()
@@ -96,7 +84,7 @@ namespace LiveViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
-                    using (WebApp.Start<Startup>(TransfFullHttp))
+                    using (WebApp.Start<Startup>(HttpFullName))
                     {
                         while (!e.Cancel)
                         {
@@ -110,19 +98,39 @@ namespace LiveViewer.ViewModel
                 catch (Exception ex)
                 {
                     asyncWorker.CancelAsync();
+                    timer.Stop();
                     MessageBox.Show(ex.Message, "Error");
                 }
             };
         }
 
-        public override void RemoveComponent()
+        public static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
-            MessageContainer.HttpMessages.Remove(this.TransfFullHttp);
+            return true;
         }
 
-        public override void ClearComponent()
+        public static bool IsValidComponent(string name, string path, string route, in ObservableCollection<ComponentVM> components)
         {
-            MessageContainer.HttpMessages[this.TransfFullHttp].Clear();
+            // Check mandatory fields 
+            if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(route) || String.IsNullOrEmpty(name))
+            {
+                MessageBox.Show("Component name, Http path and route are mandatory", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                return false;
+            }
+            if (!path.Contains("http"))
+            {
+                MessageBox.Show("Invalid Http path", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                return false;
+            }
+
+            // Check if component already exists 
+            if (components.Any(x => x.Name == name || x.Path == path))
+            {
+                MessageBox.Show("Component already on the Components list", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                return false;
+            }
+
+            return true;
         }
     }
 }

@@ -2,19 +2,15 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Data;
+using System.Timers;
 using System.Windows.Input;
 using GalaSoft.MvvmLight.Command;
-using LiveViewer.Utils;
-using Microsoft.Owin.Hosting;
-using Newtonsoft.Json;
-using static LiveViewer.Utils.Levels;
+using LiveViewer.Configs;
+using LiveViewer.Model;
+using LiveViewer.Services;
+using LiveViewer.Types;
+using static LiveViewer.Types.Levels;
 using static LiveViewer.ViewModel.LogEventsVM;
 
 namespace LiveViewer.ViewModel
@@ -23,6 +19,8 @@ namespace LiveViewer.ViewModel
     {
         public ComponentVM Self => this;
         protected BackgroundWorker asyncWorker = new BackgroundWorker();
+        protected Timer timer;
+        protected string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
         private bool IsAllSelected { get; set; }
 
         #region Visual properties
@@ -106,8 +104,8 @@ namespace LiveViewer.ViewModel
             }
         }
 
-        public Dictionary<LevelTypes, ObservableCollection<LogEvent>> ConsoleMessages { get; set; }
-        public ObservableCollection<LogEvent> VisibleConsoleMessages { get; set; } = new ObservableCollection<LogEvent>();
+        public Dictionary<LevelTypes, ObservableCollection<LogEventsVM>> ConsoleMessages { get; set; }
+        public ObservableCollection<LogEventsVM> VisibleConsoleMessages { get; set; } = new ObservableCollection<LogEventsVM>();
         #endregion
 
         #region Labels
@@ -151,7 +149,7 @@ namespace LiveViewer.ViewModel
             this.Name = name;
             this.Path = path;
 
-            /* Set levels */
+            // Set levels 
             ComponentLevels = new Dictionary<LevelTypes, LevelsVM>
             {
                 { LevelTypes.All, new LevelsVM(LevelTypes.All) },
@@ -165,51 +163,46 @@ namespace LiveViewer.ViewModel
             ComponentLevels[LevelTypes.All].IsSelected = true;
             IsAllSelected = true;
 
-            /* Set messages levels */
-            ConsoleMessages = new Dictionary<LevelTypes, ObservableCollection<LogEvent>>
+            // Set messages levels 
+            ConsoleMessages = new Dictionary<LevelTypes, ObservableCollection<LogEventsVM>>
             {
-                { LevelTypes.All, new ObservableCollection<LogEvent>() },
-                { LevelTypes.Verbose, new ObservableCollection<LogEvent>() },
-                { LevelTypes.Debug, new ObservableCollection<LogEvent>() },
-                { LevelTypes.Information, new ObservableCollection<LogEvent>() },
-                { LevelTypes.Warning, new ObservableCollection<LogEvent>() },
-                { LevelTypes.Error, new ObservableCollection<LogEvent>() },
-                { LevelTypes.Fatal, new ObservableCollection<LogEvent>() }
+                { LevelTypes.All, new ObservableCollection<LogEventsVM>() },
+                { LevelTypes.Verbose, new ObservableCollection<LogEventsVM>() },
+                { LevelTypes.Debug, new ObservableCollection<LogEventsVM>() },
+                { LevelTypes.Information, new ObservableCollection<LogEventsVM>() },
+                { LevelTypes.Warning, new ObservableCollection<LogEventsVM>() },
+                { LevelTypes.Error, new ObservableCollection<LogEventsVM>() },
+                { LevelTypes.Fatal, new ObservableCollection<LogEventsVM>() }
             };
 
-            /* Set cleanup command */
+            // Set cleanup command 
             CleanUpCommand = new RelayCommand<bool>((canClean) =>
             {
                 if (!canClean) { return; }
 
-                /* Specific clean actions */
-                ClearComponent();
-
-                /* Clear collections */
-                foreach (var key in ConsoleMessages.Keys) {
-                    ConsoleMessages[key].Clear();
-                }
+                // Clear messages
                 VisibleConsoleMessages.Clear();
 
-                /* Clear counters */
-                foreach (var item in ComponentLevels) {
+                // Clear counters 
+                foreach (var item in ComponentLevels)
+                {
                     item.Value.Counter = 0;
                 }
             });
 
-            /* Set edit component command */
+            // Set edit component command 
             EditComponentCommand = new RelayCommand(() =>
             {
                 EditMode = !EditMode;
             });
 
-            /* Set save changes command */
+            // Set save changes command 
             SaveChangesCommand = new RelayCommand(() =>
             {
                 EditMode = false;
             });
 
-            /* Set filter text changed command */
+            // Set filter text changed command 
             FilterTextChangedCommand = new RelayCommand(() =>
             {
                 App.Current.Dispatcher.Invoke(delegate
@@ -218,6 +211,7 @@ namespace LiveViewer.ViewModel
                 });
             });
 
+            // Set levels filter command
             FilterLevelCommand = new RelayCommand(() =>
             {
                 App.Current.Dispatcher.Invoke(delegate
@@ -230,7 +224,8 @@ namespace LiveViewer.ViewModel
 
                     if (ComponentLevels[LevelTypes.All].IsSelected && !IsAllSelected)
                     {
-                        foreach (var filterLevel in ComponentLevels) {
+                        foreach (var filterLevel in ComponentLevels)
+                        {
                             filterLevel.Value.IsSelected = false;
                         }
                         IsAllSelected = true;
@@ -241,61 +236,49 @@ namespace LiveViewer.ViewModel
             });
         }
 
-        void FilterMessages()
+        protected void FilterMessages()
         {
             App.Current.Dispatcher.Invoke(delegate
             {
-                /* reset visible collection */
+                // reset visible collection 
                 VisibleConsoleMessages.Clear();
                 bool hasTextToFilter = !String.IsNullOrEmpty(FilterText);
+                IEnumerable<Entry> dbLst;
 
-                foreach (var filterLevel in ComponentLevels.Values.Where(x => x.IsSelected))
+                // filter with text 
+                if (hasTextToFilter)
                 {
-                    var msgs = ConsoleMessages[filterLevel.LevelType].AsEnumerable();
-
-                    /* filter with text */
-                    if (hasTextToFilter) {
-                        msgs = msgs.Where(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()));
-                    }
-
-                    foreach (var item in msgs)
-                    {
-                        VisibleConsoleMessages.Add(item);
-                    }
+                    dbLst = ComponentLevels[LevelTypes.All].IsSelected ?
+                              new DbProcessor().GetAllEntriesWithText(ComponentRegisterName, FilterText) :
+                              new DbProcessor().GetAllEntriesWithTextAndLevels(ComponentRegisterName, FilterText, ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType));
+                }
+                else
+                {
+                    dbLst = ComponentLevels[LevelTypes.All].IsSelected ?
+                              new DbProcessor().GetAllEntries(ComponentRegisterName) :
+                              new DbProcessor().GetAllEntriesWithLevels(ComponentRegisterName, ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType));
                 }
 
-                //var consMsgs = ConsoleMessages.AsEnumerable();
-                //var consMsgs = new List<Lookup<LevelTypes, LogEvent>>();
+                foreach (var entry in dbLst)
+                {
+                    // increment specific button counter 
+                    ComponentLevels[entry.LevelType].Counter++;
+                    ComponentLevels[Levels.LevelTypes.All].Counter++;
 
-                ///* apply filters */
-                //if (!levels.Contains(LevelTypes.All))
-                //{
-                //    foreach (var lvl in levels)
-                //    {
-                //        consMsgs.AddRange(ConsoleMessages[lvl].ToList());
-                //    }
-                //    //consMsgs = consMsgs.Where(x => levels.Contains(x.LevelType));
-                //}
-
-                //if (!String.IsNullOrEmpty(FilterText))
-                //{
-                //    //consMsgs = consMsgs.Where(x => x.RenderedMessage.ToLower().Contains(FilterText?.ToLower()));
-                //}
-
-                ///* filter observable list */
-                //foreach (var msg in consMsgs) {
-                //    VisibleConsoleMessages = new ObservableCollection<LogEvent>(consMsgs.ToList()); //.Add(msg);
-                //}
-
-                ///* set current selected level */
-                //CurrentLevels = levels.ToList();
+                    // add item to console messages 
+                    VisibleConsoleMessages.Add(new LogEventsVM
+                    {
+                        Timestamp = entry.Timestamp,
+                        RenderedMessage = entry.RenderedMessage,
+                        LevelRaw = entry.LevelRaw,
+                        LevelColor = Levels.GetLevelColor(entry.LevelType)
+                    });
+                }
             });
         }
 
         #region Abstract methods
         protected abstract void InitializeBackWorker();
-        public abstract void RemoveComponent();
-        public abstract void ClearComponent();
         #endregion
     }
 }

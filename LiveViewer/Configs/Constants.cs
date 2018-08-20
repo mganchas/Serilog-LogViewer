@@ -1,4 +1,4 @@
-﻿namespace LiveViewer.Utils
+﻿namespace LiveViewer.Configs
 {
     public static class Constants
     {
@@ -9,6 +9,7 @@
             public const string DefaultHttpPath = "http://localhost:8080/";
             public const string DefaultHttpRoute = "workflow-log-events";
             public const string DefaultFilePath = @"C:\Temp\Logs\tm\log-TransactionManagerApp-XXXX.txt";
+            public const int DefaultTimer = 5000;
         }
 
         public class Images

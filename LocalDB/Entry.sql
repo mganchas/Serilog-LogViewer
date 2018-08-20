@@ -1,0 +1,7 @@
+﻿CREATE TABLE [dbo].[Entry]
+(
+	[Id] INT NOT NULL PRIMARY KEY IDENTITY,
+	[Timestamp] DATETIME NOT NULL,
+	[LevelRaw] VARCHAR,
+	[LevelType] VARCHAR
+)

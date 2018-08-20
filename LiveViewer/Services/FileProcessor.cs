@@ -1,11 +1,12 @@
-﻿using System;
+﻿using LiveViewer.Model;
+using LiveViewer.Types;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading;
-using static LiveViewer.ViewModel.LogEventsVM;
 
-namespace LiveViewer.Utils
+namespace LiveViewer.Services
 {
     public sealed class FileProcessor
     {
@@ -20,9 +21,9 @@ namespace LiveViewer.Utils
 
         public void ReadFile(CancellationToken cancelToken, ref BackgroundWorker asyncWorker)
         {
-            int read = 0;
             using (StreamReader sr = new StreamReader(filePath))
             {
+                int read = 0;
                 string line = null;
                 StringBuilder sb = new StringBuilder();
                 bool isValid = false;
@@ -54,15 +55,20 @@ namespace LiveViewer.Utils
                         {
                             // previous event lines
                             string prevLines = sb.ToString().TrimEnd();
-                            
+                            string lvlRaw = prevLines.Substring(level_init + 1, 3);
+
                             // convert previous event to class obj
-                            var logEvent = new LogEvent
+                            var logEvent = new Entry
                             {
                                 Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
-                                Level = prevLines.Substring(level_init + 1, 3),
-                                RenderedMessage = prevLines.Substring(level_end + 1)
+                                LevelRaw = lvlRaw,
+                                RenderedMessage = prevLines.Substring(level_end + 1),
+                                LevelType = Levels.GetLevelTypeFromString(lvlRaw), 
+                                Component = componentName
                             };
-                            MessageContainer.FileMessages[componentName].Add(logEvent);
+
+                            // insert into db
+                            new DbProcessor().InsertOne(logEvent);
 
                             // remove previous event
                             sb.Clear();

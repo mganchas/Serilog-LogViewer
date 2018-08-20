@@ -1,7 +1,7 @@
 ﻿using LiveViewer.ViewModel;
 using System.Windows;
 
-namespace LiveViewer
+namespace LiveViewer.View
 {
     /// <summary>
     /// Interaction logic for EntryDetailWindow.xaml
