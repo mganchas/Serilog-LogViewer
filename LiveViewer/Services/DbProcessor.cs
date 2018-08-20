@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.SQLite;
 using System.IO;
+using System.IO.Ports;
 using System.Linq;
 using static LiveViewer.Types.Levels;
 
@@ -12,8 +13,8 @@ namespace LiveViewer.Services
 {
     public sealed class DbProcessor
     {
-        //private static string Name => "LiveViewer";
         //private static string DbPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Name);
+        private static string Name => "LiveViewer";
         private static string DbConnection => "mongodb://localhost";
 
         //static DbProcessor()
@@ -34,7 +35,8 @@ namespace LiveViewer.Services
         public void InsertOne(Entry entry)
         {
             var coll = GetCollection();
-            coll.InsertOne(entry);
+            ss();
+            //coll.InsertOne(entry);
         }
 
         public void InsertMany(Entry[] entries)
