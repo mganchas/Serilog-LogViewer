@@ -15,7 +15,7 @@ namespace LiveViewer.Services
     {
         //private static string DbPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Name);
         private static string Name => "LiveViewer";
-        private static string DbConnection => "mongodb://localhost";
+        private static string DbConnection => "mongodb://localhost:27017";
 
         //static DbProcessor()
         //{
@@ -26,7 +26,13 @@ namespace LiveViewer.Services
 
         private IMongoCollection<Entry> GetCollection()
         {
-            var client = new MongoClient(DbConnection);
+            var client = new MongoClient(new MongoClientSettings
+            {
+                Server = new MongoServerAddress("localhost", 27017),
+                UseSsl = false
+                
+            });
+
             var database = client.GetDatabase(Name);
             var coll = database.GetCollection<Entry>(nameof(Entry));
             return coll;
@@ -35,8 +41,7 @@ namespace LiveViewer.Services
         public void InsertOne(Entry entry)
         {
             var coll = GetCollection();
-            ss();
-            //coll.InsertOne(entry);
+            coll.InsertOne(entry);
         }
 
         public void InsertMany(Entry[] entries)
