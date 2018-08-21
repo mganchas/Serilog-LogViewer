@@ -15,9 +15,9 @@ namespace LiveViewer.ViewModel
         public DateTime Timestamp { get; set; }
         public string RenderedMessage { get; set; }
         public string LevelRaw { get; set; }
-        public Brush LevelColor { get; set; }
+        public LevelTypes LevelType { get; set; } //=> Levels.GetLevelTypeFromString(LevelRaw);
+        public Brush LevelColor => Levels.GetLevelColor(LevelType);
 
-        public LevelTypes LevelType => Levels.GetLevelTypeFromString(LevelRaw);
         public string OpenDialogButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
 
         public ICommand OpenDetailCommand => new RelayCommand(() =>

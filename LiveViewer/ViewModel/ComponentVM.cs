@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Media;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 using GalaSoft.MvvmLight.Command;
@@ -19,9 +21,10 @@ namespace LiveViewer.ViewModel
     {
         public ComponentVM Self => this;
         protected BackgroundWorker asyncWorker = new BackgroundWorker();
-        protected Timer timer;
+        //protected Timer timer;
         protected string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
         private bool IsAllSelected { get; set; }
+        private HashElements SelectionFilters { get; set; }
 
         #region Visual properties
         private string name;
@@ -104,7 +107,7 @@ namespace LiveViewer.ViewModel
             }
         }
 
-        public Dictionary<LevelTypes, ObservableCollection<LogEventsVM>> ConsoleMessages { get; set; }
+        public HashSet<LogEventsVM> ConsoleMessages { get; set; } = new HashSet<LogEventsVM>();
         public ObservableCollection<LogEventsVM> VisibleConsoleMessages { get; set; } = new ObservableCollection<LogEventsVM>();
         #endregion
 
@@ -163,24 +166,13 @@ namespace LiveViewer.ViewModel
             ComponentLevels[LevelTypes.All].IsSelected = true;
             IsAllSelected = true;
 
-            // Set messages levels 
-            ConsoleMessages = new Dictionary<LevelTypes, ObservableCollection<LogEventsVM>>
-            {
-                { LevelTypes.All, new ObservableCollection<LogEventsVM>() },
-                { LevelTypes.Verbose, new ObservableCollection<LogEventsVM>() },
-                { LevelTypes.Debug, new ObservableCollection<LogEventsVM>() },
-                { LevelTypes.Information, new ObservableCollection<LogEventsVM>() },
-                { LevelTypes.Warning, new ObservableCollection<LogEventsVM>() },
-                { LevelTypes.Error, new ObservableCollection<LogEventsVM>() },
-                { LevelTypes.Fatal, new ObservableCollection<LogEventsVM>() }
-            };
-
             // Set cleanup command 
             CleanUpCommand = new RelayCommand<bool>((canClean) =>
             {
                 if (!canClean) { return; }
 
                 // Clear messages
+                ConsoleMessages.Clear();
                 VisibleConsoleMessages.Clear();
 
                 // Clear counters 
@@ -240,45 +232,73 @@ namespace LiveViewer.ViewModel
         {
             App.Current.Dispatcher.Invoke(delegate
             {
-                // reset visible collection 
-                VisibleConsoleMessages.Clear();
-                bool hasTextToFilter = !String.IsNullOrEmpty(FilterText);
-                IEnumerable<Entry> dbLst;
+                bool hasChanges = false;
+                var selectedLevels = ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType).ToList();
 
-                // filter with text 
-                if (hasTextToFilter)
+                if (SelectionFilters == null || SelectionFilters.FilterText != FilterText || !SelectionFilters.SameLevels(selectedLevels))
                 {
-                    dbLst = ComponentLevels[LevelTypes.All].IsSelected ?
-                              new DbProcessor().GetAllEntriesWithText(ComponentRegisterName, FilterText) :
-                              new DbProcessor().GetAllEntriesWithTextAndLevels(ComponentRegisterName, FilterText, ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType));
+                    // update current hash
+                    hasChanges = true;
+                    SelectionFilters = new HashElements { FilterText = this.FilterText, Levels = selectedLevels };
                 }
-                else
+                
+                if (hasChanges || VisibleConsoleMessages.Count < Constants.Component.DefaultRows)
                 {
-                    dbLst = ComponentLevels[LevelTypes.All].IsSelected ?
-                              new DbProcessor().GetAllEntries(ComponentRegisterName) :
-                              new DbProcessor().GetAllEntriesWithLevels(ComponentRegisterName, ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType));
-                }
+                    IEnumerable<LogEventsVM> filteredEntries = ConsoleMessages.AsEnumerable();
 
-                foreach (var entry in dbLst)
-                {
-                    // increment specific button counter 
-                    ComponentLevels[entry.LevelType].Counter++;
-                    ComponentLevels[Levels.LevelTypes.All].Counter++;
+                    // clear visible messages
+                    VisibleConsoleMessages.Clear();
 
-                    // add item to console messages 
-                    VisibleConsoleMessages.Add(new LogEventsVM
+                    // filter level
+                    if (!ComponentLevels[LevelTypes.All].IsSelected)
                     {
-                        Timestamp = entry.Timestamp,
-                        RenderedMessage = entry.RenderedMessage,
-                        LevelRaw = entry.LevelRaw,
-                        LevelColor = Levels.GetLevelColor(entry.LevelType)
-                    });
+                        filteredEntries = filteredEntries.Where(x => selectedLevels.Contains(x.LevelType));
+                    }
+
+                    // filter text
+                    if (!String.IsNullOrEmpty(FilterText))
+                    {
+                        filteredEntries = filteredEntries.Where(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()));
+                    }
+
+                    // filter visible rows
+                    filteredEntries = filteredEntries.Take(Constants.Component.DefaultRows);
+
+                    foreach (var entry in filteredEntries)
+                    {
+                        // add item to console messages 
+                        VisibleConsoleMessages.Add(new LogEventsVM
+                        {
+                            Timestamp = entry.Timestamp,
+                            RenderedMessage = entry.RenderedMessage,
+                            LevelRaw = entry.LevelRaw,
+                            LevelType = entry.LevelType
+                        });
+                    }
                 }
             });
         }
 
+        protected void PlaySound()
+        {
+            SystemSounds.Exclamation.Play();
+        }
+
         #region Abstract methods
         protected abstract void InitializeBackWorker();
+        public abstract void RemoveComponent();
+        public abstract void ClearComponent();
         #endregion
+    }
+
+    public class HashElements
+    {
+        public string FilterText { get; set; }
+        public List<LevelTypes> Levels { get; set; }
+
+        public bool SameLevels(IEnumerable<LevelTypes> levels)
+        {
+            return levels.SequenceEqual(Levels);
+        }
     }
 }

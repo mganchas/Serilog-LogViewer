@@ -22,12 +22,12 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding TimestampTitle}" Style="{StaticResource TextBlockTitles}"/>
-            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Timestamp}" Margin="5" IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consoles" VerticalAlignment="Center"/>
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding LevelTitle}" Style="{StaticResource TextBlockTitles}"/>
-            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Level}" Margin="5" IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consoles" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding TimestampTitle}" Style="{StaticResource TextBlockTitles}" Margin="15,5"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Timestamp}" Margin="5" IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consoles" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding LevelTitle}" Style="{StaticResource TextBlockTitles}" Margin="15,5"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Level}" Margin="5" IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consoles" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
         </Grid>
 
-        <TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Message}" Margin="5,10" IsReadOnly="True" TextWrapping="Wrap" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderThickness="0" FontFamily="Consoles"/>
+        <TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Message}" Margin="5,10" IsReadOnly="True" TextWrapping="Wrap" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderBrush="LightGray" FontFamily="Consoles"/>
     </Grid>
 </Window>

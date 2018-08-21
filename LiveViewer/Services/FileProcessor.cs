@@ -57,18 +57,14 @@ namespace LiveViewer.Services
                             string prevLines = sb.ToString().TrimEnd();
                             string lvlRaw = prevLines.Substring(level_init + 1, 3);
 
-                            // convert previous event to class obj
-                            var logEvent = new Entry
+                            // insert into dictionary
+                            MessageContainer.FileMessages[componentName].Add(new Entry
                             {
                                 Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
-                                LevelRaw = lvlRaw,
                                 RenderedMessage = prevLines.Substring(level_end + 1),
-                                LevelType = Levels.GetLevelTypeFromString(lvlRaw), 
+                                LevelType = Levels.GetLevelTypeFromString(lvlRaw),
                                 Component = componentName
-                            };
-
-                            // insert into db
-                            new DbProcessor().InsertOne(logEvent);
+                            });
 
                             // remove previous event
                             sb.Clear();
@@ -79,8 +75,10 @@ namespace LiveViewer.Services
                     }
 
                     read++;
-                    if ((read % 10000) == 0) { GC.Collect(); }
+                    //if ((read % 10000) == 0) { GC.Collect(); }
                 }
+
+                sr.Close();
                 asyncWorker.CancelAsync();
             }
         }

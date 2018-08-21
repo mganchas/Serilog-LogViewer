@@ -1,36 +1,22 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿
 using System;
-using System.ComponentModel.DataAnnotations;
-using System.Data.Linq.Mapping;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 using static LiveViewer.Types.Levels;
 
 namespace LiveViewer.Model
 {
-    [Table(Name = nameof(Entry))]
     public class Entry
     {
-        [BsonElement(nameof(Id))]
-        [BsonRequired()]
-        public int Id { get; set; }
-
-        [BsonElement(nameof(Timestamp))]
-        [BsonRequired()]
+        //public int Id { get; set; }
         public DateTime Timestamp { get; set; }
-
-        [BsonElement(nameof(LevelRaw))]
-        [BsonRequired()]
-        public string LevelRaw { get; set; }
-
-        [BsonElement(nameof(LevelType))]
-        [BsonRequired()]
+        //public string LevelRaw { get; set; }
         public LevelTypes LevelType { get; set; }
-
-        [BsonElement(nameof(RenderedMessage))]
-        [BsonRequired()]
         public string RenderedMessage { get; set; }
-
-        [BsonElement(nameof(Component))]
-        [BsonRequired()]
         public string Component { get; set; }
     }
 }

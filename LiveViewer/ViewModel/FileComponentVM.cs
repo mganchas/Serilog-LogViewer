@@ -6,7 +6,9 @@ using System.Threading;
 using System.Windows;
 using GalaSoft.MvvmLight.Command;
 using LiveViewer.Configs;
+using LiveViewer.Model;
 using LiveViewer.Services;
+using LiveViewer.Types;
 
 namespace LiveViewer.ViewModel
 {
@@ -19,6 +21,9 @@ namespace LiveViewer.ViewModel
 
         public FileComponentVM(string name, string path) : base(name, path)
         {
+            // Add new message queue
+            MessageContainer.FileMessages.Add(ComponentRegisterName, new ObservableCollection<Entry>());
+
             // Set start/stop command 
             StartStopListenerCommand = new RelayCommand(() =>
             {
@@ -28,7 +33,7 @@ namespace LiveViewer.ViewModel
                     if (asyncWorker.IsBusy)
                     {
                         asyncWorker.CancelAsync();
-                        timer.Stop();
+                        //timer.Stop();
                     }
                     else
                     {
@@ -36,12 +41,12 @@ namespace LiveViewer.ViewModel
                         CleanUpCommand.Execute(true);
 
                         // Set timer event
-                        timer = new System.Timers.Timer(Constants.Component.DefaultTimer);
-                        timer.Elapsed += delegate
-                        {
-                            FilterMessages();
-                        };
-                        timer.Enabled = true;
+                        //timer = new System.Timers.Timer(Constants.Component.DefaultTimer);
+                        //timer.Elapsed += delegate
+                        //{
+                        //    FilterMessages();
+                        //};
+                        //timer.Enabled = true;
 
                         // Set background worker 
                         InitializeBackWorker();
@@ -52,17 +57,56 @@ namespace LiveViewer.ViewModel
                 {
                     asyncWorker.CancelAsync();
                     cancelSource.Cancel();
-                    timer.Stop();
+                    //timer.Stop();
                     MessageBox.Show($"Exception occurred: {ex.Message}");
                 }
             });
+
+            /* Set message collection onchanged event */
+            MessageContainer.FileMessages[ComponentRegisterName].CollectionChanged += (sender, e) =>
+            {
+                if (!IsRunning || e.NewItems == null) { return; }
+
+                try
+                {
+                    foreach (Entry entry in e.NewItems)
+                    {
+                        App.Current.Dispatcher.Invoke(delegate
+                        {
+                            /* increment specific button counter */
+                            ComponentLevels[entry.LevelType].Counter++;
+                            ComponentLevels[Levels.LevelTypes.All].Counter++;
+
+                            /* add item to console messages */
+                            ConsoleMessages.Add(new LogEventsVM
+                            {
+                                RenderedMessage = entry.RenderedMessage,
+                                Timestamp = entry.Timestamp,
+                                LevelType = entry.LevelType
+                            });
+                        });
+                    }
+
+                    FilterMessages();
+                }
+                catch (Exception ex)
+                {
+                    cancelSource.Cancel();
+                    asyncWorker.CancelAsync();
+                    MessageBox.Show(ex.Message);
+                }
+            };
         }
 
         protected override void InitializeBackWorker()
         {
             asyncWorker.WorkerReportsProgress = true;
             asyncWorker.WorkerSupportsCancellation = true;
-            asyncWorker.RunWorkerCompleted += delegate { if (IsRunning) IsRunning = false; };
+            asyncWorker.RunWorkerCompleted += delegate 
+            {
+                if (IsRunning) { IsRunning = false; }
+                PlaySound();
+            };
             asyncWorker.DoWork += (sender, e) =>
             {
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
@@ -78,7 +122,7 @@ namespace LiveViewer.ViewModel
                         {
                             e.Cancel = true;
                             cancelSource.Cancel();
-                            timer.Stop();
+                            //timer.Stop();
                         }
                     }
                 }
@@ -86,7 +130,7 @@ namespace LiveViewer.ViewModel
                 {
                     asyncWorker.CancelAsync();
                     cancelSource.Cancel();
-                    timer.Stop();
+                    //timer.Stop();
                     MessageBox.Show(ex.Message, "Error");
                 }
             };
@@ -116,6 +160,16 @@ namespace LiveViewer.ViewModel
             }
 
             return true;
+        }
+
+        public override void RemoveComponent()
+        {
+            MessageContainer.FileMessages.Remove(this.Name);
+        }
+
+        public override void ClearComponent()
+        {
+            MessageContainer.FileMessages[this.Name].Clear();
         }
     }
 }

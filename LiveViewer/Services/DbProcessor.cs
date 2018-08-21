@@ -1,136 +1,100 @@
 ﻿using LiveViewer.Model;
-using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.SQLite;
-using System.IO;
-using System.IO.Ports;
 using System.Linq;
+using System.Threading.Tasks;
 using static LiveViewer.Types.Levels;
 
 namespace LiveViewer.Services
 {
     public sealed class DbProcessor
     {
-        //private static string DbPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Name);
-        private static string Name => "LiveViewer";
-        private static string DbConnection => "mongodb://localhost:27017";
-
-        //static DbProcessor()
-        //{
-        //    if (!Directory.Exists(DbPath)) {
-        //        Directory.CreateDirectory(DbPath);
-        //    }
-        //}
-
-        private IMongoCollection<Entry> GetCollection()
-        {
-            var client = new MongoClient(new MongoClientSettings
-            {
-                Server = new MongoServerAddress("localhost", 27017),
-                UseSsl = false
-                
-            });
-
-            var database = client.GetDatabase(Name);
-            var coll = database.GetCollection<Entry>(nameof(Entry));
-            return coll;
-        }
-
         public void InsertOne(Entry entry)
         {
-            var coll = GetCollection();
-            coll.InsertOne(entry);
+            using (var db = new DatabaseContext())
+            {
+                db.Entries.Add(entry);
+                db.SaveChanges();
+            }
         }
 
         public void InsertMany(Entry[] entries)
         {
-            var coll = GetCollection();
-            coll.InsertMany(entries);
+            using (var db = new DatabaseContext())
+            {
+                db.Entries.AddRange(entries);
+                db.SaveChanges();
+            }
         }
 
-        public IEnumerable<Entry> GetAllEntries(string component)
+        public Task<List<Entry>> GetAllEntries(string component, int numberOfEntries)
         {
-            var coll = GetCollection();
-            var dbData = coll.Find(x => x.Component == component)
-                             .ToEnumerable();
-
-            return dbData;
+            using (var db = new DatabaseContext())
+            {
+                return new EntryDbAsyncEnumerable<Entry>(db.Entries.Where(x => x.Component == component)).Take(numberOfEntries).ToListAsync();
+            }
         }
 
-        public IEnumerable<Entry> GetAllEntriesWithText(string component, string filterText)
+        public Task<List<Entry>> GetAllEntries(string component)
         {
-            var coll = GetCollection();
-            var dbData = coll.Find(x => x.Component == component &&
-                                        x.RenderedMessage.ToLower().Contains(filterText))
-                             .ToEnumerable();
-
-            return dbData;
+            using (var db = new DatabaseContext())
+            {
+                return new EntryDbAsyncEnumerable<Entry>(db.Entries.Where(x => x.Component == component)).ToListAsync();
+            }
         }
-
-        public IEnumerable<Entry> GetNEntriesWithText(string component, string filterText, int numberOfEntries)
+        
+        public Task<List<Entry>> GetEntriesWithText(string component, string filterText, int numberOfEntries)
         {
-            var coll = GetCollection();
-            var dbData = coll.Find(x => x.Component == component &&
-                                        x.RenderedMessage.ToLower().Contains(filterText))
-                             .ToEnumerable()
-                             .Take(numberOfEntries);
-
-            return dbData;
+            using (var db = new DatabaseContext())
+            {
+                return new EntryDbAsyncEnumerable<Entry>(db.Entries.Where(x => x.Component == component && x.RenderedMessage.ToLower().Contains(filterText)).Take(numberOfEntries)).ToListAsync();
+            }
         }
 
-        public IEnumerable<Entry> GetAllEntriesWithLevels(string component, IEnumerable<LevelTypes> levels)
+        public Task<List<Entry>> GetEntriesWithText(string component, string filterText)
         {
-            var coll = GetCollection();
-            var dbData = coll.Find(x => x.Component == component &&
-                                        levels.Contains(x.LevelType))
-                             .ToEnumerable();
-
-            return dbData;
+            using (var db = new DatabaseContext())
+            {
+                return new EntryDbAsyncEnumerable<Entry>(db.Entries.Where(x => x.Component == component && x.RenderedMessage.ToLower().Contains(filterText))).ToListAsync();
+            }
         }
 
-        public IEnumerable<Entry> GetNEntriesWithLevels(string component, IEnumerable<LevelTypes> levels, int numberOfEntries)
+        public Task<List<Entry>> GetEntriesWithLevels(string component, IEnumerable<LevelTypes> levels, int numberOfEntries)
         {
-            var coll = GetCollection();
-            var dbData = coll.Find(x => x.Component == component &&
-                                        levels.Contains(x.LevelType))
-                             .ToEnumerable()
-                             .Take(numberOfEntries);
-
-            return dbData;
+            using (var db = new DatabaseContext())
+            {
+                return new EntryDbAsyncEnumerable<Entry>(db.Entries.Where(x => x.Component == component && levels.Contains(x.LevelType))).Take(numberOfEntries).ToListAsync();
+            }
         }
 
-        public IEnumerable<Entry> GetAllEntriesWithTextAndLevels(string component, string filterText, IEnumerable<LevelTypes> levels)
+        public Task<List<Entry>> GetEntriesWithLevels(string component, IEnumerable<LevelTypes> levels)
         {
-            var coll = GetCollection();
-            var dbData = coll.Find(x => x.Component == component &&
-                                        levels.Contains(x.LevelType) &&
-                                        x.RenderedMessage.ToLower().Contains(filterText))
-                             .ToEnumerable();
-
-            return dbData;
+            using (var db = new DatabaseContext())
+            {
+                return new EntryDbAsyncEnumerable<Entry>(db.Entries.Where(x => x.Component == component && levels.Contains(x.LevelType))).ToListAsync();
+            }
         }
 
-        public IEnumerable<Entry> GetNEntriesWithTextAndLevels(string component, string filterText, IEnumerable<LevelTypes> levels, int numberOfEntries)
+        public Task<List<Entry>> GetEntriesWithTextAndLevels(string component, string filterText, IEnumerable<LevelTypes> levels, int numberOfEntries)
         {
-            var coll = GetCollection();
-            var dbData = coll.Find(x => x.Component == component &&
-                                        levels.Contains(x.LevelType) &&
-                                        x.RenderedMessage.ToLower().Contains(filterText))
-                             .ToEnumerable()
-                             .Take(numberOfEntries);
-
-            return dbData;
+            using (var db = new DatabaseContext())
+            {
+                return new EntryDbAsyncEnumerable<Entry>(db.Entries.Where(x => x.Component == component && levels.Contains(x.LevelType) && x.RenderedMessage.ToLower().Contains(filterText))).Take(numberOfEntries).ToListAsync();
+            }
         }
 
+        public Task<List<Entry>> GetEntriesWithTextAndLevels(string component, string filterText, IEnumerable<LevelTypes> levels)
+        {
+            using (var db = new DatabaseContext())
+            {
+                return new EntryDbAsyncEnumerable<Entry>(db.Entries.Where(x => x.Component == component && levels.Contains(x.LevelType) && x.RenderedMessage.ToLower().Contains(filterText))).ToListAsync();
+            }
+        }
+        
         public static void CleanDatabase()
         {
-            //using (var ctx = new DatabaseContext())
-            //{
-            //    ctx.Database.Delete();
-            //    ctx.SaveChanges();
-            //}
+            DatabaseContext.KillDatabase();
         }
     }
 }

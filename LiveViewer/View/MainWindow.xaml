@@ -7,7 +7,7 @@
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:vm="clr-namespace:LiveViewer.ViewModel"
         mc:Ignorable="d"
-        Title="Live Viewer" MinHeight="600" MinWidth="1100" Height="600" Width="1100" AllowDrop="True" DragDrop.Drop="Window_Drop">
+        Title="Live Viewer" MinHeight="600" MinWidth="1100" Height="600" Width="1100" AllowDrop="True">
 
     <Window.DataContext>
         <vm:MainVM/>
@@ -19,7 +19,7 @@
         </i:EventTrigger>
     </i:Interaction.Triggers>-->
 
-    <Grid>
+    <Grid AllowDrop="True" DragDrop.Drop="Window_Drop">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
@@ -84,18 +84,13 @@
         </Grid>
 
         <!-- Components -->
-        <!--<TabControl Grid.Row="1" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}"/>-->
-
-        <!-- Dummy Textbox -->
-        <!--<TextBlock Grid.Row="1" Text="Please add a listener" VerticalAlignment="Center" HorizontalAlignment="Center" FontStyle="Italic" Margin="531.4,228,560.6,228"/>-->
-
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <ListBox Grid.Column="0" Style="{StaticResource ComponentHeader}" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" SelectedIndex="{Binding SelectedIndex}"/>
-            <TabControl Grid.Column="1" SelectedIndex="{Binding SelectedIndex, Mode=OneWay}" Style="{StaticResource CustomTabControl}"  ItemsSource="{Binding Components}"/>
+            <TabControl Grid.Column="1" SelectedIndex="{Binding SelectedIndex, Mode=OneWay}" Style="{StaticResource CustomTabControl}"  ItemsSource="{Binding Components}" DragDrop.DragEnter="Window_Drop"/>
         </Grid>
 
         <!-- Export options -->

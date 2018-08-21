@@ -9,7 +9,8 @@
             public const string DefaultHttpPath = "http://localhost:8080/";
             public const string DefaultHttpRoute = "workflow-log-events";
             public const string DefaultFilePath = @"C:\Temp\Logs\tm\log-TransactionManagerApp-XXXX.txt";
-            public const int DefaultTimer = 5000;
+            public const int DefaultTimer = 2000;
+            public const int DefaultRows = 100;
         }
 
         public class Images

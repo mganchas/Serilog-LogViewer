@@ -11,7 +11,9 @@ using System.Timers;
 using System.Windows;
 using GalaSoft.MvvmLight.Command;
 using LiveViewer.Configs;
+using LiveViewer.Model;
 using LiveViewer.Services;
+using LiveViewer.Types;
 using Microsoft.Owin.Hosting;
 
 namespace LiveViewer.ViewModel
@@ -37,6 +39,9 @@ namespace LiveViewer.ViewModel
         {
             this.HttpRoute = httpRoute;
 
+            // Add new message queue
+            MessageContainer.HttpMessages.Add(HttpFullName, new ObservableCollection<Entry>());
+
             // Add to http listeners' list
             HttpListeners.Add(HttpFullName, ComponentRegisterName);
 
@@ -49,17 +54,17 @@ namespace LiveViewer.ViewModel
                     if (asyncWorker.IsBusy)
                     {
                         asyncWorker.CancelAsync();
-                        timer.Stop();
+                        //timer.Stop();
                     }
                     else
                     {
                         // Set timer event
-                        timer = new Timer(Constants.Component.DefaultTimer);
-                        timer.Elapsed += delegate
-                        {
-                            FilterMessages();
-                        };
-                        timer.Enabled = true;
+                        //timer = new Timer(Constants.Component.DefaultTimer);
+                        //timer.Elapsed += delegate
+                        //{
+                        //    FilterMessages();
+                        //};
+                        //timer.Enabled = true;
 
                         // Set background worker 
                         InitializeBackWorker();
@@ -72,6 +77,38 @@ namespace LiveViewer.ViewModel
                     MessageBox.Show($"Exception occurred: {ex.Message}");
                 }
             });
+
+            /* Set message collection onchanged event */
+            MessageContainer.HttpMessages[HttpFullName].CollectionChanged += (sender, e) =>
+            {
+                if (!IsRunning || e.NewItems == null) { return; }
+
+                try
+                {
+                    foreach (LogEvents msg in e.NewItems)
+                    {
+                        //msg.LevelType = Levels.GetLevelTypeFromString(msg.Level);
+                        //msg.LevelColor = Levels.GetLevelColor(msg.LevelType);
+
+                        //App.Current.Dispatcher.Invoke(delegate
+                        //{
+                        //    /* increment specific button counter */
+                        //    ComponentLevels[msg.LevelType].Counter++;
+                        //    ComponentLevels[Levels.LevelTypes.All].Counter++;
+
+                        //    /* add item to console messages */
+                        //    ConsoleMessages[msg.LevelType].Add(msg);
+                        //});
+                    }
+
+                    FilterMessages();
+                }
+                catch (Exception ex)
+                {
+                    asyncWorker.CancelAsync();
+                    MessageBox.Show(ex.Message);
+                }
+            };
         }
 
         protected override void InitializeBackWorker()
@@ -98,7 +135,7 @@ namespace LiveViewer.ViewModel
                 catch (Exception ex)
                 {
                     asyncWorker.CancelAsync();
-                    timer.Stop();
+                    //timer.Stop();
                     MessageBox.Show(ex.Message, "Error");
                 }
             };
@@ -131,6 +168,16 @@ namespace LiveViewer.ViewModel
             }
 
             return true;
+        }
+
+        public override void RemoveComponent()
+        {
+            MessageContainer.HttpMessages.Remove(HttpFullName);
+        }
+
+        public override void ClearComponent()
+        {
+            MessageContainer.HttpMessages[HttpFullName].Clear();
         }
     }
 }

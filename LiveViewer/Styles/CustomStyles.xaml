@@ -23,7 +23,7 @@
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}"/>
     </Style>
-    
+
     <Style x:Key="RoundButton" TargetType="{x:Type Button}">
         <Setter Property="Height" Value="35"/>
         <Setter Property="Width" Value="35"/>
@@ -213,7 +213,13 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="{Binding Timestamp}" x:Name="timestamp" Grid.Column="0" Margin="5,0" DockPanel.Dock="Left" HorizontalAlignment="Left" Foreground="{StaticResource TextBoxForeground}" FontFamily="Consoles" VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding LevelType}" x:Name="level" Grid.Column="1" Margin="5,0" DockPanel.Dock="Left" HorizontalAlignment="Left" FontWeight="Bold" Foreground="{Binding LevelColor}" FontFamily="Consoles" VerticalAlignment="Center"/>
-                            <TextBox Text="{Binding RenderedMessage}" Grid.Column="2"  BorderThickness="0" FontSize="13" Margin="5,0" HorizontalAlignment="Stretch" FontFamily="Consoles" IsReadOnly="True" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled" TextWrapping="Wrap" VerticalAlignment="Stretch"/>
+                            <TextBox Text="{Binding RenderedMessage}" Grid.Column="2" BorderThickness="0" Background="Transparent" FontSize="13" Margin="5,0" HorizontalAlignment="Stretch" FontFamily="Consoles" IsReadOnly="True" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled" TextWrapping="Wrap" VerticalAlignment="Stretch">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseDoubleClick">
+                                        <i:InvokeCommandAction Command="{Binding OpenDetailCommand}"/>
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </TextBox>
                             <Button Grid.Column="3" Style="{StaticResource RoundButton}" Command="{Binding OpenDetailCommand}" ToolTip="Clean data">
                                 <Image Style="{StaticResource CustomImage}" Source="{Binding OpenDialogButtonImage}" Margin="5"/>
                             </Button>
@@ -420,11 +426,11 @@
 
                         <Border.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="{Binding EditTitle}" Command="{Binding EditComponentCommand}" CommandParameter="{Binding Self}" IsEnabled="{Binding AllowChanges}">
+                                <!--<MenuItem Header="{Binding EditTitle}" Command="{Binding EditComponentCommand}" CommandParameter="{Binding Self}" IsEnabled="{Binding AllowChanges}">
                                     <MenuItem.Icon>
                                         <Image Source="{Binding EditImage}" Height="15" Width="15"/>
                                     </MenuItem.Icon>
-                                </MenuItem>
+                                </MenuItem>-->
                                 <MenuItem Header="{Binding RemoveTitle}" Command="{Binding RemoveComponentCommand}" CommandParameter="{Binding Self}" IsEnabled="{Binding AllowChanges}">
                                     <MenuItem.Icon>
                                         <Image Source="{Binding RemoveImage}" Height="15" Width="15"/>
