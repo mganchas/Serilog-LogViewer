@@ -33,20 +33,11 @@ namespace LiveViewer.ViewModel
                     if (asyncWorker.IsBusy)
                     {
                         asyncWorker.CancelAsync();
-                        //timer.Stop();
                     }
                     else
                     {
                         // Clear previous entries 
                         CleanUpCommand.Execute(true);
-
-                        // Set timer event
-                        //timer = new System.Timers.Timer(Constants.Component.DefaultTimer);
-                        //timer.Elapsed += delegate
-                        //{
-                        //    FilterMessages();
-                        //};
-                        //timer.Enabled = true;
 
                         // Set background worker 
                         InitializeBackWorker();
@@ -57,7 +48,6 @@ namespace LiveViewer.ViewModel
                 {
                     asyncWorker.CancelAsync();
                     cancelSource.Cancel();
-                    //timer.Stop();
                     MessageBox.Show($"Exception occurred: {ex.Message}");
                 }
             });
@@ -122,7 +112,6 @@ namespace LiveViewer.ViewModel
                         {
                             e.Cancel = true;
                             cancelSource.Cancel();
-                            //timer.Stop();
                         }
                     }
                 }
@@ -130,7 +119,6 @@ namespace LiveViewer.ViewModel
                 {
                     asyncWorker.CancelAsync();
                     cancelSource.Cancel();
-                    //timer.Stop();
                     MessageBox.Show(ex.Message, "Error");
                 }
             };

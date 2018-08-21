@@ -23,7 +23,7 @@ namespace LiveViewer.Services
         {
             using (StreamReader sr = new StreamReader(filePath))
             {
-                int read = 0;
+                //int read = 0;
                 string line = null;
                 StringBuilder sb = new StringBuilder();
                 bool isValid = false;
@@ -74,13 +74,15 @@ namespace LiveViewer.Services
                         }
                     }
 
-                    read++;
+                    //read++;
                     //if ((read % 10000) == 0) { GC.Collect(); }
                 }
 
                 sr.Close();
                 asyncWorker.CancelAsync();
             }
+
+            GC.Collect();
         }
 
         public static bool Exists(string file)

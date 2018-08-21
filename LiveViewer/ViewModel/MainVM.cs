@@ -113,6 +113,7 @@ namespace LiveViewer.ViewModel
                             var compVM = comp as ComponentVM;
                             compVM.RemoveComponent();
                             Components.Remove(compVM);
+                            GC.Collect();
                         })
                     };
                 }
@@ -129,6 +130,7 @@ namespace LiveViewer.ViewModel
                             var compVM = comp as ComponentVM;
                             compVM.RemoveComponent();
                             Components.Remove(compVM);
+                            GC.Collect();
                         })
                     };
                 }

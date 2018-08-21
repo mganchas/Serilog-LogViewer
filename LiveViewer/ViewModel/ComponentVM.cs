@@ -218,7 +218,8 @@ namespace LiveViewer.ViewModel
                     {
                         foreach (var filterLevel in ComponentLevels)
                         {
-                            if (filterLevel.Key != LevelTypes.All) {
+                            if (filterLevel.Key != LevelTypes.All)
+                            {
                                 filterLevel.Value.IsSelected = false;
                             }
                         }
@@ -235,6 +236,7 @@ namespace LiveViewer.ViewModel
         {
             App.Current.Dispatcher.Invoke(delegate
             {
+                int prevRows = VisibleConsoleMessages.Count;
                 bool hasChanges = false;
                 var selectedLevels = ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType).ToList();
 
@@ -248,9 +250,6 @@ namespace LiveViewer.ViewModel
                 if (hasChanges || VisibleConsoleMessages.Count < Constants.Component.DefaultRows)
                 {
                     IEnumerable<LogEventsVM> filteredEntries = ConsoleMessages.AsEnumerable();
-
-                    // clear visible messages
-                    VisibleConsoleMessages.Clear();
 
                     // filter level
                     if (!ComponentLevels[LevelTypes.All].IsSelected)
@@ -267,15 +266,16 @@ namespace LiveViewer.ViewModel
                     // filter visible rows
                     filteredEntries = filteredEntries.Take(Constants.Component.DefaultRows);
 
-                    foreach (var entry in filteredEntries)
+                    if (hasChanges || filteredEntries.Count() != prevRows)
                     {
-                        // add item to console messages 
-                        VisibleConsoleMessages.Add(new LogEventsVM
+                        // clear visible messages
+                        VisibleConsoleMessages.Clear();
+
+                        foreach (var entry in filteredEntries)
                         {
-                            Timestamp = entry.Timestamp,
-                            RenderedMessage = entry.RenderedMessage,
-                            LevelType = entry.LevelType
-                        });
+                            // add item to console messages 
+                            VisibleConsoleMessages.Add(entry);
+                        }
                     }
                 }
             });
