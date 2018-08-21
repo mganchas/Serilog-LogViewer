@@ -208,7 +208,7 @@ namespace LiveViewer.ViewModel
             {
                 App.Current.Dispatcher.Invoke(delegate
                 {
-                    if (ComponentLevels.Values.Count(x => x.IsSelected) > 1 && ComponentLevels[LevelTypes.All].IsSelected && IsAllSelected)
+                    if (ComponentLevels.Values.Any(x => x.LevelType != LevelTypes.All && x.IsSelected) && ComponentLevels[LevelTypes.All].IsSelected && IsAllSelected)
                     {
                         ComponentLevels[LevelTypes.All].IsSelected = false;
                         IsAllSelected = false;
@@ -218,8 +218,11 @@ namespace LiveViewer.ViewModel
                     {
                         foreach (var filterLevel in ComponentLevels)
                         {
-                            filterLevel.Value.IsSelected = false;
+                            if (filterLevel.Key != LevelTypes.All) {
+                                filterLevel.Value.IsSelected = false;
+                            }
                         }
+
                         IsAllSelected = true;
                     }
 
@@ -241,7 +244,7 @@ namespace LiveViewer.ViewModel
                     hasChanges = true;
                     SelectionFilters = new HashElements { FilterText = this.FilterText, Levels = selectedLevels };
                 }
-                
+
                 if (hasChanges || VisibleConsoleMessages.Count < Constants.Component.DefaultRows)
                 {
                     IEnumerable<LogEventsVM> filteredEntries = ConsoleMessages.AsEnumerable();
@@ -271,7 +274,6 @@ namespace LiveViewer.ViewModel
                         {
                             Timestamp = entry.Timestamp,
                             RenderedMessage = entry.RenderedMessage,
-                            LevelRaw = entry.LevelRaw,
                             LevelType = entry.LevelType
                         });
                     }

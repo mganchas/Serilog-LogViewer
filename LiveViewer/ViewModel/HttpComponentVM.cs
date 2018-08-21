@@ -85,20 +85,22 @@ namespace LiveViewer.ViewModel
 
                 try
                 {
-                    foreach (LogEvents msg in e.NewItems)
+                    foreach (Entry entry in e.NewItems)
                     {
-                        //msg.LevelType = Levels.GetLevelTypeFromString(msg.Level);
-                        //msg.LevelColor = Levels.GetLevelColor(msg.LevelType);
+                        App.Current.Dispatcher.Invoke(delegate
+                        {
+                            /* increment specific button counter */
+                            ComponentLevels[entry.LevelType].Counter++;
+                            ComponentLevels[Levels.LevelTypes.All].Counter++;
 
-                        //App.Current.Dispatcher.Invoke(delegate
-                        //{
-                        //    /* increment specific button counter */
-                        //    ComponentLevels[msg.LevelType].Counter++;
-                        //    ComponentLevels[Levels.LevelTypes.All].Counter++;
-
-                        //    /* add item to console messages */
-                        //    ConsoleMessages[msg.LevelType].Add(msg);
-                        //});
+                            /* add item to console messages */
+                            ConsoleMessages.Add(new LogEventsVM
+                            {
+                                RenderedMessage = entry.RenderedMessage,
+                                Timestamp = entry.Timestamp,
+                                LevelType = entry.LevelType
+                            });
+                        });
                     }
 
                     FilterMessages();
@@ -135,7 +137,6 @@ namespace LiveViewer.ViewModel
                 catch (Exception ex)
                 {
                     asyncWorker.CancelAsync();
-                    //timer.Stop();
                     MessageBox.Show(ex.Message, "Error");
                 }
             };

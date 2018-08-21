@@ -111,6 +111,7 @@ namespace LiveViewer.ViewModel
                         RemoveComponentCommand = new RelayCommand<object>(comp =>
                         {
                             var compVM = comp as ComponentVM;
+                            compVM.RemoveComponent();
                             Components.Remove(compVM);
                         })
                     };
@@ -126,6 +127,7 @@ namespace LiveViewer.ViewModel
                         RemoveComponentCommand = new RelayCommand<object>(comp =>
                         {
                             var compVM = comp as ComponentVM;
+                            compVM.RemoveComponent();
                             Components.Remove(compVM);
                         })
                     };

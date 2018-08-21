@@ -164,12 +164,12 @@ namespace LiveViewer.ViewModel
 
         public override void RemoveComponent()
         {
-            MessageContainer.FileMessages.Remove(this.Name);
+            MessageContainer.FileMessages.Remove(ComponentRegisterName);
         }
 
         public override void ClearComponent()
         {
-            MessageContainer.FileMessages[this.Name].Clear();
+            MessageContainer.FileMessages[ComponentRegisterName].Clear();
         }
     }
 }

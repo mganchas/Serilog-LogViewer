@@ -1,4 +1,5 @@
 ﻿using LiveViewer.Services;
+using LiveViewer.Types;
 using LiveViewer.ViewModel;
 using System.Web.Http;
 
@@ -10,15 +11,12 @@ namespace LiveViewer.Controllers
         public void Post([FromBody] LogEvents body)
         {
             string path = this.Url.Request.RequestUri.AbsoluteUri;
-            string dbColl = HttpComponentVM.HttpListeners[path];
 
             foreach (var item in body.Events)
             {
-                item.Component = dbColl;
+                item.LevelType = Levels.GetLevelTypeFromString(item.Level);
+                MessageContainer.HttpMessages[path].Add(item);
             }
-            
-            // insert all entries into db
-            new DbProcessor().InsertMany(body.Events);
         }
     }
 }
