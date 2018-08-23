@@ -1,22 +1,67 @@
 ﻿using LogViewer.Model;
-using System.Web.Http;
+using Newtonsoft.Json;
+using System;
+using System.ComponentModel;
+using System.IO;
+using System.Net;
+using System.Threading;
 
 namespace LogViewer.Services
 {
-    public class HttpProcessor : ApiController
+    public class HttpProcessor : BaseDataReader
     {
-        [Route("{route?}")]
-        public void Post([FromBody] LogEntries body)
+        public HttpProcessor(string path, string componentName) : base(path, componentName)
         {
-            string path = this.Url.Request.RequestUri.AbsoluteUri;
+        }
 
-            foreach (var item in body.Entries)
+        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker)
+        {
+            HttpListener web = null;
+            try
             {
-                item.LevelType = Levels.GetLevelTypeFromString(item.Level);
-                item.RenderedMessage = $"{item.RenderedMessage} {item.Exception}";
+                web = new HttpListener();
+                web.Prefixes.Add(path);
+                web.Start();
 
-                MessageContainer.HttpMessages[path].Add(item);
+                while (true)
+                {
+                    if (cancelToken.Token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    var ctx = web.GetContext();
+                    var req = ctx.Request;
+                    var data = new StreamReader(req.InputStream, req.ContentEncoding).ReadToEnd();
+
+                    // parse json into an Entry array
+                    var ents = JsonConvert.DeserializeObject<LogEntries>(data);
+
+                    foreach (var ent in ents.Entries)
+                    {
+                        // insert into dictionary
+                        MessageContainer.HttpMessages[componentName].Add(new Entry
+                        {
+                            Timestamp = ent.Timestamp,
+                            RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",
+                            LevelType = Levels.GetLevelTypeFromString(ent.Level),
+                            Component = componentName
+                        });
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                throw;
+            }
+            finally
+            {
+                web?.Stop();
+                cancelToken.Cancel();
             }
         }
     }
+
 }

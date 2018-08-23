@@ -13,65 +13,74 @@ namespace LogViewer.Services
         {
         }
 
-        public override void ReadData(CancellationToken cancelToken, ref BackgroundWorker asyncWorker)
+        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker)
         {
             using (StreamReader sr = new StreamReader(path))
             {
-                string line = null;
-                StringBuilder sb = new StringBuilder();
-                bool isValid = false;
-
-                while ((line = sr.ReadLine()) != null)
+                try
                 {
-                    if (cancelToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
+                    string line = null;
+                    StringBuilder sb = new StringBuilder();
+                    bool isValid = false;
 
-                    var level_init = line.IndexOf('[');
-                    var level_end = line.IndexOf(']');
-                    var split = line.Split(' ');
-
-                    isValid = !(split.Length < 5 || level_init == -1 || level_end == -1 || (level_end - level_init) != 4);
-
-                    if (!isValid) // add to queue
+                    while ((line = sr.ReadLine()) != null)
                     {
-                        sb.AppendLine(line);
-                    }
-                    else
-                    {
-                        if (sb.Length == 0) // first valid line
+                        if (cancelToken.Token.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
+                        var level_init = line.IndexOf('[');
+                        var level_end = line.IndexOf(']');
+                        var split = line.Split(' ');
+
+                        isValid = !(split.Length < 5 || level_init == -1 || level_end == -1 || (level_end - level_init) != 4);
+
+                        if (!isValid) // add to queue
                         {
                             sb.AppendLine(line);
                         }
                         else
                         {
-                            // previous event lines
-                            string prevLines = sb.ToString().TrimEnd();
-                            string lvlRaw = prevLines.Substring(level_init + 1, 3);
-
-                            // insert into dictionary
-                            MessageContainer.FileMessages[componentName].Add(new Entry
+                            if (sb.Length == 0) // first valid line
                             {
-                                Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
-                                RenderedMessage = prevLines.Substring(level_end + 1),
-                                LevelType = Levels.GetLevelTypeFromString(lvlRaw),
-                                Component = componentName
-                            });
+                                sb.AppendLine(line);
+                            }
+                            else
+                            {
+                                // previous event lines
+                                string prevLines = sb.ToString().TrimEnd();
+                                string lvlRaw = prevLines.Substring(level_init + 1, 3);
 
-                            // remove previous event
-                            sb.Clear();
+                                // insert into dictionary
+                                MessageContainer.FileMessages[componentName].Add(new Entry
+                                {
+                                    Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
+                                    RenderedMessage = prevLines.Substring(level_end + 1),
+                                    LevelType = Levels.GetLevelTypeFromString(lvlRaw),
+                                    Component = componentName
+                                });
 
-                            // add current event to queue
-                            sb.AppendLine(line);
+                                // remove previous event
+                                sb.Clear();
+
+                                // add current event to queue
+                                sb.AppendLine(line);
+                            }
                         }
                     }
+
                 }
-
-                sr.Close();
-                asyncWorker.CancelAsync();
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                finally
+                {
+                    sr?.Close();
+                    asyncWorker.CancelAsync();
+                }
             }
-
             GC.Collect();
         }
 

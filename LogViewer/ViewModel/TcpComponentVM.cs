@@ -73,7 +73,7 @@ namespace LogViewer.ViewModel
                 {
                     cancelSource = new CancellationTokenSource();
                     var tcpP = new TcpProcessor(Path, TcpFullName);
-                    tcpP.ReadData(cancelSource.Token, ref asyncWorker);
+                    tcpP.ReadData(ref cancelSource, ref asyncWorker);
 
                     while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
                     {

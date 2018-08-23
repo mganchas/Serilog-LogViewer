@@ -73,7 +73,7 @@ namespace LogViewer.ViewModel
                 {
                     cancelSource = new CancellationTokenSource();
                     var udpP = new UdpProcessor(Path, UdpFullName);
-                    udpP.ReadData(cancelSource.Token, ref asyncWorker);
+                    udpP.ReadData(ref cancelSource, ref asyncWorker);
 
                     while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
                     {

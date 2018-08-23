@@ -14,6 +14,9 @@ namespace LogViewer.Model
         public string Level { get; set; }
 
         [JsonProperty("message")]
+        public string Message { get; set; }
+
+        [JsonProperty("RenderedMessage")]
         public string RenderedMessage { get; set; }
 
         [JsonProperty("exception")]
@@ -25,6 +28,7 @@ namespace LogViewer.Model
 
     public class LogEntries
     {
+        [JsonProperty("events")]
         public Entry[] Entries { get; set; }
     }
 }

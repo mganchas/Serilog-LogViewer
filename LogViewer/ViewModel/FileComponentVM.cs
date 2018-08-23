@@ -76,7 +76,7 @@ namespace LogViewer.ViewModel
                 {
                     cancelSource = new CancellationTokenSource();
                     var fp = new FileProcessor(Path, ComponentRegisterName);
-                    fp.ReadData(cancelSource.Token, ref asyncWorker);
+                    fp.ReadData(ref cancelSource, ref asyncWorker);
 
                     while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
                     {

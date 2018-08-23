@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
@@ -17,8 +18,9 @@ namespace LogViewer.ViewModel
         public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}";
         public override string SearchImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
         public override string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
-        private string PathFixer => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length -1)}" : Path;
+        private string PathFixer => !Path.EndsWith("/") ? $"{Path}/" : Path;
         private string HttpFullName => $"http://{PathFixer}";
+        private CancellationTokenSource cancelSource;
 
         public HttpComponentVM(string name, string path) : base(name, path)
         {
@@ -70,16 +72,29 @@ namespace LogViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
-                    using (WebApp.Start<Startup>(HttpFullName))
+                    cancelSource = new CancellationTokenSource();
+                    var httpP = new HttpProcessor(HttpFullName, HttpFullName);
+                    httpP.ReadData(ref cancelSource, ref asyncWorker);
+
+                    while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
                     {
-                        while (!e.Cancel)
+                        if (bwAsync.CancellationPending)
                         {
-                            if (bwAsync.CancellationPending)
-                            {
-                                e.Cancel = true;
-                            }
+                            e.Cancel = true;
+                            cancelSource.Cancel();
                         }
                     }
+
+                    //using (WebApp.Start<Startup>(HttpFullName))
+                    //{
+                    //    while (!e.Cancel)
+                    //    {
+                    //        if (bwAsync.CancellationPending)
+                    //        {
+                    //            e.Cancel = true;
+                    //        }
+                    //    }
+                    //}
                 }
                 catch (Exception ex)
                 {

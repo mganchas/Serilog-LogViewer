@@ -14,6 +14,6 @@ namespace LogViewer.Services
             this.componentName = componentName;
         }
 
-        public abstract void ReadData(CancellationToken cancelToken, ref BackgroundWorker asyncWorker);
+        public abstract void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker);
     }
 }

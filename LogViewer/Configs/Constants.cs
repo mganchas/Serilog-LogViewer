@@ -1,6 +1,6 @@
 ﻿namespace LogViewer.Configs
 {
-    public static class Constants
+    public sealed class Constants
     {
         public class Component
         {

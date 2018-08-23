@@ -30,7 +30,7 @@
     <MapFileExtensions>true</MapFileExtensions>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>3</ApplicationRevision>
+    <ApplicationRevision>4</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -237,7 +237,6 @@
     <Compile Include="Model\Entry.cs" />
     <Compile Include="Model\ComponentTypes.cs" />
     <Compile Include="Services\FileProcessor.cs" />
-    <Compile Include="Services\Startup.cs" />
     <Compile Include="Configs\Constants.cs" />
     <Compile Include="Model\LevelTypes.cs" />
     <Compile Include="Model\PropertyChangesNotifier.cs" />

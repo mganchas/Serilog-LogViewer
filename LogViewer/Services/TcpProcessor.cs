@@ -16,7 +16,7 @@ namespace LogViewer.Services
         {
         }
 
-        public override void ReadData(CancellationToken cancelToken, ref BackgroundWorker asyncWorker)
+        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker)
         {
             TcpListener server = null;
             
@@ -42,9 +42,9 @@ namespace LogViewer.Services
                 // Enter the listening loop.
                 while (true)
                 {
-                    if (cancelToken.IsCancellationRequested)
+                    if (cancelToken.Token.IsCancellationRequested)
                     {
-                        return;
+                        break;
                     }
 
                     // Perform a blocking call to accept requests.
@@ -86,7 +86,7 @@ namespace LogViewer.Services
                         MessageContainer.TcpMessages[componentName].Add(new Entry
                         {
                             Timestamp = ent.Timestamp,
-                            RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",
+                            RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
                             LevelType = Levels.GetLevelTypeFromString(ent.Level),
                             Component = componentName
                         });
@@ -98,12 +98,14 @@ namespace LogViewer.Services
             }
             catch (SocketException e)
             {
-                Console.WriteLine("SocketException: {0}", e.Message);
+                Console.WriteLine(e.Message);
+                throw;
             }
             finally
             {               
                 // Stop listening for new clients.
                 server?.Stop();
+                cancelToken.Cancel();
             }
         }
     }

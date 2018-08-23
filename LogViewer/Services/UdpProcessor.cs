@@ -1,14 +1,11 @@
 ﻿using LogViewer.Model;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace LogViewer.Services
 {
@@ -18,7 +15,7 @@ namespace LogViewer.Services
         {
         }
 
-        public override void ReadData(CancellationToken cancelToken, ref BackgroundWorker asyncWorker)
+        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker)
         {
             UdpClient listener = null;
             try
@@ -29,13 +26,13 @@ namespace LogViewer.Services
                 var port = int.Parse(splitPath[1]);
 
                 listener = new UdpClient(port);
-                IPEndPoint groupEP = new IPEndPoint(IPAddress.Any, port);
+                IPEndPoint groupEP = new IPEndPoint(localAddr, port);
 
                 while (true)
                 {
-                    if (cancelToken.IsCancellationRequested)
+                    if (cancelToken.Token.IsCancellationRequested)
                     {
-                        return;
+                        break;
                     }
 
                     Console.WriteLine("Waiting for broadcast");
@@ -48,21 +45,21 @@ namespace LogViewer.Services
                     MessageContainer.UdpMessages[componentName].Add(new Entry
                     {
                         Timestamp = ent.Timestamp,
-                        RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",
+                        RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
                         LevelType = Levels.GetLevelTypeFromString(ent.Level),
                         Component = componentName
                     });
-
-                    Console.WriteLine("Received broadcast from {0} :\n {1}\n", groupEP.ToString(), data);
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
+                throw;
             }
             finally
             {
                 listener?.Close();
+                cancelToken.Cancel();
             }
         }
     }
