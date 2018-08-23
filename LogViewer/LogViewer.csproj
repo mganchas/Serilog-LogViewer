@@ -30,7 +30,7 @@
     <MapFileExtensions>true</MapFileExtensions>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationRevision>3</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -51,7 +51,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -72,6 +72,12 @@
   </PropertyGroup>
   <PropertyGroup>
     <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetZone>LocalIntranet</TargetZone>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CommonServiceLocator, Version=2.0.2.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
@@ -215,8 +221,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Services\HttpEventLogger.cs" />
+    <Compile Include="Model\ObservableSet.cs" />
+    <Compile Include="Services\BaseDataReader.cs" />
+    <Compile Include="Services\HttpProcessor.cs" />
     <Compile Include="Services\MessageContainer.cs" />
+    <Compile Include="Services\TcpProcessor.cs" />
+    <Compile Include="Services\UdpProcessor.cs" />
+    <Compile Include="ViewModel\ComponentSelectorVM.cs" />
+    <Compile Include="ViewModel\Abstractions\IComponent.cs" />
+    <Compile Include="ViewModel\TcpComponentVM.cs" />
+    <Compile Include="ViewModel\UdpComponentVM.cs" />
     <Compile Include="View\EntryDetailWindow.xaml.cs">
       <DependentUpon>EntryDetailWindow.xaml</DependentUpon>
     </Compile>
@@ -226,7 +240,7 @@
     <Compile Include="Services\Startup.cs" />
     <Compile Include="Configs\Constants.cs" />
     <Compile Include="Model\LevelTypes.cs" />
-    <Compile Include="ViewModel\BaseVM.cs" />
+    <Compile Include="Model\PropertyChangesNotifier.cs" />
     <Compile Include="ViewModel\ComponentVM.cs" />
     <Compile Include="ViewModel\EntryDetailVM.cs" />
     <Compile Include="ViewModel\FileComponentVM.cs" />
@@ -275,6 +289,7 @@
     </EmbeddedResource>
     <None Include="LogViewer_TemporaryKey.pfx" />
     <None Include="packages.config" />
+    <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -331,7 +346,7 @@
     <Resource Include="Images\filter.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\file.png" />
+    <Resource Include="Images\file_.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\save.png" />
@@ -344,6 +359,20 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\notepad.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\file2_.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\globe_.png" />
+    <Resource Include="Images\plug.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\cable.png" />
+    <Resource Include="Images\file.png" />
+    <Resource Include="Images\http.png" />
+    <Resource Include="Images\tcp.png" />
+    <Resource Include="Images\udp.png" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

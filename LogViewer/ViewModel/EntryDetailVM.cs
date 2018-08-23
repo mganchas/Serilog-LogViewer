@@ -1,10 +1,11 @@
 ﻿using LogViewer.Configs;
+using LogViewer.Model;
 using System;
 using System.Globalization;
 
 namespace LogViewer.ViewModel
 {
-    public class EntryDetailVM : BaseVM
+    public class EntryDetailVM : PropertyChangesNotifier
     {
         public string TimestampTitle => $"{Constants.Labels.Timestamp}:";
         public string LevelTitle => $"{Constants.Labels.Level}:";

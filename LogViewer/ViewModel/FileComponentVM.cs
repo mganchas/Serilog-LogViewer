@@ -8,10 +8,11 @@ using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
 using LogViewer.Model;
 using LogViewer.Services;
+using LogViewer.ViewModel.Abstractions;
 
 namespace LogViewer.ViewModel
 {
-    public class FileComponentVM : ComponentVM
+    public class FileComponentVM : ComponentVM, ICustomComponent
     {
         public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}";
         public override string SearchImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
@@ -21,36 +22,8 @@ namespace LogViewer.ViewModel
         public FileComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
-            MessageContainer.FileMessages.Add(ComponentRegisterName, new ObservableCollection<Entry>());
-
-            // Set start/stop command 
-            StartStopListenerCommand = new RelayCommand(() =>
-            {
-                IsRunning = !IsRunning;
-                try
-                {
-                    if (asyncWorker.IsBusy)
-                    {
-                        asyncWorker.CancelAsync();
-                    }
-                    else
-                    {
-                        // Clear previous entries 
-                        CleanUpCommand.Execute(true);
-
-                        // Set background worker 
-                        InitializeBackWorker();
-                        asyncWorker.RunWorkerAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    asyncWorker.CancelAsync();
-                    cancelSource.Cancel();
-                    MessageBox.Show($"Exception occurred: {ex.Message}");
-                }
-            });
-
+            MessageContainer.FileMessages.Add(ComponentRegisterName, new ObservableSet<Entry>());
+            
             /* Set message collection onchanged event */
             MessageContainer.FileMessages[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
@@ -82,7 +55,7 @@ namespace LogViewer.ViewModel
                 {
                     cancelSource.Cancel();
                     asyncWorker.CancelAsync();
-                    MessageBox.Show(ex.Message);
+                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
         }
@@ -103,7 +76,7 @@ namespace LogViewer.ViewModel
                 {
                     cancelSource = new CancellationTokenSource();
                     var fp = new FileProcessor(Path, ComponentRegisterName);
-                    fp.ReadFile(cancelSource.Token, ref asyncWorker);
+                    fp.ReadData(cancelSource.Token, ref asyncWorker);
 
                     while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
                     {
@@ -118,7 +91,7 @@ namespace LogViewer.ViewModel
                 {
                     asyncWorker.CancelAsync();
                     cancelSource.Cancel();
-                    MessageBox.Show(ex.Message, "Error");
+                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
         }
@@ -128,21 +101,21 @@ namespace LogViewer.ViewModel
             // Check mandatory fields 
             if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
             {
-                MessageBox.Show("File path and name are mandatory", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                MessageBox.Show(Constants.Messages.MandatoryFieldsMissingComponent, Constants.Messages.AlertTitle);
                 return false;
             }
 
             // Check if component already exists 
             if (components.Any(x => x.Name == name || x.Path == path))
             {
-                MessageBox.Show("Component already on the Components list", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                MessageBox.Show(Constants.Messages.DuplicateComponent, Constants.Messages.AlertTitle);
                 return false;
             }
 
             // Check if file exists 
             if (!FileProcessor.Exists(path))
             {
-                MessageBox.Show("File doesn't exist", "Alert", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                MessageBox.Show(Constants.Messages.FileNotFoundComponent, Constants.Messages.AlertTitle);
                 return false;
             }
 

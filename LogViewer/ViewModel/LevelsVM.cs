@@ -5,7 +5,7 @@ using static LogViewer.Model.Levels;
 
 namespace LogViewer.ViewModel
 {
-    public class LevelsVM : BaseVM
+    public class LevelsVM : PropertyChangesNotifier
     {
         public LevelTypes LevelType { get; private set; }
 

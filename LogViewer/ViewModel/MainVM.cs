@@ -4,55 +4,33 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using GalaSoft.MvvmLight.Command;
-using LogViewer.Services;
 using LogViewer.Configs;
+using LogViewer.Model;
+using System.IO;
 
 namespace LogViewer.ViewModel
 {
-    public class MainVM : BaseVM
+    public class MainVM : PropertyChangesNotifier
     {
         #region Visual properties
+        public string ComponentTypeLabel => $"{Constants.Labels.ComponentType}:";
         public string ComponentNameLabel => $"{Constants.Labels.ComponentName}:";
-        public string HttpPathLabel => $"{Constants.Labels.HttpPath}:";
-        public string HttpRouteLabel => $"{Constants.Labels.HttpRoute}:";
-        public string FileNameLabel => $"{Constants.Labels.FileName}:";
-        public string FilePathLabel => $"{Constants.Labels.FilePath}:";
+        public string PathLabel => $"{Constants.Labels.Path}:";
 
         public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
 
-        private string httpName = Constants.Component.DefaultHttpName;
-        public string HttpName
+        private string name;
+        public string Name
         {
-            get { return httpName; }
-            set { httpName = value; NotifyPropertyChanged(); }
+            get { return name; }
+            set { name = value; NotifyPropertyChanged(); }
         }
 
-        private string httpPath = Constants.Component.DefaultHttpPath;
-        public string HttpPath
+        private string path;
+        public string Path
         {
-            get { return httpPath; }
-            set { httpPath = value; NotifyPropertyChanged(); }
-        }
-
-        private string httpRoute = Constants.Component.DefaultHttpRoute;
-        public string HttpRoute
-        {
-            get { return httpRoute; }
-            set { httpRoute = value; NotifyPropertyChanged(); }
-        }
-
-        private string fileName = Constants.Component.DefaultFileName;
-        public string FileName
-        {
-            get { return fileName; }
-            set { fileName = value; NotifyPropertyChanged(); }
-        }
-
-        private string filePath = Constants.Component.DefaultFilePath;
-        public string FilePath
-        {
-            get { return filePath; }
-            set { filePath = value; NotifyPropertyChanged(); }
+            get { return path; }
+            set { path = value; NotifyPropertyChanged(); }
         }
 
         private ComponentVM selectedComponent;
@@ -69,18 +47,19 @@ namespace LogViewer.ViewModel
             set { selectedIndex = value; NotifyPropertyChanged(); }
         }
 
-        private bool httpSelector = true;
-        public bool HttpSelector
+        public ComponentSelectorVM[] ComponentTypes => new ComponentSelectorVM[] 
         {
-            get { return httpSelector; }
-            set { httpSelector = value; NotifyPropertyChanged(); }
-        }
+            new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}", Type = Model.ComponentTypes.File },
+            new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}", Type = Model.ComponentTypes.Http },
+            new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageTcp}", Type = Model.ComponentTypes.Tcp },
+            new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}", Type = Model.ComponentTypes.Udp }
+        };
 
-        private bool fileSelector;
-        public bool FileSelector
+        private ComponentSelectorVM selectedComponentType;
+        public ComponentSelectorVM SelectedComponentType
         {
-            get { return fileSelector; }
-            set { fileSelector = value; NotifyPropertyChanged(); }
+            get { return selectedComponentType; }
+            set { selectedComponentType = value; NotifyPropertyChanged(); }
         }
         #endregion
 
@@ -99,49 +78,51 @@ namespace LogViewer.ViewModel
         {
             AddListenerCommand = new RelayCommand(() =>
             {
+                if (SelectedComponentType == null)
+                {
+                    MessageBox.Show(Constants.Messages.ComponentTypeMissing, Constants.Messages.ErrorTitle);
+                    return;
+                }
+
+                // create new component
                 ComponentVM newComponent;
-                if (httpSelector)
+                switch (SelectedComponentType.Type)
                 {
-                    // check if component is valid
-                    if (!HttpComponentVM.IsValidComponent(HttpName, HttpPath, HttpRoute, Components)) { return; }
+                    case Model.ComponentTypes.File:
+                        newComponent = ComponentFactory<FileComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new FileComponentVM(name, path));
+                        break;
 
-                    // create new component
-                    newComponent = new HttpComponentVM(this.HttpName, HttpPath, HttpRoute)
-                    {
-                        RemoveComponentCommand = new RelayCommand<object>(comp =>
-                        {
-                            var compVM = comp as ComponentVM;
-                            compVM.RemoveComponent();
-                            Components.Remove(compVM);
-                            GC.Collect();
-                        })
-                    };
-                }
-                else
-                {
-                    // check if component is valid
-                    if (!FileComponentVM.IsValidComponent(FileName, FilePath, Components)) { return; } 
+                    case Model.ComponentTypes.Http:
+                        newComponent = ComponentFactory<HttpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new HttpComponentVM(name, path));
+                        break;
 
-                    // create new component
-                    newComponent = new FileComponentVM(this.FileName, this.FilePath)
-                    {
-                        RemoveComponentCommand = new RelayCommand<object>(comp =>
-                        {
-                            var compVM = comp as ComponentVM;
-                            compVM.RemoveComponent();
-                            Components.Remove(compVM);
-                            GC.Collect();
-                        })
-                    };
+                    case Model.ComponentTypes.Tcp:
+                        newComponent = ComponentFactory<TcpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new TcpComponentVM(name, path));
+                        break;
+
+                    case Model.ComponentTypes.Udp:
+                        newComponent = ComponentFactory<UdpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new UdpComponentVM(name, path));
+                        break;
+
+                    default:
+                        throw new ArgumentException(Constants.Messages.InvalidComponentException);
                 }
 
-                #region Global
+                // not a valid component
+                if (newComponent == null) { return; }
+
+                // set component details
+                SetNewComponent(ref newComponent);
+
                 // add new listener to list
                 Components.Add(newComponent);
 
+                // clean selection inputs
+                Name = string.Empty;
+                Path = string.Empty;
+
                 // select last added component
                 SelectedComponent = Components.First(x => x == newComponent);
-                #endregion
             });
 
             // Set cleanup command 
@@ -158,6 +139,38 @@ namespace LogViewer.ViewModel
             DropCommand = new RelayCommand(() => {
                 MessageBox.Show("çpç");
             });
+        }
+
+        /// <summary>
+        /// Use to set generic properties for a new component (that can't be done within its class)
+        /// </summary>
+        /// <param name="component"></param>
+        private void SetNewComponent(ref ComponentVM newComponent)
+        {
+            // command for when component is removed
+            newComponent.RemoveComponentCommand = new RelayCommand<object>(comp =>
+            {
+                var compVM = comp as ComponentVM;
+                compVM.RemoveComponent();
+                Components.Remove(compVM);
+                GC.Collect();
+            });
+
+            // add other actions (if applicable)...
+
+        }
+
+        public void AddDroppedComponents(string[] files)
+        {
+            foreach (var file in files)
+            {
+                // define new file component
+                ComponentVM comp = ComponentFactory<FileComponentVM>.GetComponent(this, new DirectoryInfo(file).Name, file, Components, (name, path) => new FileComponentVM(name, path));
+                SetNewComponent(ref comp);
+
+                // add new listener to list
+                Components.Add(comp);
+            }
         }
     }
 }

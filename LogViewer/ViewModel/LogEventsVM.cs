@@ -10,7 +10,7 @@ using static LogViewer.Model.Levels;
 
 namespace LogViewer.ViewModel
 {
-    public class LogEventsVM : BaseVM
+    public class LogEventsVM : PropertyChangesNotifier
     {
         public string TimestampFormat => Timestamp.ToString(Constants.Formats.TimeFormat, CultureInfo.InvariantCulture);
         public DateTime Timestamp { get; set; }
@@ -30,10 +30,5 @@ namespace LogViewer.ViewModel
             });
             wind.Show();
         });
-    }
-
-    public class LogEvents
-    {
-        public Entry[] Events { get; set; }
     }
 }

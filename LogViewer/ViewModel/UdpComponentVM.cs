@@ -1,32 +1,32 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Windows;
-using GalaSoft.MvvmLight.Command;
+﻿using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
 using LogViewer.Model;
 using LogViewer.Services;
 using LogViewer.ViewModel.Abstractions;
-using Microsoft.Owin.Hosting;
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Threading;
+using System.Windows;
 
 namespace LogViewer.ViewModel
 {
-    public class HttpComponentVM : ComponentVM, ICustomComponent
+    public class UdpComponentVM : ComponentVM, ICustomComponent
     {
-        public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}";
+        public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}";
         public override string SearchImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
         public override string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
-        private string PathFixer => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length -1)}" : Path;
-        private string HttpFullName => $"http://{PathFixer}";
+        private string UdpFullName => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length - 1)}" : Path;
+        private CancellationTokenSource cancelSource;
 
-        public HttpComponentVM(string name, string path) : base(name, path)
+        public UdpComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
-            MessageContainer.HttpMessages.Add(HttpFullName, new ObservableSet<Entry>());
+            MessageContainer.UdpMessages.Add(UdpFullName, new ObservableSet<Entry>());
 
             /* Set message collection onchanged event */
-            MessageContainer.HttpMessages[HttpFullName].CollectionChanged += (sender, e) =>
+            MessageContainer.UdpMessages[UdpFullName].CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning || e.NewItems == null) { return; }
 
@@ -55,6 +55,7 @@ namespace LogViewer.ViewModel
                 catch (Exception ex)
                 {
                     asyncWorker.CancelAsync();
+                    cancelSource.Cancel();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
@@ -70,20 +71,24 @@ namespace LogViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
-                    using (WebApp.Start<Startup>(HttpFullName))
+                    cancelSource = new CancellationTokenSource();
+                    var udpP = new UdpProcessor(Path, UdpFullName);
+                    udpP.ReadData(cancelSource.Token, ref asyncWorker);
+
+                    while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
                     {
-                        while (!e.Cancel)
+                        if (bwAsync.CancellationPending)
                         {
-                            if (bwAsync.CancellationPending)
-                            {
-                                e.Cancel = true;
-                            }
+                            e.Cancel = true;
+                            cancelSource.Cancel();
                         }
                     }
+
                 }
                 catch (Exception ex)
                 {
                     asyncWorker.CancelAsync();
+                    cancelSource.Cancel();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
@@ -92,12 +97,12 @@ namespace LogViewer.ViewModel
         public static bool IsValidComponent(string name, string path, in ObservableCollection<ComponentVM> components)
         {
             // Check mandatory fields 
-            if (String.IsNullOrEmpty(path)  || String.IsNullOrEmpty(name))
+            if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
             {
                 MessageBox.Show(Constants.Messages.MandatoryFieldsMissingComponent, Constants.Messages.AlertTitle);
                 return false;
             }
-            if (path.ToLower().Contains("http"))
+            if (path.ToLower().Contains("udp"))
             {
                 MessageBox.Show(Constants.Messages.InvalidUrlComponent, Constants.Messages.AlertTitle);
                 return false;
@@ -115,12 +120,12 @@ namespace LogViewer.ViewModel
 
         public override void RemoveComponent()
         {
-            MessageContainer.HttpMessages.Remove(HttpFullName);
+            MessageContainer.HttpMessages.Remove(UdpFullName);
         }
 
         public override void ClearComponent()
         {
-            MessageContainer.HttpMessages[HttpFullName].Clear();
+            MessageContainer.HttpMessages[UdpFullName].Clear();
         }
     }
 }

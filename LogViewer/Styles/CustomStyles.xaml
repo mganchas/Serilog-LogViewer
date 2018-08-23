@@ -21,6 +21,7 @@
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="HorizontalAlignment" Value="Right"/>
         <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}"/>
     </Style>
 
@@ -113,6 +114,21 @@
         <Setter Property="RenderTransformOrigin" Value=".5,.5"/>
     </Style>
 
+    <Style x:Key="IconAndTextCombobox" TargetType="ComboBox">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="{Binding Icon}" Style="{StaticResource CustomImage}" Width="18" Height="18" Margin="2" />
+                        <TextBlock Text="{Binding Type}" Style="{StaticResource TextBlockTitles}" Margin="2" FontWeight="Normal" Foreground="Black"/>
+                    </StackPanel>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="CustomTextBox" TargetType="{x:Type TextBox}">
         <Setter Property="BorderBrush" Value="LightBlue"/>
         <Setter Property="BorderThickness" Value="0,0,0,1.5"/>
@@ -123,6 +139,7 @@
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontFamily" Value="Segoe UI" />
         <Setter Property="AcceptsTab" Value="False" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Style.Triggers>
             <Trigger Property="IsReadOnly" Value="True">
                 <Setter Property="Background" Value="LightGray" />
@@ -392,8 +409,8 @@
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <Border x:Name="brd" Grid.Column="0" BorderBrush="Transparent" BorderThickness="0, 0, 4, 0" CornerRadius="0" ToolTip="{Binding Name}" Margin="5" Background="Transparent" Cursor="Hand" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" Width="250">
-                        <Grid>
+                    <Border x:Name="brd" Grid.Column="0" BorderBrush="Transparent" BorderThickness="0,0,4,0" CornerRadius="0" ToolTip="{Binding Name}" Margin="5" Background="Transparent" Cursor="Hand" MinHeight="80" Width="250">
+                        <Grid VerticalAlignment="Center">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto"/>
                                 <RowDefinition Height="auto"/>
@@ -405,20 +422,17 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Image Grid.Column="0" Style="{StaticResource CustomImage}" Source="{Binding ComponentImage}" VerticalAlignment="Center" Height="20" Margin="5"/>
+                                <Image Grid.Column="0" Style="{StaticResource CustomImage}" Source="{Binding ComponentImage}" VerticalAlignment="Center" Height="24" Width="24" Margin="5"/>
                                 <Grid Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3,0">
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="*"/>
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <TextBlock Text="{Binding Name}" Grid.Row="0" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold" TextWrapping="Wrap" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}"/>
                                     <TextBlock Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}"/>
-                                    <TextBlock Text="{Binding HttpRoute}" Grid.Row="2" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}"/>
 
                                     <TextBox Text="{Binding Name}" Grid.Row="0" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold" TextWrapping="Wrap" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}"/>
                                     <TextBox Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}"/>
-                                    <TextBox Text="{Binding HttpRoute}" Grid.Row="2" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}"/>
                                 </Grid>
                                 <Button Grid.Column="2" Style="{StaticResource RoundButton}" Command="{Binding StartStopListenerCommand}" ToolTip="{Binding StartStopTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}">
                                     <Image Style="{StaticResource CustomImage}" Source="{Binding StartStopButtonImage}" Margin="5"/>

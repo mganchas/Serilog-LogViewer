@@ -7,20 +7,15 @@ using System.Threading;
 
 namespace LogViewer.Services
 {
-    public sealed class FileProcessor
+    public sealed class FileProcessor : BaseDataReader
     {
-        private readonly string filePath;
-        private readonly string componentName;
-
-        public FileProcessor(string filePath, string componentName)
+        public FileProcessor(string path, string componentName) : base(path, componentName)
         {
-            this.filePath = filePath;
-            this.componentName = componentName;
         }
 
-        public void ReadFile(CancellationToken cancelToken, ref BackgroundWorker asyncWorker)
+        public override void ReadData(CancellationToken cancelToken, ref BackgroundWorker asyncWorker)
         {
-            using (StreamReader sr = new StreamReader(filePath))
+            using (StreamReader sr = new StreamReader(path))
             {
                 string line = null;
                 StringBuilder sb = new StringBuilder();
