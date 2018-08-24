@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Media;
 
@@ -29,26 +30,20 @@ namespace LogViewer.Model
             Fatal
         }
 
+        private static Dictionary<LevelTypes, SolidColorBrush> LevelColors => new Dictionary<LevelTypes, SolidColorBrush>
+        {
+            { LevelTypes.Verbose, Brushes.Purple },
+            { LevelTypes.Debug, Brushes.Gray },
+            { LevelTypes.Information, Brushes.Blue },
+            { LevelTypes.Warning, Brushes.Orange },
+            { LevelTypes.Error, Brushes.Red },
+            { LevelTypes.Fatal, Brushes.Green },
+            { LevelTypes.All, Brushes.Black },
+        };
+
         public static Brush GetLevelColor(LevelTypes level)
         {
-            switch (level)
-            {
-                case LevelTypes.Verbose:
-                    return Brushes.Purple;
-                case LevelTypes.Debug:
-                    return Brushes.Gray;
-                case LevelTypes.Information:
-                    return Brushes.Blue;
-                case LevelTypes.Warning:
-                    return Brushes.Orange;
-                case LevelTypes.Error:
-                    return Brushes.Red;
-                case LevelTypes.Fatal:
-                    return Brushes.Green;
-                case LevelTypes.All:
-                    return Brushes.Black;
-            }
-            return Brushes.Black;
+            return LevelColors[level];
         }
 
         public static LevelTypes GetLevelTypeFromString(string levelString)

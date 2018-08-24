@@ -12,6 +12,11 @@
             public const int DefaultRows = 100;
         }
 
+        public class Database
+        {
+            public const string RealmName = "LogViewer.realm";
+        }
+
         public class Formats
         {
             public const string TimeFormat = "dd MMM yyyy HH:mm:ss";
@@ -34,6 +39,7 @@
             public const string ImageMonitor = "monitor.png";
             public const string ImageFilter = "filter.png";
             public const string ImagePlay = "play.png";
+            public const string ImagePlayBlue = "play_blue.png";
             public const string ImageGlobe = "globe.png";
             public const string ImagePlug = "plug.png";
             public const string ImageDocument = "document.png";
@@ -51,13 +57,23 @@
             public const string Levels = nameof(Levels);
             public const string Edit = nameof(Edit);
             public const string Remove = nameof(Remove);
-            public const string StartStop = "Start/Stop execution";
+            public const string StartRAM = "Start (RAM) execution";
+            public const string StartDisk = "Start (Disk) execution";
+            public const string Stop = "Stop execution";            
             public const string SaveChanges = "Save changes";
             public const string Timestamp = nameof(Timestamp);
             public const string Level = nameof(Level);
             public const string ComponentName = "Component Name";
             public const string ComponentType = "Component Type";
             public const string Path = "Path";
+        }
+
+        public class Tooltips
+        {
+            public const string StartAllRAM = "Start all (RAM)";
+            public const string StartAllDisk = "Start all (Disk)";
+            public const string CancelAll = "Cancel all (if running)";
+            public const string ResetAll = "Reset all data";
         }
 
         public class Messages

@@ -11,8 +11,8 @@ namespace LogViewer.ViewModel
         public string LevelTitle => $"{Constants.Labels.Level}:";
 
         public string TimestampFormat => Timestamp.ToString(Constants.Formats.TimeFormat, CultureInfo.InvariantCulture);
-        private DateTime timestamp;
-        public DateTime Timestamp
+        private DateTimeOffset timestamp;
+        public DateTimeOffset Timestamp
         {
             get { return timestamp; }
             set { timestamp = value; NotifyPropertyChanged(); }

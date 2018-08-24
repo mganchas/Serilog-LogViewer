@@ -17,17 +17,17 @@ namespace LogViewer.View
             InitializeComponent();
         }
 
-        //protected override void OnInitialized(EventArgs e)
-        //{
-        //    base.OnInitialized(e);
-        //    DbProcessor.CleanDatabase();
-        //}
+        protected override void OnInitialized(EventArgs e)
+        {
+            base.OnInitialized(e);
+            DbProcessor.CleanDatabase();
+        }
 
-        //protected override void OnClosing(CancelEventArgs e)
-        //{
-        //    base.OnClosing(e);
-        //    DbProcessor.CleanDatabase();
-        //}
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            base.OnClosing(e);
+            DbProcessor.CleanDatabase();
+        }
 
         private void Window_Drop(object sender, DragEventArgs e)
         {

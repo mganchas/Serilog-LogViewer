@@ -15,18 +15,16 @@ namespace LogViewer.ViewModel
     public class UdpComponentVM : ComponentVM, ICustomComponent
     {
         public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}";
-        public override string SearchImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
-        public override string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
         private string UdpFullName => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length - 1)}" : Path;
         private CancellationTokenSource cancelSource;
 
         public UdpComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
-            MessageContainer.UdpMessages.Add(UdpFullName, new ObservableSet<Entry>());
+            MessageContainer.RAM.UdpMessages.Add(UdpFullName, new ObservableSet<Entry>());
 
             /* Set message collection onchanged event */
-            MessageContainer.UdpMessages[UdpFullName].CollectionChanged += (sender, e) =>
+            MessageContainer.RAM.UdpMessages[UdpFullName].CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning || e.NewItems == null) { return; }
 
@@ -37,7 +35,7 @@ namespace LogViewer.ViewModel
                         App.Current.Dispatcher.Invoke(delegate
                         {
                             /* increment specific button counter */
-                            ComponentLevels[entry.LevelType].Counter++;
+                            ComponentLevels[(Levels.LevelTypes)entry.LevelType].Counter++;
                             ComponentLevels[Levels.LevelTypes.All].Counter++;
 
                             /* add item to console messages */
@@ -45,7 +43,7 @@ namespace LogViewer.ViewModel
                             {
                                 RenderedMessage = entry.RenderedMessage,
                                 Timestamp = entry.Timestamp,
-                                LevelType = entry.LevelType
+                                LevelType = (Levels.LevelTypes)entry.LevelType
                             });
                         });
                     }
@@ -73,7 +71,7 @@ namespace LogViewer.ViewModel
                 {
                     cancelSource = new CancellationTokenSource();
                     var udpP = new UdpProcessor(Path, UdpFullName);
-                    udpP.ReadData(ref cancelSource, ref asyncWorker);
+                    udpP.ReadData(ref cancelSource, ref asyncWorker, StoreType);
 
                     while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
                     {
@@ -120,12 +118,12 @@ namespace LogViewer.ViewModel
 
         public override void RemoveComponent()
         {
-            MessageContainer.HttpMessages.Remove(UdpFullName);
+            MessageContainer.RAM.HttpMessages.Remove(UdpFullName);
         }
 
         public override void ClearComponent()
         {
-            MessageContainer.HttpMessages[UdpFullName].Clear();
+            MessageContainer.RAM.HttpMessages[UdpFullName].Clear();
         }
     }
 }

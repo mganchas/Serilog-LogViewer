@@ -12,7 +12,7 @@ namespace LogViewer.Model
         public void Add(T item)
         {
             ItemSet.Add(item);
-            CollectionChanged.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
 
         public void AddRange(IEnumerable<T> items)
@@ -21,13 +21,13 @@ namespace LogViewer.Model
             {
                 ItemSet.Add(item);
             }
-            CollectionChanged.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items));
         }
 
         public void Remove(T item)
         {
             ItemSet.Remove(item);
-            CollectionChanged.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
         }
 
         public void RemoveRange(IEnumerable<T> items)
@@ -36,12 +36,13 @@ namespace LogViewer.Model
             {
                 ItemSet.Remove(item);
             }
-            CollectionChanged.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, items));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, items));
         }
 
         public void Clear()
         {
             ItemSet.Clear();
+            CollectionChanged.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, null));
         }
 
         public HashSet<T> GetItemSet()

@@ -79,8 +79,17 @@
         <!-- Export options -->
         <Grid Grid.Row="2" Height="50" Background="{StaticResource Toolbar}">
             <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
-                <Button Style="{StaticResource RoundButton}" Command="{Binding CleanUpCommand}" ToolTip="Clean data">
-                    <Image Style="{StaticResource CustomImage}" Source="{Binding ClearButtonImage}" Margin="5"/>
+                <Button Style="{StaticResource RoundButton}" Command="{Binding StartAllDiskCommand}" ToolTip="{Binding StartAllDiskTooltip}">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding StartDiskButtonImage}" Margin="5"/>
+                </Button>
+                <Button Style="{StaticResource RoundButton}" Command="{Binding StartAllRAMCommand}" ToolTip="{Binding StartAllRAMTooltip}">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding StartRAMButtonImage}" Margin="5"/>
+                </Button>
+                <Button Style="{StaticResource RoundButton}" Command="{Binding CancelAllCommand}" ToolTip="{Binding CancelAllTooltip}">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding CancelButtonImage}" Margin="5"/>
+                </Button>
+                <Button Style="{StaticResource RoundButton}" Command="{Binding ResetCommand}" ToolTip="{Binding ResetAllTooltip}">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding ResetButtonImage}" Margin="5"/>
                 </Button>
             </StackPanel>
         </Grid>

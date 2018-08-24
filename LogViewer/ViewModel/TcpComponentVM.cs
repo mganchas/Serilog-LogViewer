@@ -15,18 +15,16 @@ namespace LogViewer.ViewModel
     public class TcpComponentVM : ComponentVM, ICustomComponent
     {
         public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageTcp}";
-        public override string SearchImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
-        public override string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
         private string TcpFullName => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length - 1)}" : Path;
         private CancellationTokenSource cancelSource;
 
         public TcpComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
-            MessageContainer.TcpMessages.Add(TcpFullName, new ObservableSet<Entry>());
+            MessageContainer.RAM.TcpMessages.Add(TcpFullName, new ObservableSet<Entry>());
 
             /* Set message collection onchanged event */
-            MessageContainer.TcpMessages[TcpFullName].CollectionChanged += (sender, e) =>
+            MessageContainer.RAM.TcpMessages[TcpFullName].CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning || e.NewItems == null) { return; }
 
@@ -37,7 +35,7 @@ namespace LogViewer.ViewModel
                         App.Current.Dispatcher.Invoke(delegate
                         {
                             /* increment specific button counter */
-                            ComponentLevels[entry.LevelType].Counter++;
+                            ComponentLevels[(Levels.LevelTypes)entry.LevelType].Counter++;
                             ComponentLevels[Levels.LevelTypes.All].Counter++;
 
                             /* add item to console messages */
@@ -45,7 +43,7 @@ namespace LogViewer.ViewModel
                             {
                                 RenderedMessage = entry.RenderedMessage,
                                 Timestamp = entry.Timestamp,
-                                LevelType = entry.LevelType
+                                LevelType = (Levels.LevelTypes)entry.LevelType
                             });
                         });
                     }
@@ -73,7 +71,7 @@ namespace LogViewer.ViewModel
                 {
                     cancelSource = new CancellationTokenSource();
                     var tcpP = new TcpProcessor(Path, TcpFullName);
-                    tcpP.ReadData(ref cancelSource, ref asyncWorker);
+                    tcpP.ReadData(ref cancelSource, ref asyncWorker, StoreType);
 
                     while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
                     {
@@ -120,12 +118,12 @@ namespace LogViewer.ViewModel
 
         public override void RemoveComponent()
         {
-            MessageContainer.HttpMessages.Remove(TcpFullName);
+            MessageContainer.RAM.HttpMessages.Remove(TcpFullName);
         }
 
         public override void ClearComponent()
         {
-            MessageContainer.HttpMessages[TcpFullName].Clear();
+            MessageContainer.RAM.HttpMessages[TcpFullName].Clear();
         }
     }
 }

@@ -1,14 +1,15 @@
 ﻿
 using Newtonsoft.Json;
+using Realms;
 using System;
 using static LogViewer.Model.Levels;
 
 namespace LogViewer.Model
 {
-    public class Entry
+    public class Entry : RealmObject
     {
         [JsonProperty("timestamp")]
-        public DateTime Timestamp { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
 
         [JsonProperty("level")]
         public string Level { get; set; }
@@ -23,7 +24,7 @@ namespace LogViewer.Model
         public string Exception { get; set; }
 
         public string Component { get; set; }
-        public LevelTypes LevelType { get; set; }
+        public int LevelType { get; set; }
     }
 
     public class LogEntries

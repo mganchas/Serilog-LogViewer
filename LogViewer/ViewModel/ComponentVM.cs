@@ -4,11 +4,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Media;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
 using LogViewer.Model;
+using LogViewer.Services;
 using LogViewer.ViewModel.Abstractions;
 using static LogViewer.Model.Levels;
 
@@ -22,6 +24,31 @@ namespace LogViewer.ViewModel
         private bool IsAllSelected { get; set; }
         private SelectionElements SelectionFilters { get; set; }
 
+        #region Labels
+        public string TerminalTitle => Constants.Labels.Messages;
+        public string FilterTitle => Constants.Labels.Filters;
+        public string LevelsTitle => Constants.Labels.Levels;
+        public string EditTitle => Constants.Labels.Edit;
+        public string RemoveTitle => Constants.Labels.Remove;
+        public string StartRAMTitle => Constants.Labels.StartRAM;
+        public string StartDiskTitle => Constants.Labels.StartDisk;
+        public string StopTitle => Constants.Labels.Stop;
+        public string SaveChangesTitle => Constants.Labels.SaveChanges;
+        #endregion
+
+        #region Images
+        public abstract string ComponentImage { get; }
+        public string PlayDiskImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
+        public string PlayRAMImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}";
+        public string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
+        public string RemoveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageDelete}";
+        public string EditImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageEdit}";
+        public string SaveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSave}";
+        public string TerminalImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageTerminal}";
+        public string MonitorImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageMonitor}";
+        public string FilterImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFilter}";
+        #endregion
+
         #region Visual properties
         private string name;
         public string Name
@@ -30,7 +57,14 @@ namespace LogViewer.ViewModel
             set { name = value; NotifyPropertyChanged(); }
         }
 
-        private string path = Constants.Component.DefaultHttpPath;
+        private StoreTypes storeType;
+        public StoreTypes StoreType
+        {
+            get { return storeType; }
+            set { storeType = value; NotifyPropertyChanged(); }
+        }
+
+        private string path;
         public string Path
         {
             get { return path; }
@@ -54,7 +88,6 @@ namespace LogViewer.ViewModel
                 isRunning = value;
                 AllowChanges = !value;
                 NotifyPropertyChanged();
-                NotifyPropertyChanged(nameof(StartStopButtonImage));
                 NotifyPropertyChanged(nameof(AllowChanges));
             }
         }
@@ -66,67 +99,8 @@ namespace LogViewer.ViewModel
             set { allowChanges = value; NotifyPropertyChanged(); }
         }
 
-        private bool editMode = false;
-        public bool EditMode
-        {
-            get { return editMode; }
-            set
-            {
-                editMode = value;
-                ReadMode = !value;
-                NotifyPropertyChanged();
-                NotifyPropertyChanged(nameof(ReadMode));
-            }
-        }
-
-        private bool readMode = true;
-        public bool ReadMode
-        {
-            get { return readMode; }
-            set { readMode = value; NotifyPropertyChanged(); }
-        }
-
-        private string startStopButtonImage;
-        public string StartStopButtonImage
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(startStopButtonImage))
-                {
-                    startStopButtonImage = SearchImage;
-                }
-                else
-                {
-                    startStopButtonImage = IsRunning ? CancelImage : SearchImage;
-                }
-                return startStopButtonImage;
-            }
-        }
-
         public HashSet<LogEventsVM> ConsoleMessages { get; set; } = new HashSet<LogEventsVM>();
         public ObservableCollection<LogEventsVM> VisibleConsoleMessages { get; set; } = new ObservableCollection<LogEventsVM>();
-        #endregion
-
-        #region Labels
-        public string TerminalTitle => Constants.Labels.Messages;
-        public string FilterTitle => Constants.Labels.Filters;
-        public string LevelsTitle => Constants.Labels.Levels;
-        public string EditTitle => Constants.Labels.Edit;
-        public string RemoveTitle => Constants.Labels.Remove;
-        public string StartStopTitle => Constants.Labels.StartStop;
-        public string SaveChangesTitle => Constants.Labels.SaveChanges;
-        #endregion
-
-        #region Images
-        public abstract string ComponentImage { get; }
-        public abstract string SearchImage { get; }
-        public abstract string CancelImage { get; }
-        public string RemoveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageDelete}";
-        public string EditImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageEdit}";
-        public string SaveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSave}";
-        public string TerminalImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageTerminal}";
-        public string MonitorImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageMonitor}";
-        public string FilterImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFilter}";
         #endregion
 
         #region Levels
@@ -134,7 +108,9 @@ namespace LogViewer.ViewModel
         #endregion        
 
         #region Commands
-        public ICommand StartStopListenerCommand { get; set; }
+        public ICommand StartDiskListenerCommand { get; set; }
+        public ICommand StartRAMListenerCommand { get; set; }
+        public ICommand StopListenerCommand { get; set; }
         public ICommand CleanUpCommand { get; set; }
         public ICommand EditComponentCommand { get; set; }
         public ICommand RemoveComponentCommand { get; set; }
@@ -179,24 +155,20 @@ namespace LogViewer.ViewModel
                 }
             });
 
-            // Set start/stop command 
-            StartStopListenerCommand = new RelayCommand(() =>
+            // set start (disk) listener/reader
+            StartDiskListenerCommand = new RelayCommand(() =>
             {
                 try
                 {
-                    // Clear previous entries 
-                    if (!IsRunning) {
-                        CleanUpCommand.Execute(true);
-                    }
-                    IsRunning = !IsRunning;
+                    IsRunning = true;
+                    StoreType = StoreTypes.Disk;
 
-                    if (asyncWorker.IsBusy)
+                    if (!asyncWorker.IsBusy)
                     {
-                        asyncWorker.CancelAsync();
-                    }
-                    else
-                    {
-                        // Set background worker 
+                        // Clear previous entries 
+                        CleanUpCommand.Execute(true);
+
+                        // Set background worker
                         InitializeBackWorker();
                         asyncWorker.RunWorkerAsync();
                     }
@@ -208,16 +180,48 @@ namespace LogViewer.ViewModel
                 }
             });
 
-            // Set edit component command 
-            EditComponentCommand = new RelayCommand(() =>
+            // set start (ram) listener/reader
+            StartRAMListenerCommand = new RelayCommand(() =>
             {
-                EditMode = !EditMode;
+                try
+                {
+                    IsRunning = true;
+                    StoreType = StoreTypes.RAM;
+
+                    if (!asyncWorker.IsBusy)
+                    {
+                        // Clear previous entries 
+                        CleanUpCommand.Execute(true);
+
+                        // Set background worker
+                        InitializeBackWorker();
+                        asyncWorker.RunWorkerAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    asyncWorker.CancelAsync();
+                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
+                }
             });
 
-            // Set save changes command 
-            SaveChangesCommand = new RelayCommand(() =>
+            // Set stop listener/reader command 
+            StopListenerCommand = new RelayCommand(() =>
             {
-                EditMode = false;
+                try
+                {
+                    IsRunning = false;
+                    if (asyncWorker.IsBusy)
+                    {
+                        Task cancelTsk = Task.Run(() => asyncWorker.CancelAsync());
+                        cancelTsk.Wait();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    asyncWorker.CancelAsync();
+                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
+                }
             });
 
             // Set filter search command 
@@ -285,32 +289,76 @@ namespace LogViewer.ViewModel
 
                 if (hasChanges || VisibleConsoleMessages.Count < Constants.Component.DefaultRows)
                 {
-                    IEnumerable<LogEventsVM> filteredEntries = ConsoleMessages.AsEnumerable();
+                    // get entries from RAM or Disk
 
-                    // filter level
-                    if (!ComponentLevels[LevelTypes.All].IsSelected)
+                    if (StoreType == StoreTypes.Disk)
                     {
-                        filteredEntries = filteredEntries.Where(x => selectedLevels.Contains(x.LevelType));
-                    }
+                        IList<Entry> filteredEntries = null;
 
-                    // filter text
-                    if (!String.IsNullOrEmpty(FilterText))
-                    {
-                        filteredEntries = filteredEntries.Where(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()));
-                    }
-
-                    // filter visible rows
-                    filteredEntries = filteredEntries.Take(Constants.Component.DefaultRows);
-
-                    if (hasChanges || filteredEntries.Count() != prevRows)
-                    {
-                        // clear visible messages
-                        VisibleConsoleMessages.Clear();
-
-                        foreach (var entry in filteredEntries)
+                        // filter level
+                        if (!ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
                         {
-                            // add item to console messages 
-                            VisibleConsoleMessages.Add(entry);
+                            filteredEntries = DbProcessor.Read(x => selectedLevels.Contains((LevelTypes)x.LevelType) && x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), Constants.Component.DefaultRows);
+                        }
+                        if (ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
+                        {
+                            filteredEntries = DbProcessor.Read(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), Constants.Component.DefaultRows);
+                        }
+                        else if (!ComponentLevels[LevelTypes.All].IsSelected && String.IsNullOrEmpty(FilterText))
+                        {
+                            filteredEntries = DbProcessor.Read(x => selectedLevels.Contains((LevelTypes)x.LevelType), Constants.Component.DefaultRows);
+                        }
+                        else
+                        {
+                            filteredEntries = DbProcessor.ReadAll(Constants.Component.DefaultRows);
+                        }
+
+                        if (hasChanges || filteredEntries.Count != prevRows)
+                        {
+                            // clear visible messages
+                            VisibleConsoleMessages.Clear();
+
+                            foreach (var entry in filteredEntries)
+                            {
+                                // add item to console messages 
+                                VisibleConsoleMessages.Add(new LogEventsVM
+                                {
+                                    RenderedMessage = entry.RenderedMessage,
+                                    Timestamp = entry.Timestamp,
+                                    LevelType = (LevelTypes)entry.LevelType
+                                });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        IEnumerable<LogEventsVM> filteredEntries = ConsoleMessages.AsEnumerable();
+
+                        // filter level
+                        if (!ComponentLevels[LevelTypes.All].IsSelected)
+                        {
+                            filteredEntries = filteredEntries.Where(x => selectedLevels.Contains(x.LevelType));
+                        }
+
+                        // filter text
+                        if (!String.IsNullOrEmpty(FilterText))
+                        {
+                            filteredEntries = filteredEntries.Where(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()));
+                        }
+
+                        // filter visible rows
+                        filteredEntries = filteredEntries.Take(Constants.Component.DefaultRows);
+
+                        if (hasChanges || filteredEntries.Count() != prevRows)
+                        {
+                            // clear visible messages
+                            VisibleConsoleMessages.Clear();
+
+                            foreach (var entry in filteredEntries)
+                            {
+                                // add item to console messages 
+                                VisibleConsoleMessages.Add(entry);
+                            }
                         }
                     }
                 }

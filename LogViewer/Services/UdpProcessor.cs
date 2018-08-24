@@ -15,7 +15,7 @@ namespace LogViewer.Services
         {
         }
 
-        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker)
+        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker, StoreTypes storeType)
         {
             UdpClient listener = null;
             try
@@ -30,7 +30,7 @@ namespace LogViewer.Services
 
                 while (true)
                 {
-                    if (cancelToken.Token.IsCancellationRequested)
+                    if (cancelToken.Token.IsCancellationRequested || asyncWorker.CancellationPending)
                     {
                         break;
                     }
@@ -42,11 +42,11 @@ namespace LogViewer.Services
                     var ent = JsonConvert.DeserializeObject<Entry>(data);
 
                     // insert into dictionary
-                    MessageContainer.UdpMessages[componentName].Add(new Entry
+                    MessageContainer.RAM.UdpMessages[componentName].Add(new Entry
                     {
                         Timestamp = ent.Timestamp,
                         RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
-                        LevelType = Levels.GetLevelTypeFromString(ent.Level),
+                        LevelType = (int)Levels.GetLevelTypeFromString(ent.Level),
                         Component = componentName
                     });
                 }

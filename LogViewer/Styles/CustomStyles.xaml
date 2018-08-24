@@ -428,18 +428,28 @@
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <TextBlock Text="{Binding Name}" Grid.Row="0" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold" TextWrapping="Wrap" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}"/>
-                                    <TextBlock Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}"/>
+                                    <TextBlock Text="{Binding Name}" Grid.Row="0" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap"/>
 
-                                    <TextBox Text="{Binding Name}" Grid.Row="0" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold" TextWrapping="Wrap" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}"/>
-                                    <TextBox Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}"/>
+                                    <!--<TextBox Text="{Binding Name}" Grid.Row="0" Foreground="{StaticResource TextBoxForeground}" FontWeight="Bold" TextWrapping="Wrap" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}"/>
+                                    <TextBox Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}"/>-->
                                 </Grid>
-                                <Button Grid.Column="2" Style="{StaticResource RoundButton}" Command="{Binding StartStopListenerCommand}" ToolTip="{Binding StartStopTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=ReadMode, Converter={StaticResource BoolToVis}}">
-                                    <Image Style="{StaticResource CustomImage}" Source="{Binding StartStopButtonImage}" Margin="5"/>
-                                </Button>
-                                <Button Grid.Column="2" Style="{StaticResource RoundButton}" Command="{Binding SaveChangesCommand}" ToolTip="{Binding SaveChangesTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}">
-                                    <Image Style="{StaticResource CustomImage}" Source="{Binding SaveImage}" Margin="5"/>
-                                </Button>
+                                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                    <Button Style="{StaticResource RoundButton}" Command="{Binding StartDiskListenerCommand}" ToolTip="{Binding StartDiskTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
+                                        <Image Style="{StaticResource CustomImage}" Source="{Binding PlayDiskImage}" Margin="5"/>
+                                    </Button>
+                                    <Button Style="{StaticResource RoundButton}" Command="{Binding StartRAMListenerCommand}" ToolTip="{Binding StartRAMTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
+                                        <Image Style="{StaticResource CustomImage}" Source="{Binding PlayRAMImage}" Margin="5"/>
+                                    </Button>
+
+                                    <Button Style="{StaticResource RoundButton}" Command="{Binding StopListenerCommand}" ToolTip="{Binding StopTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=IsRunning, Converter={StaticResource BoolToVis}}">
+                                        <Image Style="{StaticResource CustomImage}" Source="{Binding CancelImage}" Margin="5"/>
+                                    </Button>
+
+                                    <!--<Button Style="{StaticResource RoundButton}" Command="{Binding SaveChangesCommand}" ToolTip="{Binding SaveChangesTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=EditMode, Converter={StaticResource BoolToVis}}">
+                                        <Image Style="{StaticResource CustomImage}" Source="{Binding SaveImage}" Margin="5"/>
+                                    </Button>-->
+                                </StackPanel>                                
                             </Grid>
                             <ProgressBar Grid.Row="1" Visibility="{Binding Path=IsRunning, Converter={StaticResource BoolToVis}}" Style="{StaticResource CustomProgressBar}" VerticalAlignment="Center" Margin="5"/>
                         </Grid>

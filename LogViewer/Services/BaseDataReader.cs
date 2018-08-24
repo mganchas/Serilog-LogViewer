@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using LogViewer.Model;
+using System.ComponentModel;
 using System.Threading;
 
 namespace LogViewer.Services
@@ -14,6 +15,6 @@ namespace LogViewer.Services
             this.componentName = componentName;
         }
 
-        public abstract void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker);
+        public abstract void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker, StoreTypes storeType);
     }
 }

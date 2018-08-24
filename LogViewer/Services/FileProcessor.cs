@@ -13,7 +13,7 @@ namespace LogViewer.Services
         {
         }
 
-        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker)
+        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker, StoreTypes storeType)
         {
             using (StreamReader sr = new StreamReader(path))
             {
@@ -25,7 +25,7 @@ namespace LogViewer.Services
 
                     while ((line = sr.ReadLine()) != null)
                     {
-                        if (cancelToken.Token.IsCancellationRequested)
+                        if (cancelToken.Token.IsCancellationRequested || asyncWorker.CancellationPending)
                         {
                             break;
                         }
@@ -51,16 +51,35 @@ namespace LogViewer.Services
                                 // previous event lines
                                 string prevLines = sb.ToString().TrimEnd();
                                 string lvlRaw = prevLines.Substring(level_init + 1, 3);
+                                var lvlType = Levels.GetLevelTypeFromString(lvlRaw);
 
-                                // insert into dictionary
-                                MessageContainer.FileMessages[componentName].Add(new Entry
+                                // Save type validation (Disk or RAM)
+                                if (storeType == StoreTypes.Disk)
                                 {
-                                    Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
-                                    RenderedMessage = prevLines.Substring(level_end + 1),
-                                    LevelType = Levels.GetLevelTypeFromString(lvlRaw),
-                                    Component = componentName
-                                });
+                                    // insert into db
+                                    DbProcessor.Write(new Entry
+                                    {
+                                        Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
+                                        RenderedMessage = prevLines.Substring(level_end + 1),
+                                        LevelType = (int)lvlType,
+                                        Component = componentName
+                                    });
 
+                                    // increment counters
+                                    MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(lvlType);
+                                    MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(Levels.LevelTypes.All);
+                                }
+                                else
+                                {
+                                    MessageContainer.RAM.FileMessages[componentName].Add(new Entry
+                                    {
+                                        Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
+                                        RenderedMessage = prevLines.Substring(level_end + 1),
+                                        LevelType = (int)lvlType,
+                                        Component = componentName
+                                    });
+                                }
+                                
                                 // remove previous event
                                 sb.Clear();
 
@@ -74,6 +93,7 @@ namespace LogViewer.Services
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
+                    throw;
                 }
                 finally
                 {

@@ -13,9 +13,18 @@ namespace LogViewer.ViewModel
     public class MainVM : PropertyChangesNotifier
     {
         #region Visual properties
+        public string StartRAMButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}";
+        public string StartDiskButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
+        public string ResetButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageClear}";
+        public string CancelButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
+        public string AddImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageAdd}";
         public string ComponentTypeLabel => $"{Constants.Labels.ComponentType}:";
         public string ComponentNameLabel => $"{Constants.Labels.ComponentName}:";
         public string PathLabel => $"{Constants.Labels.Path}:";
+        public string StartAllRAMTooltip => Constants.Tooltips.StartAllRAM;
+        public string StartAllDiskTooltip => Constants.Tooltips.StartAllDisk;
+        public string CancelAllTooltip => Constants.Tooltips.CancelAll;
+        public string ResetAllTooltip => Constants.Tooltips.ResetAll;
 
         public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
 
@@ -47,7 +56,7 @@ namespace LogViewer.ViewModel
             set { selectedIndex = value; NotifyPropertyChanged(); }
         }
 
-        public ComponentSelectorVM[] ComponentTypes => new ComponentSelectorVM[] 
+        public ComponentSelectorVM[] ComponentTypes => new ComponentSelectorVM[]
         {
             new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}", Type = Model.ComponentTypes.File },
             new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}", Type = Model.ComponentTypes.Http },
@@ -65,13 +74,10 @@ namespace LogViewer.ViewModel
 
         #region Commands
         public ICommand AddListenerCommand { get; set; }
-        public ICommand CleanUpCommand { get; set; }
-        public ICommand DropCommand { get; set; }
-        #endregion
-
-        #region Images
-        public string ClearButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageClear}";
-        public string AddImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageAdd}";
+        public ICommand ResetCommand { get; set; }
+        public ICommand StartAllRAMCommand { get; set; }
+        public ICommand StartAllDiskCommand { get; set; }
+        public ICommand CancelAllCommand { get; set; }
         #endregion
 
         public MainVM()
@@ -125,19 +131,44 @@ namespace LogViewer.ViewModel
                 SelectedComponent = Components.First(x => x == newComponent);
             });
 
+            // Set play (ram) all command
+            StartAllRAMCommand = new RelayCommand(() =>
+            {
+                // if not running, start each component 
+                foreach (var item in Components.Where(x => !x.IsRunning))
+                {
+                    item.StartRAMListenerCommand.Execute(null);
+                }
+            });
+
+            // Set play (disk) all command
+            StartAllDiskCommand = new RelayCommand(() =>
+            {
+                // if not running, start each component 
+                foreach (var item in Components.Where(x => !x.IsRunning))
+                {
+                    item.StartDiskListenerCommand.Execute(null);
+                }
+            });
+
+            // set cancel all command
+            CancelAllCommand = new RelayCommand(() =>
+            {
+                // if not running, start each component 
+                foreach (var item in Components.Where(x => x.IsRunning))
+                {
+                    item.StopListenerCommand.Execute(null);
+                }
+            });
+
             // Set cleanup command 
-            CleanUpCommand = new RelayCommand(() =>
+            ResetCommand = new RelayCommand(() =>
             {
                 // Clear data for each component 
                 foreach (var item in Components)
                 {
                     item.CleanUpCommand.Execute(!item.IsRunning);
                 }
-            });
-
-            // Set drag and drop command
-            DropCommand = new RelayCommand(() => {
-                MessageBox.Show("çpç");
             });
         }
 

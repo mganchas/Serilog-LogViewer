@@ -13,7 +13,7 @@ namespace LogViewer.ViewModel
     public class LogEventsVM : PropertyChangesNotifier
     {
         public string TimestampFormat => Timestamp.ToString(Constants.Formats.TimeFormat, CultureInfo.InvariantCulture);
-        public DateTime Timestamp { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
         public string RenderedMessage { get; set; }
         public LevelTypes LevelType { get; set; }
         public Brush LevelColor => Levels.GetLevelColor(LevelType);

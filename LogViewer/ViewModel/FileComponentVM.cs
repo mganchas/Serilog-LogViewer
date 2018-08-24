@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -15,17 +16,53 @@ namespace LogViewer.ViewModel
     public class FileComponentVM : ComponentVM, ICustomComponent
     {
         public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}";
-        public override string SearchImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
-        public override string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
         private CancellationTokenSource cancelSource;
 
         public FileComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
-            MessageContainer.FileMessages.Add(ComponentRegisterName, new ObservableSet<Entry>());
-            
-            /* Set message collection onchanged event */
-            MessageContainer.FileMessages[ComponentRegisterName].CollectionChanged += (sender, e) =>
+            MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new ObservableSet<Entry>());
+
+            // Add component to global counter
+            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName, new ObservableDictionary<Levels.LevelTypes>()
+            {
+                { Levels.LevelTypes.All, default },
+                { Levels.LevelTypes.Verbose, default },
+                { Levels.LevelTypes.Debug, default },
+                { Levels.LevelTypes.Information, default },
+                { Levels.LevelTypes.Warning, default },
+                { Levels.LevelTypes.Error, default },
+                { Levels.LevelTypes.Fatal, default }
+            });
+
+            /* Set message collection onchanged event (DISK) */
+            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
+            {
+                if (!IsRunning || e.NewItems == null) { return; }
+
+                try
+                {
+                    App.Current.Dispatcher.Invoke(delegate
+                    {
+                        /* increment button counters */
+                        foreach (var counter in (sender as ObservableDictionary<Levels.LevelTypes>).GetItemSet())
+                        {
+                            ComponentLevels[counter.Key].Counter = counter.Value;
+                        }
+                    });
+
+                    FilterMessages();
+                }
+                catch (Exception ex)
+                {
+                    cancelSource.Cancel();
+                    asyncWorker.CancelAsync();
+                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
+                }
+            };
+
+            /* Set message collection onchanged event (RAM) */
+            MessageContainer.RAM.FileMessages[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning || e.NewItems == null) { return; }
 
@@ -36,7 +73,7 @@ namespace LogViewer.ViewModel
                         App.Current.Dispatcher.Invoke(delegate
                         {
                             /* increment specific button counter */
-                            ComponentLevels[entry.LevelType].Counter++;
+                            ComponentLevels[(Levels.LevelTypes)entry.LevelType].Counter++;
                             ComponentLevels[Levels.LevelTypes.All].Counter++;
 
                             /* add item to console messages */
@@ -44,7 +81,7 @@ namespace LogViewer.ViewModel
                             {
                                 RenderedMessage = entry.RenderedMessage,
                                 Timestamp = entry.Timestamp,
-                                LevelType = entry.LevelType
+                                LevelType = (Levels.LevelTypes)entry.LevelType
                             });
                         });
                     }
@@ -64,7 +101,7 @@ namespace LogViewer.ViewModel
         {
             asyncWorker.WorkerReportsProgress = true;
             asyncWorker.WorkerSupportsCancellation = true;
-            asyncWorker.RunWorkerCompleted += delegate 
+            asyncWorker.RunWorkerCompleted += delegate
             {
                 if (IsRunning) { IsRunning = false; }
                 PlaySound();
@@ -76,7 +113,7 @@ namespace LogViewer.ViewModel
                 {
                     cancelSource = new CancellationTokenSource();
                     var fp = new FileProcessor(Path, ComponentRegisterName);
-                    fp.ReadData(ref cancelSource, ref asyncWorker);
+                    fp.ReadData(ref cancelSource, ref asyncWorker, StoreType);
 
                     while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
                     {
@@ -124,12 +161,14 @@ namespace LogViewer.ViewModel
 
         public override void RemoveComponent()
         {
-            MessageContainer.FileMessages.Remove(ComponentRegisterName);
+            MessageContainer.RAM.FileMessages.Remove(ComponentRegisterName);
+            MessageContainer.Disk.ComponentCounters.Remove(ComponentRegisterName);
         }
 
         public override void ClearComponent()
         {
-            MessageContainer.FileMessages[ComponentRegisterName].Clear();
+            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
+            MessageContainer.RAM.FileMessages[ComponentRegisterName].Clear();
         }
     }
 }

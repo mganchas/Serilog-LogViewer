@@ -16,7 +16,7 @@ namespace LogViewer.Services
         {
         }
 
-        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker)
+        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker, StoreTypes storeType)
         {
             TcpListener server = null;
             
@@ -42,7 +42,7 @@ namespace LogViewer.Services
                 // Enter the listening loop.
                 while (true)
                 {
-                    if (cancelToken.Token.IsCancellationRequested)
+                    if (cancelToken.Token.IsCancellationRequested || asyncWorker.CancellationPending)
                     {
                         break;
                     }
@@ -83,11 +83,11 @@ namespace LogViewer.Services
                         var ent = JsonConvert.DeserializeObject<Entry>(item.ToString());
 
                         // insert into dictionary
-                        MessageContainer.TcpMessages[componentName].Add(new Entry
+                        MessageContainer.RAM.TcpMessages[componentName].Add(new Entry
                         {
                             Timestamp = ent.Timestamp,
                             RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
-                            LevelType = Levels.GetLevelTypeFromString(ent.Level),
+                            LevelType = (int)Levels.GetLevelTypeFromString(ent.Level),
                             Component = componentName
                         });
                     }

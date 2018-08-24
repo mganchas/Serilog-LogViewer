@@ -16,8 +16,6 @@ namespace LogViewer.ViewModel
     public class HttpComponentVM : ComponentVM, ICustomComponent
     {
         public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}";
-        public override string SearchImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
-        public override string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
         private string PathFixer => !Path.EndsWith("/") ? $"{Path}/" : Path;
         private string HttpFullName => $"http://{PathFixer}";
         private CancellationTokenSource cancelSource;
@@ -25,10 +23,10 @@ namespace LogViewer.ViewModel
         public HttpComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
-            MessageContainer.HttpMessages.Add(HttpFullName, new ObservableSet<Entry>());
+            MessageContainer.RAM.HttpMessages.Add(HttpFullName, new ObservableSet<Entry>());
 
             /* Set message collection onchanged event */
-            MessageContainer.HttpMessages[HttpFullName].CollectionChanged += (sender, e) =>
+            MessageContainer.RAM.HttpMessages[HttpFullName].CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning || e.NewItems == null) { return; }
 
@@ -39,7 +37,7 @@ namespace LogViewer.ViewModel
                         App.Current.Dispatcher.Invoke(delegate
                         {
                             /* increment specific button counter */
-                            ComponentLevels[entry.LevelType].Counter++;
+                            ComponentLevels[(Levels.LevelTypes)entry.LevelType].Counter++;
                             ComponentLevels[Levels.LevelTypes.All].Counter++;
 
                             /* add item to console messages */
@@ -47,7 +45,7 @@ namespace LogViewer.ViewModel
                             {
                                 RenderedMessage = entry.RenderedMessage,
                                 Timestamp = entry.Timestamp,
-                                LevelType = entry.LevelType
+                                LevelType = (Levels.LevelTypes)entry.LevelType
                             });
                         });
                     }
@@ -74,7 +72,7 @@ namespace LogViewer.ViewModel
                 {
                     cancelSource = new CancellationTokenSource();
                     var httpP = new HttpProcessor(HttpFullName, HttpFullName);
-                    httpP.ReadData(ref cancelSource, ref asyncWorker);
+                    httpP.ReadData(ref cancelSource, ref asyncWorker, StoreType);
 
                     while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
                     {
@@ -130,12 +128,12 @@ namespace LogViewer.ViewModel
 
         public override void RemoveComponent()
         {
-            MessageContainer.HttpMessages.Remove(HttpFullName);
+            MessageContainer.RAM.HttpMessages.Remove(HttpFullName);
         }
 
         public override void ClearComponent()
         {
-            MessageContainer.HttpMessages[HttpFullName].Clear();
+            MessageContainer.RAM.HttpMessages[HttpFullName].Clear();
         }
     }
 }
