@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Media;
 using System.Threading.Tasks;
@@ -21,9 +22,10 @@ namespace LogViewer.ViewModel
         public ComponentVM Self => this;
         protected BackgroundWorker asyncWorker = new BackgroundWorker();
         protected string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
+
         private bool IsAllSelected { get; set; }
         private SelectionElements SelectionFilters { get; set; }
-
+        
         #region Labels
         public string TerminalTitle => Constants.Labels.Messages;
         public string FilterTitle => Constants.Labels.Filters;
@@ -99,6 +101,28 @@ namespace LogViewer.ViewModel
             set { allowChanges = value; NotifyPropertyChanged(); }
         }
 
+        // currently used only on file readers
+        private string executionTime;
+        public string ExecutionTime
+        {
+            get { return $"{executionTime} miliseconds"; }
+            set
+            {
+                executionTime = value;
+                HasExecutionTime = !String.IsNullOrEmpty(value);
+                NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(HasExecutionTime));
+            }
+        }
+
+        // currently used only on file readers
+        private bool hasExecutionTime;
+        public bool HasExecutionTime
+        {
+            get { return hasExecutionTime; }
+            set { hasExecutionTime = value; NotifyPropertyChanged(); }
+        }
+
         public HashSet<LogEventsVM> ConsoleMessages { get; set; } = new HashSet<LogEventsVM>();
         public ObservableCollection<LogEventsVM> VisibleConsoleMessages { get; set; } = new ObservableCollection<LogEventsVM>();
         #endregion
@@ -125,7 +149,19 @@ namespace LogViewer.ViewModel
             this.Name = name;
             this.Path = path;
 
-            // Set levels 
+            // set level counters
+            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName, new ObservableDictionary<LevelTypes>()
+            {
+                { LevelTypes.All, default },
+                { LevelTypes.Verbose, default },
+                { LevelTypes.Debug, default },
+                { LevelTypes.Information, default },
+                { LevelTypes.Warning, default },
+                { LevelTypes.Error, default },
+                { LevelTypes.Fatal, default }
+            });
+
+            // Set visible levels 
             ComponentLevels = new Dictionary<LevelTypes, LevelsVM>
             {
                 { LevelTypes.All, new LevelsVM(LevelTypes.All) },
@@ -148,10 +184,16 @@ namespace LogViewer.ViewModel
                 ConsoleMessages.Clear();
                 VisibleConsoleMessages.Clear();
 
-                // Clear counters 
-                foreach (var item in ComponentLevels)
+                // clear database
+                DbProcessor.CleanDatabase(ComponentRegisterName);
+
+                // Clear counters
+                MessageContainer.Disk.ComponentCounters[ComponentRegisterName].ResetAllCounters(fireChangedEvent: false);
+
+                // Clear visible counters 
+                foreach (var lvlCounter in ComponentLevels)
                 {
-                    item.Value.Counter = 0;
+                    lvlCounter.Value.Counter = 0;
                 }
             });
 
@@ -167,7 +209,7 @@ namespace LogViewer.ViewModel
                     {
                         // Clear previous entries 
                         CleanUpCommand.Execute(true);
-
+                        
                         // Set background worker
                         InitializeBackWorker();
                         asyncWorker.RunWorkerAsync();
@@ -192,7 +234,7 @@ namespace LogViewer.ViewModel
                     {
                         // Clear previous entries 
                         CleanUpCommand.Execute(true);
-
+                        
                         // Set background worker
                         InitializeBackWorker();
                         asyncWorker.RunWorkerAsync();
@@ -293,24 +335,24 @@ namespace LogViewer.ViewModel
 
                     if (StoreType == StoreTypes.Disk)
                     {
-                        IList<Entry> filteredEntries = null;
+                        IList<LogEventsVM> filteredEntries = null;
 
                         // filter level
                         if (!ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
                         {
-                            filteredEntries = DbProcessor.Read(x => selectedLevels.Contains((LevelTypes)x.LevelType) && x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), Constants.Component.DefaultRows);
+                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType) && x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), Constants.Component.DefaultRows);
                         }
-                        if (ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
+                        else if (ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
                         {
-                            filteredEntries = DbProcessor.Read(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), Constants.Component.DefaultRows);
+                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), Constants.Component.DefaultRows);
                         }
                         else if (!ComponentLevels[LevelTypes.All].IsSelected && String.IsNullOrEmpty(FilterText))
                         {
-                            filteredEntries = DbProcessor.Read(x => selectedLevels.Contains((LevelTypes)x.LevelType), Constants.Component.DefaultRows);
+                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType), Constants.Component.DefaultRows);
                         }
                         else
                         {
-                            filteredEntries = DbProcessor.ReadAll(Constants.Component.DefaultRows);
+                            filteredEntries = DbProcessor.ReadAll(ComponentRegisterName, Constants.Component.DefaultRows);
                         }
 
                         if (hasChanges || filteredEntries.Count != prevRows)
@@ -321,12 +363,7 @@ namespace LogViewer.ViewModel
                             foreach (var entry in filteredEntries)
                             {
                                 // add item to console messages 
-                                VisibleConsoleMessages.Add(new LogEventsVM
-                                {
-                                    RenderedMessage = entry.RenderedMessage,
-                                    Timestamp = entry.Timestamp,
-                                    LevelType = (LevelTypes)entry.LevelType
-                                });
+                                VisibleConsoleMessages.Add(entry);
                             }
                         }
                     }

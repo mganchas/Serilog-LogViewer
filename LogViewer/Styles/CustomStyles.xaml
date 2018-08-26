@@ -375,6 +375,7 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="auto"/>
                                             <RowDefinition Height="*"/>
+                                            <RowDefinition Height="auto"/>
                                         </Grid.RowDefinitions>
 
                                         <Grid Grid.Row="0" Margin="0,10">
@@ -392,6 +393,7 @@
                                             </StackPanel>
                                         </Grid>
                                         <ListBox Grid.Row="1" x:Name="lst_entries" Style="{StaticResource CustomMessagesListbox}" ItemsSource="{Binding VisibleConsoleMessages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Grid.Row="2" Text="{Binding ExecutionTime}" Visibility="{Binding Path=HasExecutionTime, Converter={StaticResource BoolToVis}}" HorizontalAlignment="Right" Foreground="{StaticResource TextBoxForeground}" Margin="0,5,0,0" FontStyle="Italic"/>
                                     </Grid>
                                 </Grid>
                             </Border>

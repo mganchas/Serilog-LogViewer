@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -17,24 +18,13 @@ namespace LogViewer.ViewModel
     {
         public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}";
         private CancellationTokenSource cancelSource;
-
+        private Stopwatch ExecutionWatch { get; set; }
+        
         public FileComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
             MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new ObservableSet<Entry>());
-
-            // Add component to global counter
-            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName, new ObservableDictionary<Levels.LevelTypes>()
-            {
-                { Levels.LevelTypes.All, default },
-                { Levels.LevelTypes.Verbose, default },
-                { Levels.LevelTypes.Debug, default },
-                { Levels.LevelTypes.Information, default },
-                { Levels.LevelTypes.Warning, default },
-                { Levels.LevelTypes.Error, default },
-                { Levels.LevelTypes.Fatal, default }
-            });
-
+            
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
@@ -101,17 +91,33 @@ namespace LogViewer.ViewModel
         {
             asyncWorker.WorkerReportsProgress = true;
             asyncWorker.WorkerSupportsCancellation = true;
+
+            // start counting execution time
+            ExecutionTime = String.Empty;
+            ExecutionWatch = new Stopwatch();
+            ExecutionWatch.Start();
+
             asyncWorker.RunWorkerCompleted += delegate
             {
                 if (IsRunning) { IsRunning = false; }
+
+                // calculate execution time
+                ExecutionWatch.Stop();
+                ExecutionTime = ExecutionWatch.ElapsedMilliseconds.ToString();
+
+                // play notification sound
                 PlaySound();
             };
+
             asyncWorker.DoWork += (sender, e) =>
             {
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
+                    // set cancellation token
                     cancelSource = new CancellationTokenSource();
+
+                    // start file reader
                     var fp = new FileProcessor(Path, ComponentRegisterName);
                     fp.ReadData(ref cancelSource, ref asyncWorker, StoreType);
 

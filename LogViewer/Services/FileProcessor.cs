@@ -57,7 +57,7 @@ namespace LogViewer.Services
                                 if (storeType == StoreTypes.Disk)
                                 {
                                     // insert into db
-                                    DbProcessor.Write(new Entry
+                                    DbProcessor.Write(componentName, new Entry
                                     {
                                         Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
                                         RenderedMessage = prevLines.Substring(level_end + 1),

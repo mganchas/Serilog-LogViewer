@@ -20,13 +20,13 @@ namespace LogViewer.View
         protected override void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
-            DbProcessor.CleanDatabase();
+            DbProcessor.CleanDatabases();
         }
 
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);
-            DbProcessor.CleanDatabase();
+            DbProcessor.CleanDatabases();
         }
 
         private void Window_Drop(object sender, DragEventArgs e)

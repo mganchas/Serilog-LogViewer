@@ -30,6 +30,29 @@ namespace LogViewer.Model
             }
         }
 
+        public void ResetCounter(T key, bool fireChangedEvent = true)
+        {
+            ItemMap[key] = 0;
+
+            if (fireChangedEvent)
+            {
+                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, ItemMap[key]));
+            }
+        }
+
+        public void ResetAllCounters(bool fireChangedEvent = true)
+        {
+            foreach (var key in ItemMap.Keys.ToList())
+            {
+                ItemMap[key] = 0;
+
+                if (fireChangedEvent)
+                {
+                    CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, ItemMap[key]));
+                }
+            }
+        }
+
         public void Add(T key, int item)
         {
             ItemMap.Add(key, item);

@@ -1,23 +1,24 @@
 ﻿using LogViewer.Configs;
 using LogViewer.Model;
+using LogViewer.ViewModel;
 using Realms;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static LogViewer.Model.Levels;
 
 namespace LogViewer.Services
 {
     public static class DbProcessor
     {
-        private static string DbName => Constants.Database.RealmName;
-        private static string DbPath => Path.Combine(Path.GetTempPath(), DbName);
+        //private static string DbName => Constants.Database.RealmName;
+        //private static string DbPath => Path.Combine(Path.GetTempPath(), DbName);
+        //private static RealmConfiguration RealmConfig => new RealmConfiguration(DbPath) { ShouldDeleteIfMigrationNeeded = true };
 
-        private static RealmConfiguration RealmConfig => new RealmConfiguration(DbPath) { ShouldDeleteIfMigrationNeeded = true };
-
-        public static void Write(Entry entry)
+        public static void Write(string dbName, Entry entry)
         {
-            using (var realm = Realm.GetInstance(RealmConfig))
+            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
             {
                 realm.Write(() =>
                 {
@@ -26,45 +27,72 @@ namespace LogViewer.Services
             }
         }
 
-        public static List<Entry> ReadAll()
+        public static void Write(string dbName, Entry[] entries)
         {
-            using (var realm = Realm.GetInstance(RealmConfig))
+            
+        }
+
+        public static List<LogEventsVM> ReadAll(string dbName)
+        {
+            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
             {
-                return realm.All<Entry>().ToList();
+                return realm.All<Entry>().AsList();
             }
         }
 
-        public static List<Entry> ReadAll(int numberOfRows)
+        public static List<LogEventsVM> ReadAll(string dbName, int numberOfRows)
         {
-            using (var realm = Realm.GetInstance(RealmConfig))
+            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
             {
-                return realm.All<Entry>().AsEnumerable().Take(numberOfRows).ToList();
+                return realm.All<Entry>().AsEnumerable().Take(numberOfRows).AsList();
             }
         }
 
-        public static List<Entry> Read(Func<Entry, bool> predicate)
+        public static List<LogEventsVM> Read(string dbName, Func<Entry, bool> predicate)
         {
-            using (var realm = Realm.GetInstance(RealmConfig))
+            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
             {
-                return realm.All<Entry>().Where(predicate).ToList();
+                return realm.All<Entry>().Where(predicate).AsList();
             }
         }
         
-        public static List<Entry> Read(Func<Entry, bool> predicate, int numberOfRows)
+        public static List<LogEventsVM> Read(string dbName, Func<Entry, bool> predicate, int numberOfRows)
         {
-            using (var realm = Realm.GetInstance(RealmConfig))
+            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
             {
-                return realm.All<Entry>().Where(predicate).AsEnumerable().Take(numberOfRows).ToList();
+                return realm.All<Entry>().Where(predicate).AsEnumerable().Take(numberOfRows).AsList();
             }
         }
 
-        public static void CleanDatabase()
+        public static void CleanDatabases()
         {
-            if (!File.Exists(RealmConfig.DatabasePath)) { return; }
+            var databaseFiles = Directory.GetFiles(Path.GetTempPath(), "*.*", SearchOption.AllDirectories).Where(s => Path.GetExtension(s) == "realm");
+            foreach (var file in databaseFiles)
+            {
+                File.Delete(file);
+            }
+        }
 
-            var realm = Realm.GetInstance(RealmConfig);
+        public static void CleanDatabase(string dbName)
+        {
+            if (!File.Exists(Path.Combine(Path.GetTempPath(), dbName))) { return; }
+
+            var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName)));
             realm.Dispose();
             Realm.DeleteRealm(realm.Config);
+        }
+    }
+
+    public static class DbProcessorExtensions
+    {
+        public static List<LogEventsVM> AsList(this IEnumerable<Entry> entries)
+        {
+            return entries.Select(entry => new LogEventsVM
+            {
+                RenderedMessage = entry.RenderedMessage,
+                Timestamp = entry.Timestamp,
+                LevelType = (LevelTypes)entry.LevelType
+            }).ToList();
         }
     }
 }
