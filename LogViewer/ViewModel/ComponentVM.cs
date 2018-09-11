@@ -23,7 +23,7 @@ namespace LogViewer.ViewModel
         protected BackgroundWorker asyncWorker = new BackgroundWorker();
         protected string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
 
-        private bool IsAllSelected { get; set; } = true;
+        private bool IsAllSelected { get; set; }
         private SelectionElements SelectionFilters { get; set; }
 
         #region Labels
@@ -149,9 +149,10 @@ namespace LogViewer.ViewModel
             this.Name = name;
             this.Path = path;
 
+            // Set visible levels 
             ComponentLevels = new Dictionary<LevelTypes, LevelsVM>
             {
-                { LevelTypes.All, new LevelsVM(LevelTypes.All) { IsSelected = true } },
+                { LevelTypes.All, new LevelsVM(LevelTypes.All) },
                 { LevelTypes.Verbose, new LevelsVM(LevelTypes.Verbose) },
                 { LevelTypes.Debug, new LevelsVM(LevelTypes.Debug) },
                 { LevelTypes.Information, new LevelsVM(LevelTypes.Information) },
@@ -159,6 +160,8 @@ namespace LogViewer.ViewModel
                 { LevelTypes.Error, new LevelsVM(LevelTypes.Error) },
                 { LevelTypes.Fatal, new LevelsVM(LevelTypes.Fatal) }
             };
+            ComponentLevels[LevelTypes.All].IsSelected = true;
+            IsAllSelected = true;
 
             // set level counters
             MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName, new ObservableDictionary<LevelTypes>()
