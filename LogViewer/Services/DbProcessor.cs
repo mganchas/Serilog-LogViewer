@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using static LogViewer.Model.Levels;
 
 namespace LogViewer.Services
@@ -15,8 +16,8 @@ namespace LogViewer.Services
         //private static string DbName => Constants.Database.RealmName;
         //private static string DbPath => Path.Combine(Path.GetTempPath(), DbName);
         //private static RealmConfiguration RealmConfig => new RealmConfiguration(DbPath) { ShouldDeleteIfMigrationNeeded = true };
-
-        public static void Write(string dbName, Entry entry)
+        
+        public static void WriteOne(string dbName, Entry entry)
         {
             using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
             {
@@ -27,9 +28,18 @@ namespace LogViewer.Services
             }
         }
 
-        public static void Write(string dbName, Entry[] entries)
+        public static void WriteMany(string dbName, Entry[] entries)
         {
-            
+            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
+            {
+                realm.Write(() =>
+                {
+                    foreach (var entry in entries)
+                    {
+                        realm.Add(entry);
+                    }
+                });
+            }
         }
 
         public static List<LogEventsVM> ReadAll(string dbName)

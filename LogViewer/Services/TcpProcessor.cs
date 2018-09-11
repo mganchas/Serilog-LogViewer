@@ -42,14 +42,14 @@ namespace LogViewer.Services
                 // Enter the listening loop.
                 while (true)
                 {
+                    // Perform a blocking call to accept requests.
+                    // You could also user server.AcceptSocket() here.
+                    client = server.AcceptTcpClient();
+
                     if (cancelToken.Token.IsCancellationRequested || asyncWorker.CancellationPending)
                     {
                         break;
                     }
-
-                    // Perform a blocking call to accept requests.
-                    // You could also user server.AcceptSocket() here.
-                    client = server.AcceptTcpClient();
 
                     // Get a stream object for reading and writing
                     stream = client.GetStream();
@@ -81,15 +81,35 @@ namespace LogViewer.Services
                     foreach (var item in ents)
                     {
                         var ent = JsonConvert.DeserializeObject<Entry>(item.ToString());
+                        var lvlType = Levels.GetLevelTypeFromString(ent.Level);
 
-                        // insert into dictionary
-                        MessageContainer.RAM.TcpMessages[componentName].Add(new Entry
+                        // Save type validation (Disk or RAM)
+                        if (storeType == StoreTypes.Disk)
                         {
-                            Timestamp = ent.Timestamp,
-                            RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
-                            LevelType = (int)Levels.GetLevelTypeFromString(ent.Level),
-                            Component = componentName
-                        });
+                            // insert into db
+                            DbProcessor.WriteOne(componentName, new Entry
+                            {
+                                Timestamp = ent.Timestamp,
+                                RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
+                                LevelType = (int)lvlType,
+                                Component = componentName
+                            });
+
+                            // increment counters
+                            MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(lvlType);
+                            MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(Levels.LevelTypes.All);
+                        }
+                        else
+                        {
+                            // insert into dictionary
+                            MessageContainer.RAM.TcpMessages[componentName].Add(new Entry
+                            {
+                                Timestamp = ent.Timestamp,
+                                RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
+                                LevelType = (int)lvlType,
+                                Component = componentName
+                            });
+                        }
                     }
 
                     // Shutdown and end connection

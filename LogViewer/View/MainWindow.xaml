@@ -88,6 +88,9 @@
                 <Button Style="{StaticResource RoundButton}" Command="{Binding CancelAllCommand}" ToolTip="{Binding CancelAllTooltip}">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding CancelButtonImage}" Margin="5"/>
                 </Button>
+                <Button Style="{StaticResource RoundButton}" Command="{Binding ClearCommand}" ToolTip="{Binding ClearAllTooltip}">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding ClearButtonImage}" Margin="5"/>
+                </Button>
                 <Button Style="{StaticResource RoundButton}" Command="{Binding ResetCommand}" ToolTip="{Binding ResetAllTooltip}">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding ResetButtonImage}" Margin="5"/>
                 </Button>

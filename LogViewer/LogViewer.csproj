@@ -30,7 +30,7 @@
     <MapFileExtensions>true</MapFileExtensions>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>5</ApplicationRevision>
+    <ApplicationRevision>8</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -325,9 +325,6 @@
     <Resource Include="Images\cancel.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\clear.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Images\entry.png" />
     <Resource Include="Images\exit.png" />
   </ItemGroup>
@@ -396,6 +393,10 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\play_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\clear.png" />
+    <Resource Include="Images\garbage.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -23,6 +23,32 @@ namespace LogViewer.ViewModel
             // Add new message queue
             MessageContainer.RAM.TcpMessages.Add(TcpFullName, new ObservableSet<Entry>());
 
+            /* Set message collection onchanged event (DISK) */
+            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
+            {
+                if (!IsRunning || e.NewItems == null) { return; }
+
+                try
+                {
+                    App.Current.Dispatcher.Invoke(delegate
+                    {
+                        /* increment button counters */
+                        foreach (var counter in (sender as ObservableDictionary<Levels.LevelTypes>).GetItemSet())
+                        {
+                            ComponentLevels[counter.Key].Counter = counter.Value;
+                        }
+                    });
+
+                    FilterMessages();
+                }
+                catch (Exception ex)
+                {
+                    cancelSource.Cancel();
+                    asyncWorker.CancelAsync();
+                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
+                }
+            };
+
             /* Set message collection onchanged event */
             MessageContainer.RAM.TcpMessages[TcpFullName].CollectionChanged += (sender, e) =>
             {
@@ -70,7 +96,7 @@ namespace LogViewer.ViewModel
                 try
                 {
                     cancelSource = new CancellationTokenSource();
-                    var tcpP = new TcpProcessor(Path, TcpFullName);
+                    var tcpP = new TcpProcessor(Path, ComponentRegisterName);
                     tcpP.ReadData(ref cancelSource, ref asyncWorker, StoreType);
 
                     while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
@@ -119,11 +145,13 @@ namespace LogViewer.ViewModel
         public override void RemoveComponent()
         {
             MessageContainer.RAM.HttpMessages.Remove(TcpFullName);
+            MessageContainer.Disk.ComponentCounters.Remove(ComponentRegisterName);
         }
 
         public override void ClearComponent()
         {
             MessageContainer.RAM.HttpMessages[TcpFullName].Clear();
+            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
         }
     }
 }

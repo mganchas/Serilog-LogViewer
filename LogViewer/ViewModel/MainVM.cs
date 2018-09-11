@@ -15,7 +15,9 @@ namespace LogViewer.ViewModel
         #region Visual properties
         public string StartRAMButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}";
         public string StartDiskButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
-        public string ResetButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageClear}";
+        public string ClearButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageClear}";
+        public string ResetButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageReset}";
+        
         public string CancelButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
         public string AddImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageAdd}";
         public string ComponentTypeLabel => $"{Constants.Labels.ComponentType}:";
@@ -24,6 +26,7 @@ namespace LogViewer.ViewModel
         public string StartAllRAMTooltip => Constants.Tooltips.StartAllRAM;
         public string StartAllDiskTooltip => Constants.Tooltips.StartAllDisk;
         public string CancelAllTooltip => Constants.Tooltips.CancelAll;
+        public string ClearAllTooltip => Constants.Tooltips.ClearAll;
         public string ResetAllTooltip => Constants.Tooltips.ResetAll;
 
         public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
@@ -74,6 +77,7 @@ namespace LogViewer.ViewModel
 
         #region Commands
         public ICommand AddListenerCommand { get; set; }
+        public ICommand ClearCommand { get; set; }
         public ICommand ResetCommand { get; set; }
         public ICommand StartAllRAMCommand { get; set; }
         public ICommand StartAllDiskCommand { get; set; }
@@ -161,14 +165,23 @@ namespace LogViewer.ViewModel
                 }
             });
 
-            // Set cleanup command 
-            ResetCommand = new RelayCommand(() =>
+            // Set clear command 
+            ClearCommand = new RelayCommand(() =>
             {
                 // Clear data for each component 
                 foreach (var item in Components)
                 {
                     item.CleanUpCommand.Execute(!item.IsRunning);
                 }
+            });
+
+            // Set reset command 
+            ResetCommand = new RelayCommand(() =>
+            {
+                foreach (var comp in Components) {
+                    comp.RemoveComponent();
+                }
+                Components.Clear();
             });
         }
 

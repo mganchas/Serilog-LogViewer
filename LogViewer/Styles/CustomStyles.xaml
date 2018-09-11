@@ -425,7 +425,7 @@
                                     <ColumnDefinition Width="auto"/>
                                 </Grid.ColumnDefinitions>
                                 <Image Grid.Column="0" Style="{StaticResource CustomImage}" Source="{Binding ComponentImage}" VerticalAlignment="Center" Height="24" Width="24" Margin="5"/>
-                                <Grid Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3,0">
+                                <Grid Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="3,0">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="*"/>

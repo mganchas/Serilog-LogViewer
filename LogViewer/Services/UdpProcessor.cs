@@ -30,25 +30,44 @@ namespace LogViewer.Services
 
                 while (true)
                 {
+                    byte[] bytes = listener.Receive(ref groupEP);
+
                     if (cancelToken.Token.IsCancellationRequested || asyncWorker.CancellationPending)
                     {
                         break;
                     }
 
-                    Console.WriteLine("Waiting for broadcast");
-                    byte[] bytes = listener.Receive(ref groupEP);
                     var data = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
-
                     var ent = JsonConvert.DeserializeObject<Entry>(data);
+                    var lvlType = Levels.GetLevelTypeFromString(ent.Level);
 
-                    // insert into dictionary
-                    MessageContainer.RAM.UdpMessages[componentName].Add(new Entry
+                    // Save type validation (Disk or RAM)
+                    if (storeType == StoreTypes.Disk)
                     {
-                        Timestamp = ent.Timestamp,
-                        RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
-                        LevelType = (int)Levels.GetLevelTypeFromString(ent.Level),
-                        Component = componentName
-                    });
+                        // insert into db
+                        DbProcessor.WriteOne(componentName, new Entry
+                        {
+                            Timestamp = ent.Timestamp,
+                            RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
+                            LevelType = (int)lvlType,
+                            Component = componentName
+                        });
+
+                        // increment counters
+                        MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(lvlType);
+                        MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(Levels.LevelTypes.All);
+                    }
+                    else
+                    {
+                        // insert into dictionary
+                        MessageContainer.RAM.UdpMessages[componentName].Add(new Entry
+                        {
+                            Timestamp = ent.Timestamp,
+                            RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
+                            LevelType = (int)lvlType,
+                            Component = componentName
+                        });
+                    }
                 }
             }
             catch (Exception e)

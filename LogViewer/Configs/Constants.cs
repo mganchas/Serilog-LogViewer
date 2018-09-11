@@ -31,6 +31,7 @@
             public const string ImageExit = "exit.png";
             public const string ImageClear = "clear.png";
             public const string ImageDelete = "delete.png";
+            public const string ImageReset = "garbage.png";
             public const string ImageEdit = "edit.png";
             public const string ImageSave = "save.png";
             public const string ImageAdd = "add.png";
@@ -73,7 +74,8 @@
             public const string StartAllRAM = "Start all (RAM)";
             public const string StartAllDisk = "Start all (Disk)";
             public const string CancelAll = "Cancel all (if running)";
-            public const string ResetAll = "Reset all data";
+            public const string ClearAll = "Clear all data";
+            public const string ResetAll = "Reset components";
         }
 
         public class Messages

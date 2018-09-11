@@ -23,9 +23,9 @@ namespace LogViewer.ViewModel
         protected BackgroundWorker asyncWorker = new BackgroundWorker();
         protected string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
 
-        private bool IsAllSelected { get; set; }
+        private bool IsAllSelected { get; set; } = true;
         private SelectionElements SelectionFilters { get; set; }
-        
+
         #region Labels
         public string TerminalTitle => Constants.Labels.Messages;
         public string FilterTitle => Constants.Labels.Filters;
@@ -129,7 +129,7 @@ namespace LogViewer.ViewModel
 
         #region Levels
         public Dictionary<LevelTypes, LevelsVM> ComponentLevels { get; set; }
-        #endregion        
+        #endregion
 
         #region Commands
         public ICommand StartDiskListenerCommand { get; set; }
@@ -149,6 +149,17 @@ namespace LogViewer.ViewModel
             this.Name = name;
             this.Path = path;
 
+            ComponentLevels = new Dictionary<LevelTypes, LevelsVM>
+            {
+                { LevelTypes.All, new LevelsVM(LevelTypes.All) { IsSelected = true } },
+                { LevelTypes.Verbose, new LevelsVM(LevelTypes.Verbose) },
+                { LevelTypes.Debug, new LevelsVM(LevelTypes.Debug) },
+                { LevelTypes.Information, new LevelsVM(LevelTypes.Information) },
+                { LevelTypes.Warning, new LevelsVM(LevelTypes.Warning) },
+                { LevelTypes.Error, new LevelsVM(LevelTypes.Error) },
+                { LevelTypes.Fatal, new LevelsVM(LevelTypes.Fatal) }
+            };
+
             // set level counters
             MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName, new ObservableDictionary<LevelTypes>()
             {
@@ -160,20 +171,6 @@ namespace LogViewer.ViewModel
                 { LevelTypes.Error, default },
                 { LevelTypes.Fatal, default }
             });
-
-            // Set visible levels 
-            ComponentLevels = new Dictionary<LevelTypes, LevelsVM>
-            {
-                { LevelTypes.All, new LevelsVM(LevelTypes.All) },
-                { LevelTypes.Verbose, new LevelsVM(LevelTypes.Verbose) },
-                { LevelTypes.Debug, new LevelsVM(LevelTypes.Debug) },
-                { LevelTypes.Information, new LevelsVM(LevelTypes.Information) },
-                { LevelTypes.Warning, new LevelsVM(LevelTypes.Warning) },
-                { LevelTypes.Error, new LevelsVM(LevelTypes.Error) },
-                { LevelTypes.Fatal, new LevelsVM(LevelTypes.Fatal) }
-            };
-            ComponentLevels[LevelTypes.All].IsSelected = true;
-            IsAllSelected = true;
 
             // Set cleanup command 
             CleanUpCommand = new RelayCommand<bool>((canClean) =>
@@ -197,55 +194,9 @@ namespace LogViewer.ViewModel
                 }
             });
 
-            // set start (disk) listener/reader
-            StartDiskListenerCommand = new RelayCommand(() =>
-            {
-                try
-                {
-                    IsRunning = true;
-                    StoreType = StoreTypes.Disk;
-
-                    if (!asyncWorker.IsBusy)
-                    {
-                        // Clear previous entries 
-                        CleanUpCommand.Execute(true);
-                        
-                        // Set background worker
-                        InitializeBackWorker();
-                        asyncWorker.RunWorkerAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    asyncWorker.CancelAsync();
-                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
-                }
-            });
-
-            // set start (ram) listener/reader
-            StartRAMListenerCommand = new RelayCommand(() =>
-            {
-                try
-                {
-                    IsRunning = true;
-                    StoreType = StoreTypes.RAM;
-
-                    if (!asyncWorker.IsBusy)
-                    {
-                        // Clear previous entries 
-                        CleanUpCommand.Execute(true);
-                        
-                        // Set background worker
-                        InitializeBackWorker();
-                        asyncWorker.RunWorkerAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    asyncWorker.CancelAsync();
-                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
-                }
-            });
+            // set start listener/reader
+            StartDiskListenerCommand = new RelayCommand(() => StartAction(StoreTypes.Disk));
+            StartRAMListenerCommand = new RelayCommand(() => StartAction(StoreTypes.RAM));
 
             // Set stop listener/reader command 
             StopListenerCommand = new RelayCommand(() =>
@@ -312,6 +263,32 @@ namespace LogViewer.ViewModel
                     FilterMessages();
                 });
             });
+
+            #region Local functions
+            void StartAction(StoreTypes storeType)
+            {
+                try
+                {
+                    IsRunning = true;
+                    StoreType = storeType;
+
+                    if (!asyncWorker.IsBusy)
+                    {
+                        // Clear previous entries 
+                        CleanUpCommand.Execute(true);
+
+                        // Set background worker
+                        InitializeBackWorker();
+                        asyncWorker.RunWorkerAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    asyncWorker.CancelAsync();
+                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
+                }
+            }
+            #endregion
         }
 
         protected void FilterMessages()

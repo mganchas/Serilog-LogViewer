@@ -25,12 +25,13 @@ namespace LogViewer.Services
 
                 while (true)
                 {
+                    var ctx = web.GetContext();
+
                     if (cancelToken.Token.IsCancellationRequested || asyncWorker.CancellationPending)
                     {
                         break;
                     }
 
-                    var ctx = web.GetContext();
                     var req = ctx.Request;
                     var data = new StreamReader(req.InputStream, req.ContentEncoding).ReadToEnd();
 
@@ -39,14 +40,35 @@ namespace LogViewer.Services
 
                     foreach (var ent in ents.Entries)
                     {
-                        // insert into dictionary
-                        MessageContainer.RAM.HttpMessages[componentName].Add(new Entry
+                        var lvlType = Levels.GetLevelTypeFromString(ent.Level);
+
+                        // Save type validation (Disk or RAM)
+                        if (storeType == StoreTypes.Disk)
                         {
-                            Timestamp = ent.Timestamp,
-                            RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",
-                            LevelType = (int)Levels.GetLevelTypeFromString(ent.Level),
-                            Component = componentName
-                        });
+                            // insert into db
+                            DbProcessor.WriteOne(componentName, new Entry
+                            {
+                                Timestamp = ent.Timestamp,
+                                RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",
+                                LevelType = (int)lvlType,
+                                Component = componentName
+                            });
+
+                            // increment counters
+                            MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(lvlType);
+                            MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(Levels.LevelTypes.All);
+                        }
+                        else
+                        {
+                            // insert into dictionary
+                            MessageContainer.RAM.HttpMessages[componentName].Add(new Entry
+                            {
+                                Timestamp = ent.Timestamp,
+                                RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",
+                                LevelType = (int)lvlType,
+                                Component = componentName
+                            });
+                        }
                     }
                 }
 

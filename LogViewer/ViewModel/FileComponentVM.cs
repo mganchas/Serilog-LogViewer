@@ -173,8 +173,8 @@ namespace LogViewer.ViewModel
 
         public override void ClearComponent()
         {
-            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
             MessageContainer.RAM.FileMessages[ComponentRegisterName].Clear();
+            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
         }
     }
 }
