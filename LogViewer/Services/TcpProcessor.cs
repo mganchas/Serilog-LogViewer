@@ -102,7 +102,7 @@ namespace LogViewer.Services
                         else
                         {
                             // insert into dictionary
-                            MessageContainer.RAM.TcpMessages[componentName].Add(new Entry
+                            MessageContainer.RAM.TcpMessages[componentName].Value.Add(new Entry
                             {
                                 Timestamp = ent.Timestamp,
                                 RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",

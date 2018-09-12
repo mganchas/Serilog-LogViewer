@@ -71,7 +71,7 @@ namespace LogViewer.Services
                                 }
                                 else
                                 {
-                                    MessageContainer.RAM.FileMessages[componentName].Add(new Entry
+                                    MessageContainer.RAM.FileMessages[componentName].Value.Add(new Entry
                                     {
                                         Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
                                         RenderedMessage = prevLines.Substring(level_end + 1),

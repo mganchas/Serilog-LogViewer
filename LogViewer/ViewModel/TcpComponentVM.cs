@@ -21,7 +21,7 @@ namespace LogViewer.ViewModel
         public TcpComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
-            MessageContainer.RAM.TcpMessages.Add(TcpFullName, new ObservableSet<Entry>());
+            MessageContainer.RAM.TcpMessages.Add(TcpFullName, new Lazy<ObservableSet<Entry>>());
 
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
@@ -50,7 +50,7 @@ namespace LogViewer.ViewModel
             };
 
             /* Set message collection onchanged event */
-            MessageContainer.RAM.TcpMessages[TcpFullName].CollectionChanged += (sender, e) =>
+            MessageContainer.RAM.TcpMessages[TcpFullName].Value.CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning || e.NewItems == null) { return; }
 
@@ -150,7 +150,7 @@ namespace LogViewer.ViewModel
 
         public override void ClearComponent()
         {
-            MessageContainer.RAM.HttpMessages[TcpFullName].Clear();
+            MessageContainer.RAM.HttpMessages[TcpFullName].Value.Clear();
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
         }
     }

@@ -23,7 +23,7 @@ namespace LogViewer.ViewModel
         public FileComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
-            MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new ObservableSet<Entry>());
+            MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
             
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
@@ -52,7 +52,7 @@ namespace LogViewer.ViewModel
             };
 
             /* Set message collection onchanged event (RAM) */
-            MessageContainer.RAM.FileMessages[ComponentRegisterName].CollectionChanged += (sender, e) =>
+            MessageContainer.RAM.FileMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning || e.NewItems == null) { return; }
 
@@ -173,7 +173,7 @@ namespace LogViewer.ViewModel
 
         public override void ClearComponent()
         {
-            MessageContainer.RAM.FileMessages[ComponentRegisterName].Clear();
+            MessageContainer.RAM.FileMessages[ComponentRegisterName].Value.Clear();
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
         }
     }

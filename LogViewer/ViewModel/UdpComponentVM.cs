@@ -21,7 +21,7 @@ namespace LogViewer.ViewModel
         public UdpComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
-            MessageContainer.RAM.UdpMessages.Add(UdpFullName, new ObservableSet<Entry>());
+            MessageContainer.RAM.UdpMessages.Add(UdpFullName, new Lazy<ObservableSet<Entry>>());
 
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
@@ -50,7 +50,7 @@ namespace LogViewer.ViewModel
             };
 
             /* Set message collection onchanged event */
-            MessageContainer.RAM.UdpMessages[UdpFullName].CollectionChanged += (sender, e) =>
+            MessageContainer.RAM.UdpMessages[UdpFullName].Value.CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning || e.NewItems == null) { return; }
 
@@ -150,7 +150,7 @@ namespace LogViewer.ViewModel
 
         public override void ClearComponent()
         {
-            MessageContainer.RAM.HttpMessages[UdpFullName].Clear();
+            MessageContainer.RAM.HttpMessages[UdpFullName].Value.Clear();
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
         }
     }

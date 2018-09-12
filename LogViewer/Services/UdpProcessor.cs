@@ -60,7 +60,7 @@ namespace LogViewer.Services
                     else
                     {
                         // insert into dictionary
-                        MessageContainer.RAM.UdpMessages[componentName].Add(new Entry
+                        MessageContainer.RAM.UdpMessages[componentName].Value.Add(new Entry
                         {
                             Timestamp = ent.Timestamp,
                             RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
