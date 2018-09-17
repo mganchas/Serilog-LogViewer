@@ -22,9 +22,6 @@ namespace LogViewer.ViewModel
 
         public HttpComponentVM(string name, string path) : base(name, path)
         {
-            // Add new message queue
-            MessageContainer.RAM.HttpMessages.Add(HttpFullName, new Lazy<ObservableSet<Entry>>());
-
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
@@ -51,8 +48,11 @@ namespace LogViewer.ViewModel
                 }
             };
 
+            // Add new message queue
+            MessageContainer.RAM.HttpMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
+
             /* Set message collection onchanged event */
-            MessageContainer.RAM.HttpMessages[HttpFullName].Value.CollectionChanged += (sender, e) =>
+            MessageContainer.RAM.HttpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning || e.NewItems == null) { return; }
 

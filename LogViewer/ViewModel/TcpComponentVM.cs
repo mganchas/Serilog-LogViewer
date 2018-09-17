@@ -20,9 +20,6 @@ namespace LogViewer.ViewModel
 
         public TcpComponentVM(string name, string path) : base(name, path)
         {
-            // Add new message queue
-            MessageContainer.RAM.TcpMessages.Add(TcpFullName, new Lazy<ObservableSet<Entry>>());
-
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
@@ -49,8 +46,11 @@ namespace LogViewer.ViewModel
                 }
             };
 
+            // Add new message queue
+            MessageContainer.RAM.TcpMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
+
             /* Set message collection onchanged event */
-            MessageContainer.RAM.TcpMessages[TcpFullName].Value.CollectionChanged += (sender, e) =>
+            MessageContainer.RAM.TcpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
             {
                 if (!IsRunning || e.NewItems == null) { return; }
 
