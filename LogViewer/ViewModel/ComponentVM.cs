@@ -123,6 +123,13 @@ namespace LogViewer.ViewModel
             set { hasExecutionTime = value; NotifyPropertyChanged(); }
         }
 
+        private int visibleMessagesNr = Constants.Component.DefaultRows;
+        public int VisibleMessagesNr
+        {
+            get { return visibleMessagesNr; }
+            set { visibleMessagesNr = value; NotifyPropertyChanged(); }
+        }
+
         public HashSet<LogEventsVM> ConsoleMessages { get; set; } = new HashSet<LogEventsVM>();
         public ObservableCollection<LogEventsVM> VisibleConsoleMessages { get; set; } = new ObservableCollection<LogEventsVM>();
         #endregion
@@ -309,7 +316,7 @@ namespace LogViewer.ViewModel
                     SelectionFilters = new SelectionElements { FilterText = this.FilterText, Levels = selectedLevels };
                 }
 
-                if (hasChanges || VisibleConsoleMessages.Count < Constants.Component.DefaultRows)
+                if (hasChanges || VisibleConsoleMessages.Count < VisibleMessagesNr)
                 {
                     // get entries from RAM or Disk
 
@@ -320,19 +327,19 @@ namespace LogViewer.ViewModel
                         // filter level
                         if (!ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
                         {
-                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType) && x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), Constants.Component.DefaultRows);
+                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType) && x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), VisibleMessagesNr);
                         }
                         else if (ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
                         {
-                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), Constants.Component.DefaultRows);
+                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), VisibleMessagesNr);
                         }
                         else if (!ComponentLevels[LevelTypes.All].IsSelected && String.IsNullOrEmpty(FilterText))
                         {
-                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType), Constants.Component.DefaultRows);
+                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType), VisibleMessagesNr);
                         }
                         else
                         {
-                            filteredEntries = DbProcessor.ReadAll(ComponentRegisterName, Constants.Component.DefaultRows);
+                            filteredEntries = DbProcessor.ReadAll(ComponentRegisterName, VisibleMessagesNr);
                         }
 
                         if (hasChanges || filteredEntries.Count != prevRows)
@@ -364,7 +371,7 @@ namespace LogViewer.ViewModel
                         }
 
                         // filter visible rows
-                        filteredEntries = filteredEntries.Take(Constants.Component.DefaultRows);
+                        filteredEntries = filteredEntries.Take(VisibleMessagesNr);
 
                         if (hasChanges || filteredEntries.Count() != prevRows)
                         {

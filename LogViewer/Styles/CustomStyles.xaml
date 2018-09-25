@@ -388,8 +388,10 @@
                                                 <TextBlock Text="{Binding TerminalTitle}" Margin="5,0" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource TextBoxForeground}"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                                                <TextBlock Text="Showing:" Foreground="{StaticResource TextBoxForeground}" Margin="5,0"/>
-                                                <TextBlock Text="{Binding VisibleConsoleMessages.Count, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
+                                                <TextBlock Text="Filter:" Foreground="{StaticResource TextBoxForeground}" Margin="5,0" VerticalAlignment="Center"/>
+                                                <TextBox Text="{Binding VisibleMessagesNr, UpdateSourceTrigger=PropertyChanged}" Margin="5,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Showing:" Foreground="{StaticResource TextBoxForeground}" Margin="5,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding VisibleConsoleMessages.Count, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Grid>
                                         <ListBox Grid.Row="1" x:Name="lst_entries" Style="{StaticResource CustomMessagesListbox}" ItemsSource="{Binding VisibleConsoleMessages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
