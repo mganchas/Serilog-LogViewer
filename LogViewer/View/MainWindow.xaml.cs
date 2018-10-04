@@ -20,6 +20,7 @@ namespace LogViewer.View
         protected override void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
+            LoggerService.SetupLogging();
             DbProcessor.CleanDatabases();
         }
 

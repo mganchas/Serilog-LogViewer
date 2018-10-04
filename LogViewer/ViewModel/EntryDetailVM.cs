@@ -1,7 +1,9 @@
-﻿using LogViewer.Configs;
+﻿using GalaSoft.MvvmLight.Command;
+using LogViewer.Configs;
 using LogViewer.Model;
 using System;
 using System.Globalization;
+using System.Windows.Input;
 
 namespace LogViewer.ViewModel
 {
