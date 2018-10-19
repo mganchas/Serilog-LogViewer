@@ -144,13 +144,13 @@ namespace LogViewer.ViewModel
 
         public override void RemoveComponent()
         {
-            MessageContainer.RAM.HttpMessages.Remove(TcpFullName);
+            MessageContainer.RAM.TcpMessages.Remove(ComponentRegisterName);
             MessageContainer.Disk.ComponentCounters.Remove(ComponentRegisterName);
         }
 
         public override void ClearComponent()
         {
-            MessageContainer.RAM.HttpMessages[TcpFullName].Value.Clear();
+            MessageContainer.RAM.TcpMessages[ComponentRegisterName].Value.Clear();
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
         }
     }
