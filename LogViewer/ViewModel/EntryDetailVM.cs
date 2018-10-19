@@ -7,8 +7,29 @@ namespace LogViewer.ViewModel
 {
     public class EntryDetailVM : PropertyChangesNotifier
     {
-        public string TimestampTitle => $"{Constants.Labels.Timestamp}:";
-        public string LevelTitle => $"{Constants.Labels.Level}:";
+        private string timestampTitle;
+        public string TimestampTitle
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(timestampTitle)) {
+                    timestampTitle = $"{Constants.Labels.Timestamp}:";
+                }
+                return timestampTitle;
+            }
+        }
+
+        private string levelTitle;
+        public string LevelTitle
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(levelTitle)) {
+                    levelTitle = $"{Constants.Labels.Level}:";
+                }
+                return levelTitle;
+            }
+        }
 
         public string TimestampFormat => Timestamp.ToString(Constants.Formats.TimeFormat, CultureInfo.InvariantCulture);
         private DateTimeOffset timestamp;

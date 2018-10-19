@@ -1,25 +1,45 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
-using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
 using LogViewer.Model;
 using LogViewer.Services;
 using LogViewer.ViewModel.Abstractions;
+using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
     public class FileComponentVM : ComponentVM, ICustomComponent
     {
-        public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}";
-        private CancellationTokenSource cancelSource;
+        private string componentImage;
+        public override string ComponentImage => GetCachedValue(ref componentImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}");
+
+        private string executionTime;
+        public string ExecutionTime
+        {
+            get { return $"{executionTime} miliseconds"; }
+            set
+            {
+                executionTime = value;
+                HasExecutionTime = !String.IsNullOrEmpty(value);
+                NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(HasExecutionTime));
+            }
+        }
+
+        private bool hasExecutionTime;
+        public bool HasExecutionTime
+        {
+            get { return hasExecutionTime; }
+            set { hasExecutionTime = value; NotifyPropertyChanged(); }
+        }
+
         private Stopwatch ExecutionWatch { get; set; }
-        
+
         public FileComponentVM(string name, string path) : base(name, path)
         {
             // Add new message queue
@@ -35,7 +55,7 @@ namespace LogViewer.ViewModel
                     App.Current.Dispatcher.Invoke(delegate
                     {
                         /* increment button counters */
-                        foreach (var counter in (sender as ObservableDictionary<Levels.LevelTypes>).GetItemSet())
+                        foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
                         {
                             ComponentLevels[counter.Key].Counter = counter.Value;
                         }

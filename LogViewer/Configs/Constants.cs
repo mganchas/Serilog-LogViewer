@@ -76,6 +76,8 @@
             public const string CancelAll = "Cancel all (if running)";
             public const string ClearAll = "Clear all data";
             public const string ResetAll = "Reset components";
+            public const string ShowContext = "Show context";
+            public const string ViewDetails = "View details";
         }
 
         public class Messages

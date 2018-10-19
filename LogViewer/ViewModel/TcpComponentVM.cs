@@ -4,19 +4,20 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Windows;
-using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
 using LogViewer.Model;
 using LogViewer.Services;
 using LogViewer.ViewModel.Abstractions;
+using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
     public class TcpComponentVM : ComponentVM, ICustomComponent
     {
-        public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageTcp}";
+        private string componentImage;
+        public override string ComponentImage => GetCachedValue(ref componentImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageTcp}");
+
         private string TcpFullName => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length - 1)}" : Path;
-        private CancellationTokenSource cancelSource;
 
         public TcpComponentVM(string name, string path) : base(name, path)
         {
@@ -30,7 +31,7 @@ namespace LogViewer.ViewModel
                     App.Current.Dispatcher.Invoke(delegate
                     {
                         /* increment button counters */
-                        foreach (var counter in (sender as ObservableDictionary<Levels.LevelTypes>).GetItemSet())
+                        foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
                         {
                             ComponentLevels[counter.Key].Counter = counter.Value;
                         }

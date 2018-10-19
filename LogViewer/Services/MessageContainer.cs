@@ -17,7 +17,7 @@ namespace LogViewer.Services
 
         public static class Disk
         {
-            public static Dictionary<string, ObservableDictionary<LevelTypes>> ComponentCounters { get; set; } = new Dictionary<string, ObservableDictionary<LevelTypes>>();
+            public static Dictionary<string, ObservableCounterDictionary<LevelTypes>> ComponentCounters { get; set; } = new Dictionary<string, ObservableCounterDictionary<LevelTypes>>();
         }
     }
 }

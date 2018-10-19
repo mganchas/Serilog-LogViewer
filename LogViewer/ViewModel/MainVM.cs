@@ -7,27 +7,56 @@ using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
 using LogViewer.Model;
 using System.IO;
+using LogViewer.Services;
+using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
     public class MainVM : PropertyChangesNotifier
     {
         #region Visual properties
-        public string StartRAMButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}";
-        public string StartDiskButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
-        public string ClearButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageClear}";
-        public string ResetButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageReset}";
-        
-        public string CancelButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
-        public string AddImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageAdd}";
-        public string ComponentTypeLabel => $"{Constants.Labels.ComponentType}:";
-        public string ComponentNameLabel => $"{Constants.Labels.ComponentName}:";
-        public string PathLabel => $"{Constants.Labels.Path}:";
-        public string StartAllRAMTooltip => Constants.Tooltips.StartAllRAM;
-        public string StartAllDiskTooltip => Constants.Tooltips.StartAllDisk;
-        public string CancelAllTooltip => Constants.Tooltips.CancelAll;
-        public string ClearAllTooltip => Constants.Tooltips.ClearAll;
-        public string ResetAllTooltip => Constants.Tooltips.ResetAll;
+
+        private string startRAMButtonImage;
+        public string StartRAMButtonImage => GetCachedValue(ref startRAMButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}");
+
+        private string startDiskButtonImage;
+        public string StartDiskButtonImage => GetCachedValue(ref startDiskButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}");
+
+        private string clearButtonImage;
+        public string ClearButtonImage => GetCachedValue(ref clearButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageClear}");
+
+        private string resetButtonImage;
+        public string ResetButtonImage => GetCachedValue(ref resetButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageReset}");
+
+        private string cancelButtonImage;
+        public string CancelButtonImage => GetCachedValue(ref cancelButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}");
+
+        private string addImage;
+        public string AddImage => GetCachedValue(ref addImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageAdd}");
+
+        private string componentTypeLabel;
+        public string ComponentTypeLabel => GetCachedValue(ref componentTypeLabel, $"{Constants.Labels.ComponentType}:");
+
+        private string componentNameLabel;
+        public string ComponentNameLabel => GetCachedValue(ref componentNameLabel, $"{Constants.Labels.ComponentName}:");
+
+        private string pathLabel;
+        public string PathLabel => GetCachedValue(ref pathLabel, $"{Constants.Labels.Path}:");
+
+        private string startAllRAMTooltip;
+        public string StartAllRAMTooltip => GetCachedValue(ref startAllRAMTooltip, Constants.Tooltips.StartAllRAM);
+
+        private string startAllDiskTooltip;
+        public string StartAllDiskTooltip => GetCachedValue(ref startAllDiskTooltip, Constants.Tooltips.StartAllDisk);
+
+        private string cancelAllTooltip;
+        public string CancelAllTooltip => GetCachedValue(ref cancelAllTooltip, Constants.Tooltips.CancelAll);
+
+        private string clearAllTooltip;
+        public string ClearAllTooltip => GetCachedValue(ref clearAllTooltip, Constants.Tooltips.ClearAll);
+
+        private string resetAllTooltip;
+        public string ResetAllTooltip => GetCachedValue(ref resetAllTooltip, Constants.Tooltips.ResetAll);
 
         public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
 
@@ -82,6 +111,19 @@ namespace LogViewer.ViewModel
         public ICommand StartAllRAMCommand { get; set; }
         public ICommand StartAllDiskCommand { get; set; }
         public ICommand CancelAllCommand { get; set; }
+        private ICommand DefaultRemoveCommand
+        {
+            get
+            {
+                return new RelayCommand<object>(comp =>
+                {
+                    var compVM = comp as ComponentVM;
+                    compVM.RemoveComponent();
+                    Components.Remove(compVM);
+                    GC.Collect();
+                });
+            }
+        }
         #endregion
 
         public MainVM()
@@ -119,10 +161,12 @@ namespace LogViewer.ViewModel
                 }
 
                 // not a valid component
-                if (newComponent == null) { return; }
-
-                // set component details
-                SetNewComponent(ref newComponent);
+                if (newComponent == null) {
+                    throw new ArgumentException(Constants.Messages.InvalidComponentException);
+                }
+                
+                // set component action
+                newComponent.RemoveComponentCommand = DefaultRemoveCommand;
 
                 // add new listener to list
                 Components.Add(newComponent);
@@ -173,6 +217,7 @@ namespace LogViewer.ViewModel
                 {
                     item.CleanUpCommand.Execute(!item.IsRunning);
                 }
+                GC.Collect();
             });
 
             // Set reset command 
@@ -182,26 +227,8 @@ namespace LogViewer.ViewModel
                     comp.RemoveComponent();
                 }
                 Components.Clear();
-            });
-        }
-
-        /// <summary>
-        /// Use to set generic properties for a new component (that can't be done within its class)
-        /// </summary>
-        /// <param name="component"></param>
-        private void SetNewComponent(ref ComponentVM newComponent)
-        {
-            // command for when component is removed
-            newComponent.RemoveComponentCommand = new RelayCommand<object>(comp =>
-            {
-                var compVM = comp as ComponentVM;
-                compVM.RemoveComponent();
-                Components.Remove(compVM);
                 GC.Collect();
             });
-
-            // add other actions (if applicable)...
-
         }
 
         public void AddDroppedComponents(string[] files)
@@ -210,10 +237,13 @@ namespace LogViewer.ViewModel
             {
                 // define new file component
                 ComponentVM comp = ComponentFactory<FileComponentVM>.GetComponent(this, new DirectoryInfo(file).Name, file, Components, (name, path) => new FileComponentVM(name, path));
-                SetNewComponent(ref comp);
+                comp.RemoveComponentCommand = DefaultRemoveCommand;
 
                 // add new listener to list
                 Components.Add(comp);
+
+                // select last added component
+                SelectedComponent = Components.First(x => x == comp);
             }
         }
     }

@@ -40,16 +40,11 @@ namespace LogViewer.Services
                 int i;
 
                 // Enter the listening loop.
-                while (true)
+                do
                 {
                     // Perform a blocking call to accept requests.
                     // You could also user server.AcceptSocket() here.
                     client = server.AcceptTcpClient();
-
-                    if (cancelToken.Token.IsCancellationRequested || asyncWorker.CancellationPending)
-                    {
-                        break;
-                    }
 
                     // Get a stream object for reading and writing
                     stream = client.GetStream();
@@ -114,7 +109,7 @@ namespace LogViewer.Services
 
                     // Shutdown and end connection
                     client.Close();
-                }
+                } while (!cancelToken.Token.IsCancellationRequested && !asyncWorker.CancellationPending);
             }
             catch (SocketException e)
             {

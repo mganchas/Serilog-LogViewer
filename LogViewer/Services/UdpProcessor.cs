@@ -28,14 +28,9 @@ namespace LogViewer.Services
                 listener = new UdpClient(port);
                 IPEndPoint groupEP = new IPEndPoint(localAddr, port);
 
-                while (true)
+                do
                 {
                     byte[] bytes = listener.Receive(ref groupEP);
-
-                    if (cancelToken.Token.IsCancellationRequested || asyncWorker.CancellationPending)
-                    {
-                        break;
-                    }
 
                     var data = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
                     var ent = JsonConvert.DeserializeObject<Entry>(data);
@@ -69,6 +64,7 @@ namespace LogViewer.Services
                         });
                     }
                 }
+                while (!cancelToken.Token.IsCancellationRequested && !asyncWorker.CancellationPending);
             }
             catch (Exception e)
             {

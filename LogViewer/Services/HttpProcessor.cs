@@ -23,15 +23,9 @@ namespace LogViewer.Services
                 web.Prefixes.Add(path);
                 web.Start();
 
-                while (true)
+                do
                 {
                     var ctx = web.GetContext();
-
-                    if (cancelToken.Token.IsCancellationRequested || asyncWorker.CancellationPending)
-                    {
-                        break;
-                    }
-
                     var req = ctx.Request;
                     var data = new StreamReader(req.InputStream, req.ContentEncoding).ReadToEnd();
 
@@ -70,7 +64,7 @@ namespace LogViewer.Services
                             });
                         }
                     }
-                }
+                } while (!cancelToken.Token.IsCancellationRequested && !asyncWorker.CancellationPending);
 
             }
             catch (Exception e)

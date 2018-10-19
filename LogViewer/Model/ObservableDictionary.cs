@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LogViewer.Model
 {
-    public class ObservableDictionary<T> : PropertyChangesNotifier, IEnumerable
+    public class ObservableCounterDictionary<T> : PropertyChangesNotifier, IEnumerable
     {
         private readonly Dictionary<T, int> ItemMap = new Dictionary<T, int>();
         public event NotifyCollectionChangedEventHandler CollectionChanged;

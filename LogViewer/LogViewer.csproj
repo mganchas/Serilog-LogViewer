@@ -240,11 +240,13 @@
     <Compile Include="Model\ObservableSet.cs" />
     <Compile Include="Model\StoreTypes.cs" />
     <Compile Include="Services\BaseDataReader.cs" />
+    <Compile Include="Services\ComponentFactory.cs" />
     <Compile Include="Services\DbProcessor.cs" />
     <Compile Include="Services\HttpProcessor.cs" />
     <Compile Include="Services\MessageContainer.cs" />
     <Compile Include="Services\TcpProcessor.cs" />
     <Compile Include="Services\UdpProcessor.cs" />
+    <Compile Include="Services\VisualCacheGetter.cs" />
     <Compile Include="ViewModel\ComponentSelectorVM.cs" />
     <Compile Include="ViewModel\Abstractions\IComponent.cs" />
     <Compile Include="ViewModel\TcpComponentVM.cs" />

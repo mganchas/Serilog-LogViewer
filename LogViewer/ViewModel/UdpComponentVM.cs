@@ -1,5 +1,4 @@
-﻿using GalaSoft.MvvmLight.Command;
-using LogViewer.Configs;
+﻿using LogViewer.Configs;
 using LogViewer.Model;
 using LogViewer.Services;
 using LogViewer.ViewModel.Abstractions;
@@ -9,14 +8,16 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
     public class UdpComponentVM : ComponentVM, ICustomComponent
     {
-        public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}";
+        private string componentImage;
+        public override string ComponentImage => GetCachedValue(ref componentImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}");
+
         private string UdpFullName => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length - 1)}" : Path;
-        private CancellationTokenSource cancelSource;
 
         public UdpComponentVM(string name, string path) : base(name, path)
         {
@@ -30,7 +31,7 @@ namespace LogViewer.ViewModel
                     App.Current.Dispatcher.Invoke(delegate
                     {
                         /* increment button counters */
-                        foreach (var counter in (sender as ObservableDictionary<Levels.LevelTypes>).GetItemSet())
+                        foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
                         {
                             ComponentLevels[counter.Key].Counter = counter.Value;
                         }
@@ -87,7 +88,7 @@ namespace LogViewer.ViewModel
 
         protected override void InitializeBackWorker()
         {
-            asyncWorker.WorkerReportsProgress = true;
+            //asyncWorker.WorkerReportsProgress = true;
             asyncWorker.WorkerSupportsCancellation = true;
             asyncWorker.RunWorkerCompleted += delegate { if (IsRunning) IsRunning = false; };
             asyncWorker.DoWork += (sender, e) =>

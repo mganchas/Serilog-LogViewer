@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Media;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -14,6 +14,7 @@ using LogViewer.Model;
 using LogViewer.Services;
 using LogViewer.ViewModel.Abstractions;
 using static LogViewer.Model.Levels;
+using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
@@ -21,34 +22,73 @@ namespace LogViewer.ViewModel
     {
         public ComponentVM Self => this;
         protected BackgroundWorker asyncWorker = new BackgroundWorker();
+        protected CancellationTokenSource cancelSource;
         protected string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
 
         private bool IsAllSelected { get; set; }
+
         private SelectionElements SelectionFilters { get; set; }
 
+        public Dictionary<LevelTypes, LevelsVM> ComponentLevels { get; set; }
+
         #region Labels
-        public string TerminalTitle => Constants.Labels.Messages;
-        public string FilterTitle => Constants.Labels.Filters;
-        public string LevelsTitle => Constants.Labels.Levels;
-        public string EditTitle => Constants.Labels.Edit;
-        public string RemoveTitle => Constants.Labels.Remove;
-        public string StartRAMTitle => Constants.Labels.StartRAM;
-        public string StartDiskTitle => Constants.Labels.StartDisk;
-        public string StopTitle => Constants.Labels.Stop;
-        public string SaveChangesTitle => Constants.Labels.SaveChanges;
+        private string terminalTitle;
+        public string TerminalTitle => GetCachedValue(ref terminalTitle, Constants.Labels.Messages);
+
+        private string filterTitle;
+        public string FilterTitle => GetCachedValue(ref filterTitle, Constants.Labels.Filters);
+
+        private string levelsTitle;
+        public string LevelsTitle => GetCachedValue(ref levelsTitle, Constants.Labels.Levels);
+
+        private string editTitle;
+        public string EditTitle => GetCachedValue(ref editTitle, Constants.Labels.Edit);
+
+        private string removeTitle;
+        public string RemoveTitle => GetCachedValue(ref removeTitle, Constants.Labels.Remove);
+
+        private string startRAMTitle;
+        public string StartRAMTitle => GetCachedValue(ref startRAMTitle, Constants.Labels.StartRAM);
+
+        private string startDiskTitle;
+        public string StartDiskTitle => GetCachedValue(ref startDiskTitle, Constants.Labels.StartDisk);
+
+        private string stopTitle;
+        public string StopTitle => GetCachedValue(ref stopTitle, Constants.Labels.Stop);
+
+        private string saveChangesTitle;
+        public string SaveChangesTitle => GetCachedValue(ref saveChangesTitle, Constants.Labels.SaveChanges);
         #endregion
 
         #region Images
         public abstract string ComponentImage { get; }
-        public string PlayDiskImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
-        public string PlayRAMImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}";
-        public string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
-        public string RemoveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageDelete}";
-        public string EditImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageEdit}";
-        public string SaveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSave}";
-        public string TerminalImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageTerminal}";
-        public string MonitorImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageMonitor}";
-        public string FilterImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFilter}";
+
+        private string playDiskImage;
+        public string PlayDiskImage => GetCachedValue(ref playDiskImage, $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}");
+
+        private string playRAMImage;
+        public string PlayRAMImage => GetCachedValue(ref playRAMImage, $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}");
+
+        private string cancelImage;
+        public string CancelImage => GetCachedValue(ref cancelImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}");
+
+        private string removeImage;
+        public string RemoveImage => GetCachedValue(ref removeImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageDelete}");
+
+        private string editImage;
+        public string EditImage => GetCachedValue(ref editImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageEdit}");
+
+        private string saveImage;
+        public string SaveImage => GetCachedValue(ref saveImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageSave}");
+
+        private string terminalImage;
+        public string TerminalImage => GetCachedValue(ref terminalImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageTerminal}");
+
+        private string monitorImage;
+        public string MonitorImage => GetCachedValue(ref monitorImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageMonitor}");
+
+        private string filterImage;
+        public string FilterImage => GetCachedValue(ref filterImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}");
         #endregion
 
         #region Visual properties
@@ -73,7 +113,6 @@ namespace LogViewer.ViewModel
             set { path = value; NotifyPropertyChanged(); }
         }
 
-        protected bool IsFiltered => !String.IsNullOrEmpty(FilterText);
         private string filterText;
         public string FilterText
         {
@@ -101,28 +140,6 @@ namespace LogViewer.ViewModel
             set { allowChanges = value; NotifyPropertyChanged(); }
         }
 
-        // currently used only on file readers
-        private string executionTime;
-        public string ExecutionTime
-        {
-            get { return $"{executionTime} miliseconds"; }
-            set
-            {
-                executionTime = value;
-                HasExecutionTime = !String.IsNullOrEmpty(value);
-                NotifyPropertyChanged();
-                NotifyPropertyChanged(nameof(HasExecutionTime));
-            }
-        }
-
-        // currently used only on file readers
-        private bool hasExecutionTime;
-        public bool HasExecutionTime
-        {
-            get { return hasExecutionTime; }
-            set { hasExecutionTime = value; NotifyPropertyChanged(); }
-        }
-
         private int visibleMessagesNr = Constants.Component.DefaultRows;
         public int VisibleMessagesNr
         {
@@ -132,10 +149,6 @@ namespace LogViewer.ViewModel
 
         public HashSet<LogEventsVM> ConsoleMessages { get; set; } = new HashSet<LogEventsVM>();
         public ObservableCollection<LogEventsVM> VisibleConsoleMessages { get; set; } = new ObservableCollection<LogEventsVM>();
-        #endregion
-
-        #region Levels
-        public Dictionary<LevelTypes, LevelsVM> ComponentLevels { get; set; }
         #endregion
 
         #region Commands
@@ -171,15 +184,15 @@ namespace LogViewer.ViewModel
             IsAllSelected = true;
 
             // set level counters
-            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName, new ObservableDictionary<LevelTypes>()
+            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName, new ObservableCounterDictionary<LevelTypes>
             {
-                { LevelTypes.All, default },
-                { LevelTypes.Verbose, default },
-                { LevelTypes.Debug, default },
-                { LevelTypes.Information, default },
-                { LevelTypes.Warning, default },
-                { LevelTypes.Error, default },
-                { LevelTypes.Fatal, default }
+                { LevelTypes.All, 0 },
+                { LevelTypes.Verbose, 0},
+                { LevelTypes.Debug, 0 },
+                { LevelTypes.Information, 0 },
+                { LevelTypes.Warning, 0 },
+                { LevelTypes.Error, 0 },
+                { LevelTypes.Fatal, 0 }
             });
 
             // Set cleanup command 
@@ -273,32 +286,36 @@ namespace LogViewer.ViewModel
                     FilterMessages();
                 });
             });
+        }
 
-            #region Local functions
-            void StartAction(StoreTypes storeType)
+        private void StartAction(StoreTypes storeType)
+        {
+            try
             {
-                try
+                IsRunning = true;
+                StoreType = storeType;
+
+                if (asyncWorker.IsBusy)
                 {
-                    IsRunning = true;
-                    StoreType = storeType;
-
-                    if (!asyncWorker.IsBusy)
-                    {
-                        // Clear previous entries 
-                        CleanUpCommand.Execute(true);
-
-                        // Set background worker
-                        InitializeBackWorker();
-                        asyncWorker.RunWorkerAsync();
-                    }
+                    // TODO: cancelar anterior que está bloqueado no listener.receive()
+                    //asyncWorker = new BackgroundWorker();
                 }
-                catch (Exception ex)
+
+                if (!asyncWorker.IsBusy)
                 {
-                    asyncWorker.CancelAsync();
-                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
+                    // Clear previous entries 
+                    CleanUpCommand.Execute(true);
+
+                    // Set background worker
+                    InitializeBackWorker();
+                    asyncWorker.RunWorkerAsync();
                 }
             }
-            #endregion
+            catch (Exception ex)
+            {
+                asyncWorker.CancelAsync();
+                MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
+            }
         }
 
         protected void FilterMessages()
@@ -316,73 +333,71 @@ namespace LogViewer.ViewModel
                     SelectionFilters = new SelectionElements { FilterText = this.FilterText, Levels = selectedLevels };
                 }
 
-                if (hasChanges || VisibleConsoleMessages.Count < VisibleMessagesNr)
+                if (!hasChanges && VisibleConsoleMessages.Count == VisibleMessagesNr) { return; }
+
+                // get entries from RAM or Disk
+                if (StoreType == StoreTypes.Disk)
                 {
-                    // get entries from RAM or Disk
+                    IList<LogEventsVM> filteredEntries = null;
 
-                    if (StoreType == StoreTypes.Disk)
+                    // filter level
+                    if (!ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
                     {
-                        IList<LogEventsVM> filteredEntries = null;
-
-                        // filter level
-                        if (!ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
-                        {
-                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType) && x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), VisibleMessagesNr);
-                        }
-                        else if (ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
-                        {
-                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), VisibleMessagesNr);
-                        }
-                        else if (!ComponentLevels[LevelTypes.All].IsSelected && String.IsNullOrEmpty(FilterText))
-                        {
-                            filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType), VisibleMessagesNr);
-                        }
-                        else
-                        {
-                            filteredEntries = DbProcessor.ReadAll(ComponentRegisterName, VisibleMessagesNr);
-                        }
-
-                        if (hasChanges || filteredEntries.Count != prevRows)
-                        {
-                            // clear visible messages
-                            VisibleConsoleMessages.Clear();
-
-                            foreach (var entry in filteredEntries)
-                            {
-                                // add item to console messages 
-                                VisibleConsoleMessages.Add(entry);
-                            }
-                        }
+                        filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType) && x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), VisibleMessagesNr);
+                    }
+                    else if (ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
+                    {
+                        filteredEntries = DbProcessor.Read(ComponentRegisterName, x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), VisibleMessagesNr);
+                    }
+                    else if (!ComponentLevels[LevelTypes.All].IsSelected && String.IsNullOrEmpty(FilterText))
+                    {
+                        filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType), VisibleMessagesNr);
                     }
                     else
                     {
-                        IEnumerable<LogEventsVM> filteredEntries = ConsoleMessages.AsEnumerable();
+                        filteredEntries = DbProcessor.ReadAll(ComponentRegisterName, VisibleMessagesNr);
+                    }
 
-                        // filter level
-                        if (!ComponentLevels[LevelTypes.All].IsSelected)
+                    if (hasChanges || filteredEntries.Count != prevRows)
+                    {
+                        // clear visible messages
+                        VisibleConsoleMessages.Clear();
+
+                        foreach (var entry in filteredEntries)
                         {
-                            filteredEntries = filteredEntries.Where(x => selectedLevels.Contains(x.LevelType));
+                            // add item to console messages 
+                            VisibleConsoleMessages.Add(entry);
                         }
+                    }
+                }
+                else
+                {
+                    IEnumerable<LogEventsVM> filteredEntries = ConsoleMessages.AsEnumerable();
 
-                        // filter text
-                        if (!String.IsNullOrEmpty(FilterText))
+                    // filter level
+                    if (!ComponentLevels[LevelTypes.All].IsSelected)
+                    {
+                        filteredEntries = filteredEntries.Where(x => selectedLevels.Contains(x.LevelType));
+                    }
+
+                    // filter text
+                    if (!String.IsNullOrEmpty(FilterText))
+                    {
+                        filteredEntries = filteredEntries.Where(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()));
+                    }
+
+                    // filter visible rows
+                    filteredEntries = filteredEntries.Take(VisibleMessagesNr);
+
+                    if (hasChanges || filteredEntries.Count() != prevRows)
+                    {
+                        // clear visible messages
+                        VisibleConsoleMessages.Clear();
+
+                        foreach (var entry in filteredEntries)
                         {
-                            filteredEntries = filteredEntries.Where(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()));
-                        }
-
-                        // filter visible rows
-                        filteredEntries = filteredEntries.Take(VisibleMessagesNr);
-
-                        if (hasChanges || filteredEntries.Count() != prevRows)
-                        {
-                            // clear visible messages
-                            VisibleConsoleMessages.Clear();
-
-                            foreach (var entry in filteredEntries)
-                            {
-                                // add item to console messages 
-                                VisibleConsoleMessages.Add(entry);
-                            }
+                            // add item to console messages 
+                            VisibleConsoleMessages.Add(entry);
                         }
                     }
                 }
@@ -394,36 +409,19 @@ namespace LogViewer.ViewModel
             SystemSounds.Hand.Play();
         }
 
-        #region Abstract methods
         protected abstract void InitializeBackWorker();
         public abstract void RemoveComponent();
         public abstract void ClearComponent();
-        #endregion
-    }
 
-    public class SelectionElements
-    {
-        public string FilterText { get; set; }
-        public List<LevelTypes> Levels { get; set; }
-
-        public bool SameLevels(IEnumerable<LevelTypes> levels)
+        private class SelectionElements
         {
-            return levels.SequenceEqual(Levels);
-        }
-    }
+            public string FilterText { get; set; }
+            public List<LevelTypes> Levels { get; set; }
 
-    public static class ComponentFactory<T>
-    {
-        private const string MethodName = "IsValidComponent";
-        public static T GetComponent<T>(object context, string name, string path, in ObservableCollection<ComponentVM> components, Func<string, string, T> creator) where T : ICustomComponent
-        {
-            T retObj = default;
-            bool isValid = Convert.ToBoolean(typeof(T).GetMethod(MethodName).Invoke(context, new object[] { name, path, components }));
-            if (isValid)
+            public bool SameLevels(IEnumerable<LevelTypes> levels)
             {
-                retObj = creator.Invoke(name, path);
+                return levels.SequenceEqual(Levels);
             }
-            return retObj;
         }
     }
 }

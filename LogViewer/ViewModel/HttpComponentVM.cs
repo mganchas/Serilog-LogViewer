@@ -4,21 +4,21 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Windows;
-using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
 using LogViewer.Model;
 using LogViewer.Services;
 using LogViewer.ViewModel.Abstractions;
-using Microsoft.Owin.Hosting;
+using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
     public class HttpComponentVM : ComponentVM, ICustomComponent
     {
-        public override string ComponentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}";
+        private string componentImage;
+        public override string ComponentImage => GetCachedValue(ref componentImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}");
+        
         private string PathFixer => !Path.EndsWith("/") ? $"{Path}/" : Path;
         private string HttpFullName => $"http://{PathFixer}";
-        private CancellationTokenSource cancelSource;
 
         public HttpComponentVM(string name, string path) : base(name, path)
         {
@@ -32,7 +32,7 @@ namespace LogViewer.ViewModel
                     App.Current.Dispatcher.Invoke(delegate
                     {
                         /* increment button counters */
-                        foreach (var counter in (sender as ObservableDictionary<Levels.LevelTypes>).GetItemSet())
+                        foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
                         {
                             ComponentLevels[counter.Key].Counter = counter.Value;
                         }
