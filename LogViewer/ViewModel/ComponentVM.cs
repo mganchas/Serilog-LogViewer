@@ -17,7 +17,6 @@ using static LogViewer.Model.Levels;
 
 namespace LogViewer.ViewModel
 {
-    [Serializable]
     public abstract class ComponentVM : PropertyChangesNotifier, ICustomComponent
     {
         public ComponentVM Self => this;
@@ -27,7 +26,7 @@ namespace LogViewer.ViewModel
         private bool IsAllSelected { get; set; }
         private SelectionElements SelectionFilters { get; set; }
 
-        #region Labels/Tooltips
+        #region Labels
         public string TerminalTitle => Constants.Labels.Messages;
         public string FilterTitle => Constants.Labels.Filters;
         public string LevelsTitle => Constants.Labels.Levels;
@@ -38,7 +37,6 @@ namespace LogViewer.ViewModel
         public string StopTitle => Constants.Labels.Stop;
         public string SaveChangesTitle => Constants.Labels.SaveChanges;
         #endregion
-
 
         #region Images
         public abstract string ComponentImage { get; }
@@ -51,7 +49,6 @@ namespace LogViewer.ViewModel
         public string TerminalImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageTerminal}";
         public string MonitorImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageMonitor}";
         public string FilterImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFilter}";
-        
         #endregion
 
         #region Visual properties
@@ -276,7 +273,7 @@ namespace LogViewer.ViewModel
                     FilterMessages();
                 });
             });
-            
+
             #region Local functions
             void StartAction(StoreTypes storeType)
             {
@@ -412,6 +409,21 @@ namespace LogViewer.ViewModel
         public bool SameLevels(IEnumerable<LevelTypes> levels)
         {
             return levels.SequenceEqual(Levels);
+        }
+    }
+
+    public static class ComponentFactory<T>
+    {
+        private const string MethodName = "IsValidComponent";
+        public static T GetComponent<T>(object context, string name, string path, in ObservableCollection<ComponentVM> components, Func<string, string, T> creator) where T : ICustomComponent
+        {
+            T retObj = default;
+            bool isValid = Convert.ToBoolean(typeof(T).GetMethod(MethodName).Invoke(context, new object[] { name, path, components }));
+            if (isValid)
+            {
+                retObj = creator.Invoke(name, path);
+            }
+            return retObj;
         }
     }
 }

@@ -238,14 +238,9 @@
                                     </i:EventTrigger>
                                 </i:Interaction.Triggers>
                             </TextBox>
-                            <StackPanel Orientation="Horizontal" Grid.Column="3">
-                                <Button Style="{StaticResource RoundButton}" Command="{Binding OpenDetailCommand}" ToolTip="{Binding ViewDetails}">
-                                    <Image Style="{StaticResource CustomImage}" Source="{Binding OpenDialogButtonImage}" Margin="5"/>
-                                </Button>
-                                <!--<Button Style="{StaticResource RoundButton}" Command="{Binding ShowNearestCommand}" ToolTip="{Binding ShowNearest}">
-                                    <Image Style="{StaticResource CustomImage}" Source="{Binding ShowNearestButtonImage}" Margin="5"/>
-                                </Button>-->
-                            </StackPanel>
+                            <Button Grid.Column="3" Style="{StaticResource RoundButton}" Command="{Binding OpenDetailCommand}" ToolTip="Clean data">
+                                <Image Style="{StaticResource CustomImage}" Source="{Binding OpenDialogButtonImage}" Margin="5"/>
+                            </Button>
                         </Grid>
                     </Border>
                 </DataTemplate>

@@ -12,15 +12,13 @@ namespace LogViewer.ViewModel
 {
     public class LogEventsVM : PropertyChangesNotifier
     {
-        public string ViewDetails => Constants.Tooltips.ViewDetails;
-        public string OpenDialogButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
-
         public string TimestampFormat => Timestamp.ToString(Constants.Formats.TimeFormat, CultureInfo.InvariantCulture);
         public DateTimeOffset Timestamp { get; set; }
         public string RenderedMessage { get; set; }
         public LevelTypes LevelType { get; set; }
         public Brush LevelColor => Levels.GetLevelColor(LevelType);
-        
+
+        public string OpenDialogButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
 
         public ICommand OpenDetailCommand => new RelayCommand(() =>
         {

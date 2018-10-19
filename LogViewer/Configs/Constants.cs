@@ -44,7 +44,6 @@
             public const string ImageGlobe = "globe.png";
             public const string ImagePlug = "plug.png";
             public const string ImageDocument = "document.png";
-            public const string ImageExpand = "expand.png";
 
             public const string ImageFile = "file.png";
             public const string ImageHttp = "http.png";
@@ -77,8 +76,6 @@
             public const string CancelAll = "Cancel all (if running)";
             public const string ClearAll = "Clear all data";
             public const string ResetAll = "Reset components";
-            public const string ShowNearest = "Show nearest entries";
-            public const string ViewDetails = "View details";
         }
 
         public class Messages

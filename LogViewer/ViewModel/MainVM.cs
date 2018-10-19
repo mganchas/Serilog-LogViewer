@@ -7,10 +7,6 @@ using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
 using LogViewer.Model;
 using System.IO;
-using LogViewer.Services;
-using Microsoft.Extensions.Logging;
-using System.Web.Script.Serialization;
-using Newtonsoft.Json;
 
 namespace LogViewer.ViewModel
 {
@@ -39,48 +35,28 @@ namespace LogViewer.ViewModel
         public string Name
         {
             get { return name; }
-            set
-            {
-                name = value;
-                LoggerService.Logger.LogDebug($"{nameof(Name)}: {Name}");
-                NotifyPropertyChanged();
-            }
+            set { name = value; NotifyPropertyChanged(); }
         }
 
         private string path;
         public string Path
         {
             get { return path; }
-            set
-            {
-                path = value;
-                LoggerService.Logger.LogDebug($"{nameof(Path)}: {Path}");
-                NotifyPropertyChanged();
-            }
+            set { path = value; NotifyPropertyChanged(); }
         }
 
         private ComponentVM selectedComponent;
         public ComponentVM SelectedComponent
         {
             get { return selectedComponent; }
-            set
-            {
-                selectedComponent = value;
-                //LoggerService.Logger.LogDebug($"{nameof(SelectedComponent)}: {new JavaScriptSerializer().Serialize(SelectedComponent)}");
-                NotifyPropertyChanged();
-            }
+            set { selectedComponent = value; NotifyPropertyChanged(); }
         }
 
         private int selectedIndex;
         public int SelectedIndex
         {
             get { return selectedIndex; }
-            set
-            {
-                selectedIndex = value;
-                LoggerService.Logger.LogDebug($"{nameof(SelectedIndex)}: {SelectedIndex}");
-                NotifyPropertyChanged();
-            }
+            set { selectedIndex = value; NotifyPropertyChanged(); }
         }
 
         public ComponentSelectorVM[] ComponentTypes => new ComponentSelectorVM[]
@@ -95,11 +71,7 @@ namespace LogViewer.ViewModel
         public ComponentSelectorVM SelectedComponentType
         {
             get { return selectedComponentType; }
-            set
-            {
-                selectedComponentType = value;
-                NotifyPropertyChanged();
-            }
+            set { selectedComponentType = value; NotifyPropertyChanged(); }
         }
         #endregion
 

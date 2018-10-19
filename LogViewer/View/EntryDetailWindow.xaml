@@ -11,7 +11,7 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
+        
         <Grid Grid.Row="0" Background="{StaticResource Toolbar}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
