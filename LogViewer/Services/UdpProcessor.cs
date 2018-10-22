@@ -32,6 +32,12 @@ namespace LogViewer.Services
                 {
                     byte[] bytes = listener.Receive(ref groupEP);
 
+                    if (ProcessorMonitor.ComponentStopper[componentName])
+                    {
+                        ProcessorMonitor.ComponentStopper[componentName] = false;
+                        break;
+                    }
+
                     var data = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
                     var ent = JsonConvert.DeserializeObject<Entry>(data);
                     var lvlType = Levels.GetLevelTypeFromString(ent.Level);
@@ -64,7 +70,7 @@ namespace LogViewer.Services
                         });
                     }
                 }
-                while (!cancelToken.Token.IsCancellationRequested && !asyncWorker.CancellationPending);
+                while (!ProcessorMonitor.ComponentStopper[componentName]);
             }
             catch (Exception e)
             {

@@ -49,6 +49,12 @@ namespace LogViewer.Services
                     // Get a stream object for reading and writing
                     stream = client.GetStream();
 
+                    if (ProcessorMonitor.ComponentStopper[componentName])
+                    {
+                        ProcessorMonitor.ComponentStopper[componentName] = false;
+                        break;
+                    }
+
                     // Loop to receive all the data sent by the client.
                     StringBuilder sb = new StringBuilder();
                     while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
@@ -109,7 +115,7 @@ namespace LogViewer.Services
 
                     // Shutdown and end connection
                     client.Close();
-                } while (!cancelToken.Token.IsCancellationRequested && !asyncWorker.CancellationPending);
+                } while (!ProcessorMonitor.ComponentStopper[componentName]);
             }
             catch (SocketException e)
             {

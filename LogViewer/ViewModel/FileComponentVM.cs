@@ -40,7 +40,7 @@ namespace LogViewer.ViewModel
 
         private Stopwatch ExecutionWatch { get; set; }
 
-        public FileComponentVM(string name, string path) : base(name, path)
+        public FileComponentVM(string name, string path) : base(name, path, ComponentTypes.File)
         {
             // Add new message queue
             MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
@@ -65,8 +65,7 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    cancelSource.Cancel();
-                    asyncWorker.CancelAsync();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
@@ -100,8 +99,7 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    cancelSource.Cancel();
-                    asyncWorker.CancelAsync();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
@@ -146,14 +144,13 @@ namespace LogViewer.ViewModel
                         if (bwAsync.CancellationPending)
                         {
                             e.Cancel = true;
-                            cancelSource.Cancel();
+                            StopListener();
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    asyncWorker.CancelAsync();
-                    cancelSource.Cancel();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };

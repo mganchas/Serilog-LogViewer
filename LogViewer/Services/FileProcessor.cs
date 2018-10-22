@@ -23,13 +23,14 @@ namespace LogViewer.Services
                     StringBuilder sb = new StringBuilder();
                     bool isValid = false;
 
-                    while ((line = sr.ReadLine()) != null)
+                    while ((line = sr.ReadLine()) != null && !ProcessorMonitor.ComponentStopper[componentName])
                     {
-                        if (cancelToken.Token.IsCancellationRequested || asyncWorker.CancellationPending)
+                        if (ProcessorMonitor.ComponentStopper[componentName])
                         {
+                            ProcessorMonitor.ComponentStopper[componentName] = false;
                             break;
                         }
-
+                        
                         var level_init = line.IndexOf('[');
                         var level_end = line.IndexOf(']');
                         var split = line.Split(' ');

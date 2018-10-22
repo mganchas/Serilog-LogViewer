@@ -29,6 +29,12 @@ namespace LogViewer.Services
                     var req = ctx.Request;
                     var data = new StreamReader(req.InputStream, req.ContentEncoding).ReadToEnd();
 
+                    if (ProcessorMonitor.ComponentStopper[componentName])
+                    {
+                        ProcessorMonitor.ComponentStopper[componentName] = false;
+                        break;
+                    }
+
                     // parse json into an Entry array
                     var ents = JsonConvert.DeserializeObject<LogEntries>(data);
 
@@ -64,7 +70,7 @@ namespace LogViewer.Services
                             });
                         }
                     }
-                } while (!cancelToken.Token.IsCancellationRequested && !asyncWorker.CancellationPending);
+                } while (!ProcessorMonitor.ComponentStopper[componentName]);
 
             }
             catch (Exception e)

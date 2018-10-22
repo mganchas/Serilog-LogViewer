@@ -25,6 +25,8 @@ namespace LogViewer.ViewModel
         protected CancellationTokenSource cancelSource;
         protected string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
 
+        private ComponentTypes Component { get; set; }
+
         private bool IsAllSelected { get; set; }
 
         private SelectionElements SelectionFilters { get; set; }
@@ -164,10 +166,14 @@ namespace LogViewer.ViewModel
         public ICommand FilterLevelCommand { get; set; }
         #endregion
 
-        protected ComponentVM(string name, string path)
+        public ComponentVM(string name, string path, ComponentTypes component)
         {
             this.Name = name;
             this.Path = path;
+            this.Component = component;
+
+            // Add component to processor monitor
+            ProcessorMonitor.ComponentStopper.Add(this.ComponentRegisterName, false);
 
             // Set visible levels 
             ComponentLevels = new Dictionary<LevelTypes, LevelsVM>
@@ -229,13 +235,13 @@ namespace LogViewer.ViewModel
                     IsRunning = false;
                     if (asyncWorker.IsBusy)
                     {
-                        Task cancelTsk = Task.Run(() => asyncWorker.CancelAsync());
+                        Task cancelTsk = Task.Run(() => StopListener());
                         cancelTsk.Wait();
                     }
                 }
                 catch (Exception ex)
                 {
-                    asyncWorker.CancelAsync();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             });
@@ -294,12 +300,7 @@ namespace LogViewer.ViewModel
             {
                 IsRunning = true;
                 StoreType = storeType;
-
-                if (asyncWorker.IsBusy)
-                {
-                    // TODO: cancelar anterior que está bloqueado no listener.receive()
-                    //asyncWorker = new BackgroundWorker();
-                }
+                ProcessorMonitor.ComponentStopper[ComponentRegisterName] = false;
 
                 if (!asyncWorker.IsBusy)
                 {
@@ -313,7 +314,7 @@ namespace LogViewer.ViewModel
             }
             catch (Exception ex)
             {
-                asyncWorker.CancelAsync();
+                StopListener();
                 MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
             }
         }
@@ -402,6 +403,13 @@ namespace LogViewer.ViewModel
                     }
                 }
             });
+        }
+
+        protected void StopListener()
+        {
+            cancelSource.Cancel();
+            asyncWorker.CancelAsync();
+            ProcessorMonitor.ComponentStopper[ComponentRegisterName] = true;
         }
 
         protected void PlaySound()

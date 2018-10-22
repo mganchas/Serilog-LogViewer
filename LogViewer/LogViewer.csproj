@@ -30,7 +30,7 @@
     <MapFileExtensions>true</MapFileExtensions>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>12</ApplicationRevision>
+    <ApplicationRevision>13</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -244,6 +244,7 @@
     <Compile Include="Services\DbProcessor.cs" />
     <Compile Include="Services\HttpProcessor.cs" />
     <Compile Include="Services\MessageContainer.cs" />
+    <Compile Include="Services\ProcessorMonitor.cs" />
     <Compile Include="Services\TcpProcessor.cs" />
     <Compile Include="Services\UdpProcessor.cs" />
     <Compile Include="Services\VisualCacheGetter.cs" />

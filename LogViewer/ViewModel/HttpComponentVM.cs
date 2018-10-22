@@ -20,7 +20,7 @@ namespace LogViewer.ViewModel
         private string PathFixer => !Path.EndsWith("/") ? $"{Path}/" : Path;
         private string HttpFullName => $"http://{PathFixer}";
 
-        public HttpComponentVM(string name, string path) : base(name, path)
+        public HttpComponentVM(string name, string path) : base(name, path, ComponentTypes.Http)
         {
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
@@ -42,8 +42,7 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    cancelSource.Cancel();
-                    asyncWorker.CancelAsync();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
@@ -80,7 +79,7 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    asyncWorker.CancelAsync();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
@@ -105,13 +104,13 @@ namespace LogViewer.ViewModel
                         if (bwAsync.CancellationPending)
                         {
                             e.Cancel = true;
-                            cancelSource.Cancel();
+                            StopListener();
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    asyncWorker.CancelAsync();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };

@@ -19,7 +19,7 @@ namespace LogViewer.ViewModel
 
         private string TcpFullName => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length - 1)}" : Path;
 
-        public TcpComponentVM(string name, string path) : base(name, path)
+        public TcpComponentVM(string name, string path) : base(name, path, ComponentTypes.Tcp)
         {
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
@@ -41,8 +41,7 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    cancelSource.Cancel();
-                    asyncWorker.CancelAsync();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
@@ -79,8 +78,7 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    asyncWorker.CancelAsync();
-                    cancelSource.Cancel();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
@@ -105,15 +103,14 @@ namespace LogViewer.ViewModel
                         if (bwAsync.CancellationPending)
                         {
                             e.Cancel = true;
-                            cancelSource.Cancel();
+                            StopListener();
                         }
                     }
 
                 }
                 catch (Exception ex)
                 {
-                    asyncWorker.CancelAsync();
-                    cancelSource.Cancel();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };

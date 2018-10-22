@@ -19,7 +19,7 @@ namespace LogViewer.ViewModel
 
         private string UdpFullName => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length - 1)}" : Path;
 
-        public UdpComponentVM(string name, string path) : base(name, path)
+        public UdpComponentVM(string name, string path) : base(name, path, ComponentTypes.Udp)
         {
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
@@ -41,8 +41,7 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    cancelSource.Cancel();
-                    asyncWorker.CancelAsync();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
@@ -79,8 +78,7 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    asyncWorker.CancelAsync();
-                    cancelSource.Cancel();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
@@ -112,8 +110,7 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    asyncWorker.CancelAsync();
-                    cancelSource.Cancel();
+                    StopListener();
                     MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
