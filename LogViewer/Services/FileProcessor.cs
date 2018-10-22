@@ -1,19 +1,15 @@
 ﻿using LogViewer.Model;
+using LogViewer.Services.Abstractions;
 using System;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
-using System.Threading;
 
 namespace LogViewer.Services
 {
-    public sealed class FileProcessor : BaseDataReader
+    public sealed class FileProcessor : IComponentProcessor
     {
-        public FileProcessor(string path, string componentName) : base(path, componentName)
-        {
-        }
-
-        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker, StoreTypes storeType)
+        public void ReadData(string path, string componentName, ref BackgroundWorker asyncWorker, StoreTypes storeType)
         {
             using (StreamReader sr = new StreamReader(path))
             {

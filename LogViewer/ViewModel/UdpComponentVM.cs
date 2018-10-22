@@ -94,16 +94,15 @@ namespace LogViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
-                    cancelSource = new CancellationTokenSource();
-                    var udpP = new UdpProcessor(Path, ComponentRegisterName);
-                    udpP.ReadData(ref cancelSource, ref asyncWorker, StoreType);
+                    var udpP = new UdpProcessor();
+                    udpP.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
 
-                    while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
+                    while (!e.Cancel)
                     {
                         if (bwAsync.CancellationPending)
                         {
                             e.Cancel = true;
-                            cancelSource.Cancel();
+                            StopListener();
                         }
                     }
 

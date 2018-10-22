@@ -1,20 +1,16 @@
 ﻿using LogViewer.Model;
+using LogViewer.Services.Abstractions;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
-using System.Threading;
 
 namespace LogViewer.Services
 {
-    public class HttpProcessor : BaseDataReader
+    public class HttpProcessor : IComponentProcessor
     {
-        public HttpProcessor(string path, string componentName) : base(path, componentName)
-        {
-        }
-
-        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker, StoreTypes storeType)
+        public void ReadData(string path, string componentName, ref BackgroundWorker asyncWorker, StoreTypes storeType)
         {
             HttpListener web = null;
             try
@@ -81,7 +77,7 @@ namespace LogViewer.Services
             finally
             {
                 web?.Stop();
-                cancelToken.Cancel();
+                asyncWorker.CancelAsync();
             }
         }
     }

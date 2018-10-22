@@ -1,21 +1,17 @@
 ﻿using LogViewer.Model;
+using LogViewer.Services.Abstractions;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 
 namespace LogViewer.Services
 {
-    public sealed class UdpProcessor : BaseDataReader
+    public sealed class UdpProcessor : IComponentProcessor
     {
-        public UdpProcessor(string path, string componentName) : base(path, componentName)
-        {
-        }
-
-        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker, StoreTypes storeType)
+        public void ReadData(string path, string componentName, ref BackgroundWorker asyncWorker, StoreTypes storeType)
         {
             UdpClient listener = null;
             try
@@ -80,7 +76,7 @@ namespace LogViewer.Services
             finally
             {
                 listener?.Close();
-                cancelToken.Cancel();
+                asyncWorker.CancelAsync();
             }
         }
     }

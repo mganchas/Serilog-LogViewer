@@ -30,7 +30,7 @@
     <MapFileExtensions>true</MapFileExtensions>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>13</ApplicationRevision>
+    <ApplicationRevision>14</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -239,7 +239,7 @@
     <Compile Include="Model\ObservableDictionary.cs" />
     <Compile Include="Model\ObservableSet.cs" />
     <Compile Include="Model\StoreTypes.cs" />
-    <Compile Include="Services\BaseDataReader.cs" />
+    <Compile Include="Services\Abstractions\IComponentProcessor.cs" />
     <Compile Include="Services\ComponentFactory.cs" />
     <Compile Include="Services\DbProcessor.cs" />
     <Compile Include="Services\HttpProcessor.cs" />

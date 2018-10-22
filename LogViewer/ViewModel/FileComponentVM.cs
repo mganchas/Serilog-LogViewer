@@ -132,14 +132,11 @@ namespace LogViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
-                    // set cancellation token
-                    cancelSource = new CancellationTokenSource();
-
                     // start file reader
-                    var fp = new FileProcessor(Path, ComponentRegisterName);
-                    fp.ReadData(ref cancelSource, ref asyncWorker, StoreType);
+                    var fp = new FileProcessor();
+                    fp.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
 
-                    while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
+                    while (!e.Cancel)
                     {
                         if (bwAsync.CancellationPending)
                         {

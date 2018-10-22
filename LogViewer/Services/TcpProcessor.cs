@@ -1,4 +1,5 @@
 ﻿using LogViewer.Model;
+using LogViewer.Services.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -6,17 +7,12 @@ using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 
 namespace LogViewer.Services
 {
-    public class TcpProcessor : BaseDataReader
+    public class TcpProcessor : IComponentProcessor
     {
-        public TcpProcessor(string path, string componentName) : base(path, componentName)
-        {
-        }
-
-        public override void ReadData(ref CancellationTokenSource cancelToken, ref BackgroundWorker asyncWorker, StoreTypes storeType)
+        public void ReadData(string path, string componentName, ref BackgroundWorker asyncWorker, StoreTypes storeType)
         {
             TcpListener server = null;
             
@@ -126,7 +122,7 @@ namespace LogViewer.Services
             {               
                 // Stop listening for new clients.
                 server?.Stop();
-                cancelToken.Cancel();
+                asyncWorker.CancelAsync();
             }
         }
     }

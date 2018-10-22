@@ -95,11 +95,10 @@ namespace LogViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
-                    cancelSource = new CancellationTokenSource();
-                    var httpP = new HttpProcessor(HttpFullName, ComponentRegisterName);
-                    httpP.ReadData(ref cancelSource, ref asyncWorker, StoreType);
+                    var httpP = new HttpProcessor();
+                    httpP.ReadData(HttpFullName, ComponentRegisterName, ref asyncWorker, StoreType);
 
-                    while (!e.Cancel && !cancelSource.Token.IsCancellationRequested)
+                    while (!e.Cancel)
                     {
                         if (bwAsync.CancellationPending)
                         {

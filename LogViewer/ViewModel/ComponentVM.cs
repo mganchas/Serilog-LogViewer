@@ -22,7 +22,6 @@ namespace LogViewer.ViewModel
     {
         public ComponentVM Self => this;
         protected BackgroundWorker asyncWorker = new BackgroundWorker();
-        protected CancellationTokenSource cancelSource;
         protected string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
 
         private ComponentTypes Component { get; set; }
@@ -407,7 +406,6 @@ namespace LogViewer.ViewModel
 
         protected void StopListener()
         {
-            cancelSource.Cancel();
             asyncWorker.CancelAsync();
             ProcessorMonitor.ComponentStopper[ComponentRegisterName] = true;
         }
