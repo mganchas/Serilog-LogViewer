@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Threading;
 using LogViewer.Configs;
 using LogViewer.Containers;
 using LogViewer.Model;
@@ -17,7 +18,7 @@ namespace LogViewer.ViewModel
     {
         private string componentImage;
         public override string ComponentImage => GetCachedValue(ref componentImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}");
-        
+
         private string PathFixer => !Path.EndsWith("/") ? $"{Path}/" : Path;
         private string HttpFullName => $"http://{PathFixer}";
 
@@ -26,30 +27,30 @@ namespace LogViewer.ViewModel
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
-                if (!IsRunning || e.NewItems == null) { return; }
-
-                try
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
-                    App.Current.Dispatcher.Invoke(delegate
+                    if (!IsRunning || e.NewItems == null) { return; }
+
+                    try
                     {
                         /* increment button counters */
                         foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
                         {
                             ComponentLevels[counter.Key].Counter = counter.Value;
                         }
-                    });
 
-                    FilterMessages();
-                }
-                catch (Exception ex)
-                {
-                    LoggerContainer.LogEntries.Add(new LogVM
+                        FilterMessages();
+                    }
+                    catch (Exception ex)
                     {
-                        Timestamp = DateTime.Now,
-                        Message = ex.Message
-                    });
-                    StopListener();
-                }
+                        LoggerContainer.LogEntries.Add(new LogVM
+                        {
+                            Timestamp = DateTime.Now,
+                            Message = ex.InnerException?.Message ?? ex.Message
+                        });
+                        StopListener();
+                    }
+                }));
             };
 
             // Add new message queue
@@ -58,13 +59,13 @@ namespace LogViewer.ViewModel
             /* Set message collection onchanged event */
             MessageContainer.RAM.HttpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
             {
-                if (!IsRunning || e.NewItems == null) { return; }
-
-                try
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
-                    foreach (Entry entry in e.NewItems)
+                    if (!IsRunning || e.NewItems == null) { return; }
+
+                    try
                     {
-                        App.Current.Dispatcher.Invoke(delegate
+                        foreach (Entry entry in e.NewItems)
                         {
                             /* increment specific button counter */
                             ComponentLevels[(Levels.LevelTypes)entry.LevelType].Counter++;
@@ -77,20 +78,20 @@ namespace LogViewer.ViewModel
                                 Timestamp = entry.Timestamp,
                                 LevelType = (Levels.LevelTypes)entry.LevelType
                             });
-                        });
-                    }
+                        }
 
-                    FilterMessages();
-                }
-                catch (Exception ex)
-                {
-                    LoggerContainer.LogEntries.Add(new LogVM
+                        FilterMessages();
+                    }
+                    catch (Exception ex)
                     {
-                        Timestamp = DateTime.Now,
-                        Message = ex.Message
-                    });
-                    StopListener();
-                }
+                        LoggerContainer.LogEntries.Add(new LogVM
+                        {
+                            Timestamp = DateTime.Now,
+                            Message = ex.InnerException?.Message ?? ex.Message
+                        });
+                        StopListener();
+                    }
+                }));
             };
         }
 
@@ -101,39 +102,42 @@ namespace LogViewer.ViewModel
             asyncWorker.RunWorkerCompleted += delegate { if (IsRunning) IsRunning = false; };
             asyncWorker.DoWork += (sender, e) =>
             {
-                BackgroundWorker bwAsync = sender as BackgroundWorker;
-                try
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
                 {
-                    if (bwAsync.CancellationPending) { return; }
-
-                    var httpP = new HttpProcessor();
-                    httpP.ReadData(HttpFullName, ComponentRegisterName, ref asyncWorker, StoreType);
-
-                    while (!e.Cancel)
+                    BackgroundWorker bwAsync = sender as BackgroundWorker;
+                    try
                     {
-                        if (bwAsync.CancellationPending)
+                        if (bwAsync.CancellationPending) { return; }
+
+                        var httpP = new HttpProcessor();
+                        httpP.ReadData(HttpFullName, ComponentRegisterName, ref asyncWorker, StoreType);
+
+                        while (!e.Cancel)
                         {
-                            e.Cancel = true;
-                            StopListener();
+                            if (bwAsync.CancellationPending)
+                            {
+                                e.Cancel = true;
+                                StopListener();
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    LoggerContainer.LogEntries.Add(new LogVM
+                    catch (Exception ex)
                     {
-                        Timestamp = DateTime.Now,
-                        Message = ex.Message
-                    });
-                    StopListener();
-                }
+                        LoggerContainer.LogEntries.Add(new LogVM
+                        {
+                            Timestamp = DateTime.Now,
+                            Message = ex.InnerException?.Message ?? ex.Message
+                        });
+                        StopListener();
+                    }
+                }));
             };
         }
 
         public static bool IsValidComponent(string name, string path, in ObservableCollection<ComponentVM> components)
         {
             // Check mandatory fields 
-            if (String.IsNullOrEmpty(path)  || String.IsNullOrEmpty(name))
+            if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
             {
                 MessageBox.Show(Constants.Messages.MandatoryFieldsMissingComponent, Constants.Messages.AlertTitle);
                 return false;

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Threading;
 using LogViewer.Configs;
 using LogViewer.Containers;
 using LogViewer.Model;
@@ -45,7 +46,7 @@ namespace LogViewer.ViewModel
         {
             // Add new message queue
             MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
-            
+
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
@@ -53,26 +54,27 @@ namespace LogViewer.ViewModel
 
                 try
                 {
-                    App.Current.Dispatcher.Invoke(delegate
+                    Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
                     {
                         /* increment button counters */
                         foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
                         {
                             ComponentLevels[counter.Key].Counter = counter.Value;
                         }
-                    });
 
-                    FilterMessages();
+                        FilterMessages();
+                    }));
                 }
                 catch (Exception ex)
                 {
                     LoggerContainer.LogEntries.Add(new LogVM
                     {
                         Timestamp = DateTime.Now,
-                        Message = ex.Message
+                        Message = ex.InnerException?.Message ?? ex.Message
                     });
                     StopListener();
                 }
+
             };
 
             /* Set message collection onchanged event (RAM) */
@@ -82,9 +84,9 @@ namespace LogViewer.ViewModel
 
                 try
                 {
-                    foreach (Entry entry in e.NewItems)
+                    Application.Current.Dispatcher.Invoke((Action)(() =>
                     {
-                        App.Current.Dispatcher.Invoke(delegate
+                        foreach (Entry entry in e.NewItems)
                         {
                             /* increment specific button counter */
                             ComponentLevels[(Levels.LevelTypes)entry.LevelType].Counter++;
@@ -97,17 +99,19 @@ namespace LogViewer.ViewModel
                                 Timestamp = entry.Timestamp,
                                 LevelType = (Levels.LevelTypes)entry.LevelType
                             });
-                        });
-                    }
+                        }
 
-                    FilterMessages();
+                        FilterMessages();
+
+                        Application.Current.Dispatcher.Invoke(new Action(delegate { }), DispatcherPriority.ApplicationIdle);
+                    }));
                 }
                 catch (Exception ex)
                 {
                     LoggerContainer.LogEntries.Add(new LogVM
                     {
                         Timestamp = DateTime.Now,
-                        Message = ex.Message
+                        Message = ex.InnerException?.Message ?? ex.Message
                     });
                     StopListener();
                 }
@@ -138,33 +142,36 @@ namespace LogViewer.ViewModel
 
             asyncWorker.DoWork += (sender, e) =>
             {
-                BackgroundWorker bwAsync = sender as BackgroundWorker;
-                try
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
                 {
-                    if (bwAsync.CancellationPending) { return; }
-
-                    // start file reader
-                    var fp = new FileProcessor();
-                    fp.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
-
-                    while (!e.Cancel)
+                    BackgroundWorker bwAsync = sender as BackgroundWorker;
+                    try
                     {
-                        if (bwAsync.CancellationPending)
+                        if (bwAsync.CancellationPending) { return; }
+
+                        // start file reader
+                        var fp = new FileProcessor();
+                        fp.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
+
+                        while (!e.Cancel)
                         {
-                            e.Cancel = true;
-                            StopListener();
+                            if (bwAsync.CancellationPending)
+                            {
+                                e.Cancel = true;
+                                StopListener();
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    LoggerContainer.LogEntries.Add(new LogVM
+                    catch (Exception ex)
                     {
-                        Timestamp = DateTime.Now,
-                        Message = ex.Message
-                    });
-                    StopListener();
-                }
+                        LoggerContainer.LogEntries.Add(new LogVM
+                        {
+                            Timestamp = DateTime.Now,
+                            Message = ex.InnerException?.Message ?? ex.Message
+                        });
+                        StopListener();
+                    }
+                }));
             };
         }
 

@@ -10,6 +10,7 @@ using System.IO;
 using LogViewer.Services;
 using static LogViewer.Services.VisualCacheGetter;
 using LogViewer.Containers;
+using System.Windows.Threading;
 
 namespace LogViewer.ViewModel
 {
@@ -124,14 +125,17 @@ namespace LogViewer.ViewModel
             {
                 return new RelayCommand<object>(comp =>
                 {
-                    var compVM = comp as ComponentVM;
+                    Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
+                    {
+                        var compVM = comp as ComponentVM;
 
-                    compVM.RemoveComponent();
-                    Components.Remove(compVM);
+                        compVM.RemoveComponent();
+                        Components.Remove(compVM);
 
-                    SelectedComponent = Components.Count > 0 ? Components[0] : null;
+                        SelectedComponent = Components.Count > 0 ? Components[0] : null;
 
-                    GC.Collect();
+                        GC.Collect();
+                    }));
                 });
             }
         }
@@ -141,116 +145,133 @@ namespace LogViewer.ViewModel
         {
             AddListenerCommand = new RelayCommand(() =>
             {
-                if (SelectedComponentType == null)
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
-                    MessageBox.Show(Constants.Messages.ComponentTypeMissing, Constants.Messages.ErrorTitle);
-                    return;
-                }
+                    if (SelectedComponentType == null)
+                    {
+                        MessageBox.Show(Constants.Messages.ComponentTypeMissing, Constants.Messages.ErrorTitle);
+                        return;
+                    }
 
-                // create new component
-                ComponentVM newComponent = null;
-                switch (SelectedComponentType.Type)
-                {
-                    case Model.ComponentTypes.File:
-                        newComponent = ComponentFactory<FileComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new FileComponentVM(name, path));
-                        break;
+                    // create new component
+                    ComponentVM newComponent = null;
+                    switch (SelectedComponentType.Type)
+                    {
+                        case Model.ComponentTypes.File:
+                            newComponent = ComponentFactory<FileComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new FileComponentVM(name, path));
+                            break;
 
-                    case Model.ComponentTypes.Http:
-                        newComponent = ComponentFactory<HttpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new HttpComponentVM(name, path));
-                        break;
+                        case Model.ComponentTypes.Http:
+                            newComponent = ComponentFactory<HttpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new HttpComponentVM(name, path));
+                            break;
 
-                    case Model.ComponentTypes.Tcp:
-                        newComponent = ComponentFactory<TcpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new TcpComponentVM(name, path));
-                        break;
+                        case Model.ComponentTypes.Tcp:
+                            newComponent = ComponentFactory<TcpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new TcpComponentVM(name, path));
+                            break;
 
-                    case Model.ComponentTypes.Udp:
-                        newComponent = ComponentFactory<UdpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new UdpComponentVM(name, path));
-                        break;
-                }
+                        case Model.ComponentTypes.Udp:
+                            newComponent = ComponentFactory<UdpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new UdpComponentVM(name, path));
+                            break;
+                    }
 
-                // not a valid component
-                if (newComponent == null)
-                {
-                    return;
-                }
+                    // not a valid component
+                    if (newComponent == null)
+                    {
+                        return;
+                    }
 
-                // set component action
-                newComponent.RemoveComponentCommand = DefaultRemoveCommand;
+                    // set component action
+                    newComponent.RemoveComponentCommand = DefaultRemoveCommand;
 
-                // add new listener to list
-                Components.Add(newComponent);
+                    // add new listener to list
+                    Components.Add(newComponent);
 
-                // clean selection inputs
-                Name = string.Empty;
-                Path = string.Empty;
+                    // clean selection inputs
+                    Name = string.Empty;
+                    Path = string.Empty;
 
-                // select last added component
-                SelectedComponent = Components.First(x => x == newComponent);
+                    // select last added component
+                    SelectedComponent = Components.First(x => x == newComponent);
+                }));
             });
 
             // Set play (ram) all command
             StartAllRAMCommand = new RelayCommand(() =>
             {
-                // if not running, start each component 
-                foreach (var item in Components.Where(x => !x.IsRunning))
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
-                    item.StartRAMListenerCommand.Execute(null);
-                }
+                    // if not running, start each component 
+                    foreach (var item in Components.Where(x => !x.IsRunning))
+                    {
+                        item.StartRAMListenerCommand.Execute(null);
+                    }
+                }));
             });
 
             // Set play (disk) all command
             StartAllDiskCommand = new RelayCommand(() =>
             {
-                // if not running, start each component 
-                foreach (var item in Components.Where(x => !x.IsRunning))
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
-                    item.StartDiskListenerCommand.Execute(null);
-                }
+                    // if not running, start each component 
+                    foreach (var item in Components.Where(x => !x.IsRunning))
+                    {
+                        item.StartDiskListenerCommand.Execute(null);
+                    }
+                }));
             });
 
             // set cancel all command
             CancelAllCommand = new RelayCommand(() =>
             {
-                // if not running, start each component 
-                foreach (var item in Components.Where(x => x.IsRunning))
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Send, (Action)(() =>
                 {
-                    item.StopListenerCommand.Execute(null);
-                }
+                    // if not running, start each component 
+                    foreach (var item in Components.Where(x => x.IsRunning))
+                    {
+                        item.StopListenerCommand.Execute(null);
+                    }
+                }));
             });
 
             // Set clear command 
             ClearCommand = new RelayCommand(() =>
             {
-                // Clear data for each component 
-                foreach (var item in Components)
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
-                    item.CleanUpCommand.Execute(!item.IsRunning);
-                }
-                GC.Collect();
+                    // Clear data for each component 
+                    foreach (var item in Components)
+                    {
+                        item.CleanUpCommand.Execute(!item.IsRunning);
+                    }
+                    GC.Collect();
+                }));
             });
 
             // Set reset command 
             ResetCommand = new RelayCommand(() =>
             {
-                foreach (var comp in Components)
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
-                    comp.RemoveComponent();
-                }
-                Components.Clear();
-                GC.Collect();
+                    foreach (var comp in Components)
+                    {
+                        comp.RemoveComponent();
+                    }
+                    Components.Clear();
+                    GC.Collect();
+                }));
             });
 
             /* Set message collection onchanged event (DISK) */
             LoggerContainer.LogEntries.CollectionChanged += (_, e) =>
             {
-                App.Current.Dispatcher.Invoke(delegate
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
                 {
                     foreach (LogVM exception in e.NewItems)
                     {
                         LogEntries.Add(exception);
                     }
-                });
-
+                }));
             };
 
             /* Add listener for visible content */
@@ -259,18 +280,21 @@ namespace LogViewer.ViewModel
 
         public void AddDroppedComponents(string[] files)
         {
-            foreach (var file in files)
+            Application.Current.Dispatcher.Invoke(DispatcherPriority.Send, (Action)(() =>
             {
-                // define new file component
-                ComponentVM comp = ComponentFactory<FileComponentVM>.GetComponent(this, new DirectoryInfo(file).Name, file, Components, (name, path) => new FileComponentVM(name, path));
-                comp.RemoveComponentCommand = DefaultRemoveCommand;
+                foreach (var file in files)
+                {
+                    // define new file component
+                    ComponentVM comp = ComponentFactory<FileComponentVM>.GetComponent(this, new DirectoryInfo(file).Name, file, Components, (name, path) => new FileComponentVM(name, path));
+                    comp.RemoveComponentCommand = DefaultRemoveCommand;
 
-                // add new listener to list
-                Components.Add(comp);
+                    // add new listener to list
+                    Components.Add(comp);
 
-                // select last added component
-                SelectedComponent = Components.First(x => x == comp);
-            }
+                    // select last added component
+                    SelectedComponent = Components.First(x => x == comp);
+                }
+            }));
         }
     }
 }

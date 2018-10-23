@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
 using LogViewer.Containers;
@@ -168,6 +169,7 @@ namespace LogViewer.ViewModel
 
         public ComponentVM(string name, string path, ComponentTypes component)
         {
+
             this.Name = name;
             this.Path = path;
             this.Component = component;
@@ -230,49 +232,51 @@ namespace LogViewer.ViewModel
             // Set stop listener/reader command 
             StopListenerCommand = new RelayCommand(() =>
             {
-                try
+                Application.Current.Dispatcher.Invoke((Action)(() =>
                 {
-                    IsRunning = false;
-                    if (asyncWorker.IsBusy)
+                    try
                     {
-                        Task cancelTsk = Task.Run(() => StopListener());
-                        cancelTsk.Wait();
+                        IsRunning = false;
+                        if (asyncWorker.IsBusy)
+                        {
+                            StopListener();
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    LoggerContainer.LogEntries.Add(new LogVM
+                    catch (Exception ex)
                     {
-                        Timestamp = DateTime.Now,
-                        Message = ex.Message
-                    });
-                    StopListener();
-                }
+                        LoggerContainer.LogEntries.Add(new LogVM
+                        {
+                            Timestamp = DateTime.Now,
+                            Message = ex.InnerException?.Message ?? ex.Message
+                        });
+                        StopListener();
+                    }
+                }));
             });
 
             // Set filter search command 
             FilterTextSearchCommand = new RelayCommand(() =>
             {
-                App.Current.Dispatcher.Invoke(delegate
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
                 {
                     FilterMessages();
-                });
+                }));
             });
 
             // Set filter clear command 
             FilterTextClearCommand = new RelayCommand(() =>
             {
-                App.Current.Dispatcher.Invoke(delegate
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
                 {
                     FilterText = string.Empty;
                     FilterMessages();
-                });
+                }));
             });
 
             // Set levels filter command
             FilterLevelCommand = new RelayCommand(() =>
             {
-                App.Current.Dispatcher.Invoke(delegate
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
                 {
                     if (IsAllSelected && ComponentLevels[LevelTypes.All].IsSelected && ComponentLevels.Values.Any(x => x.LevelType != LevelTypes.All && x.IsSelected))
                     {
@@ -294,65 +298,66 @@ namespace LogViewer.ViewModel
                     }
 
                     FilterMessages();
-                });
+                }));
             });
         }
 
         private void StartAction(StoreTypes storeType)
         {
-            try
+            Application.Current.Dispatcher.Invoke((Action)(() =>
             {
-                IsRunning = true;
-                StoreType = storeType;
-                ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = false;
-
-                if (!asyncWorker.IsBusy)
+                try
                 {
-                    // Clear previous entries 
-                    CleanUpCommand.Execute(true);
+                    IsRunning = true;
+                    StoreType = storeType;
+                    ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = false;
 
-                    // Set background worker
-                    InitializeBackWorker();
-                    asyncWorker.RunWorkerAsync();
+                    if (!asyncWorker.IsBusy)
+                    {
+                        // Clear previous entries 
+                        CleanUpCommand.Execute(true);
+
+                        // Set background worker
+                        InitializeBackWorker();
+                        asyncWorker.RunWorkerAsync();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                LoggerContainer.LogEntries.Add(new LogVM
+                catch (Exception ex)
                 {
-                    Timestamp = DateTime.Now,
-                    Message = ex.Message
-                });
-                StopListener();
-            }
+                    LoggerContainer.LogEntries.Add(new LogVM
+                    {
+                        Timestamp = DateTime.Now,
+                        Message = ex.InnerException?.Message ?? ex.Message
+                    });
+                    StopListener();
+                }
+            }));
         }
 
         protected void FilterMessages()
         {
-            App.Current.Dispatcher.Invoke(delegate
+
+            bool hasChanges = false;
+            var selectedLevels = ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType).ToList();
+
+            if (SelectionFilters == null || SelectionFilters.FilterText != FilterText || !SelectionFilters.SameLevels(selectedLevels))
             {
-                bool hasChanges = false;
-                var selectedLevels = ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType).ToList();
+                // update current hash
+                hasChanges = true;
+                SelectionFilters = new SelectionElements { FilterText = this.FilterText, Levels = selectedLevels };
+            }
 
-                if (SelectionFilters == null || SelectionFilters.FilterText != FilterText || !SelectionFilters.SameLevels(selectedLevels))
-                {
-                    // update current hash
-                    hasChanges = true;
-                    SelectionFilters = new SelectionElements { FilterText = this.FilterText, Levels = selectedLevels };
-                }
+            if (!hasChanges && VisibleConsoleMessages.Count == VisibleMessagesNr) { return; }
 
-                if (!hasChanges && VisibleConsoleMessages.Count == VisibleMessagesNr) { return; }
-
-                // get entries from RAM or Disk
-                if (StoreType == StoreTypes.Disk)
-                {
-                    FilterEntriesDisk(hasChanges, selectedLevels);
-                }
-                else
-                {
-                    FilterEntriesRAM(hasChanges, selectedLevels);
-                }
-            });
+            // get entries from RAM or Disk
+            if (StoreType == StoreTypes.Disk)
+            {
+                FilterEntriesDisk(hasChanges, selectedLevels);
+            }
+            else
+            {
+                FilterEntriesRAM(hasChanges, selectedLevels);
+            }
         }
 
         private void FilterEntriesDisk(bool hasChanges, List<LevelTypes> selectedLevels)
@@ -430,8 +435,11 @@ namespace LogViewer.ViewModel
 
         protected void StopListener()
         {
-            asyncWorker.CancelAsync();
-            ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = true;
+            Application.Current.Dispatcher.Invoke(DispatcherPriority.Send, (Action)(() =>
+            {
+                asyncWorker.CancelAsync();
+                ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = true;
+            }));
         }
 
         protected void PlaySound()
