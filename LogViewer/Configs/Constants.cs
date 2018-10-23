@@ -35,7 +35,8 @@
             public const string ImageEdit = "edit.png";
             public const string ImageSave = "save.png";
             public const string ImageAdd = "add.png";
-            
+            public const string ImageError = "error.png";
+
             public const string ImageTerminal = "terminal.png";
             public const string ImageMonitor = "monitor.png";
             public const string ImageFilter = "filter.png";

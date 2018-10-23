@@ -13,13 +13,9 @@ namespace LogViewer.Services
 {
     public static class DbProcessor
     {
-        //private static string DbName => Constants.Database.RealmName;
-        //private static string DbPath => Path.Combine(Path.GetTempPath(), DbName);
-        //private static RealmConfiguration RealmConfig => new RealmConfiguration(DbPath) { ShouldDeleteIfMigrationNeeded = true };
-        
         public static void WriteOne(string dbName, Entry entry)
         {
-            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
+            using (var realm = Realm.GetInstance())
             {
                 realm.Write(() =>
                 {
@@ -30,7 +26,7 @@ namespace LogViewer.Services
 
         public static void WriteMany(string dbName, Entry[] entries)
         {
-            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
+            using (var realm = Realm.GetInstance())
             {
                 realm.Write(() =>
                 {
@@ -44,7 +40,7 @@ namespace LogViewer.Services
 
         public static List<LogEventsVM> ReadAll(string dbName)
         {
-            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
+            using (var realm = Realm.GetInstance())
             {
                 return realm.All<Entry>().AsList();
             }
@@ -52,7 +48,7 @@ namespace LogViewer.Services
 
         public static List<LogEventsVM> ReadAll(string dbName, int numberOfRows)
         {
-            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
+            using (var realm = Realm.GetInstance())
             {
                 return realm.All<Entry>().AsEnumerable().Take(numberOfRows).AsList();
             }
@@ -60,7 +56,7 @@ namespace LogViewer.Services
 
         public static List<LogEventsVM> Read(string dbName, Func<Entry, bool> predicate)
         {
-            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
+            using (var realm = Realm.GetInstance())
             {
                 return realm.All<Entry>().Where(predicate).AsList();
             }
@@ -68,7 +64,7 @@ namespace LogViewer.Services
         
         public static List<LogEventsVM> Read(string dbName, Func<Entry, bool> predicate, int numberOfRows)
         {
-            using (var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName))))
+            using (var realm = Realm.GetInstance())
             {
                 return realm.All<Entry>().Where(predicate).AsEnumerable().Take(numberOfRows).AsList();
             }
@@ -76,7 +72,7 @@ namespace LogViewer.Services
 
         public static void CleanDatabases()
         {
-            var databaseFiles = Directory.GetFiles(Path.GetTempPath(), "*.*", SearchOption.AllDirectories).Where(s => Path.GetExtension(s) == "realm");
+            var databaseFiles = Directory.GetFiles(Path.GetTempPath(), "*.*", SearchOption.AllDirectories).Where(s => Path.GetExtension(s) == "realm" || Path.GetExtension(s) == "lock");
             foreach (var file in databaseFiles)
             {
                 File.Delete(file);
@@ -87,7 +83,7 @@ namespace LogViewer.Services
         {
             if (!File.Exists(Path.Combine(Path.GetTempPath(), dbName))) { return; }
 
-            var realm = Realm.GetInstance(new RealmConfiguration(Path.Combine(Path.GetTempPath(), dbName)));
+            var realm = Realm.GetInstance();
             realm.Dispose();
             Realm.DeleteRealm(realm.Config);
         }

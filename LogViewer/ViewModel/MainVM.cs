@@ -9,13 +9,12 @@ using LogViewer.Model;
 using System.IO;
 using LogViewer.Services;
 using static LogViewer.Services.VisualCacheGetter;
+using LogViewer.Containers;
 
 namespace LogViewer.ViewModel
 {
     public class MainVM : PropertyChangesNotifier
     {
-        #region Visual properties
-
         private string startRAMButtonImage;
         public string StartRAMButtonImage => GetCachedValue(ref startRAMButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}");
 
@@ -58,8 +57,6 @@ namespace LogViewer.ViewModel
         private string resetAllTooltip;
         public string ResetAllTooltip => GetCachedValue(ref resetAllTooltip, Constants.Tooltips.ResetAll);
 
-        public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
-
         private string name;
         public string Name
         {
@@ -88,6 +85,14 @@ namespace LogViewer.ViewModel
             set { selectedIndex = value; NotifyPropertyChanged(); }
         }
 
+        public Visibility VisibleComponents
+        {
+            get
+            {
+                return Components.Count == 0 ? Visibility.Hidden : Visibility.Visible;
+            }
+        }
+
         public ComponentSelectorVM[] ComponentTypes => new ComponentSelectorVM[]
         {
             new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}", Type = Model.ComponentTypes.File },
@@ -102,7 +107,9 @@ namespace LogViewer.ViewModel
             get { return selectedComponentType; }
             set { selectedComponentType = value; NotifyPropertyChanged(); }
         }
-        #endregion
+
+        public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
+        public ObservableCollection<LogVM> LogEntries { get; set; } = new ObservableCollection<LogVM>();
 
         #region Commands
         public ICommand AddListenerCommand { get; set; }
@@ -118,8 +125,12 @@ namespace LogViewer.ViewModel
                 return new RelayCommand<object>(comp =>
                 {
                     var compVM = comp as ComponentVM;
+
                     compVM.RemoveComponent();
                     Components.Remove(compVM);
+
+                    SelectedComponent = Components.Count > 0 ? Components[0] : null;
+
                     GC.Collect();
                 });
             }
@@ -137,7 +148,7 @@ namespace LogViewer.ViewModel
                 }
 
                 // create new component
-                ComponentVM newComponent;
+                ComponentVM newComponent = null;
                 switch (SelectedComponentType.Type)
                 {
                     case Model.ComponentTypes.File:
@@ -155,16 +166,14 @@ namespace LogViewer.ViewModel
                     case Model.ComponentTypes.Udp:
                         newComponent = ComponentFactory<UdpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new UdpComponentVM(name, path));
                         break;
-
-                    default:
-                        throw new ArgumentException(Constants.Messages.InvalidComponentException);
                 }
 
                 // not a valid component
-                if (newComponent == null) {
-                    throw new ArgumentException(Constants.Messages.InvalidComponentException);
+                if (newComponent == null)
+                {
+                    return;
                 }
-                
+
                 // set component action
                 newComponent.RemoveComponentCommand = DefaultRemoveCommand;
 
@@ -223,12 +232,29 @@ namespace LogViewer.ViewModel
             // Set reset command 
             ResetCommand = new RelayCommand(() =>
             {
-                foreach (var comp in Components) {
+                foreach (var comp in Components)
+                {
                     comp.RemoveComponent();
                 }
                 Components.Clear();
                 GC.Collect();
             });
+
+            /* Set message collection onchanged event (DISK) */
+            LoggerContainer.LogEntries.CollectionChanged += (_, e) =>
+            {
+                App.Current.Dispatcher.Invoke(delegate
+                {
+                    foreach (LogVM exception in e.NewItems)
+                    {
+                        LogEntries.Add(exception);
+                    }
+                });
+
+            };
+
+            /* Add listener for visible content */
+            Components.CollectionChanged += (_, e) => { NotifyPropertyChanged(nameof(VisibleComponents)); };
         }
 
         public void AddDroppedComponents(string[] files)

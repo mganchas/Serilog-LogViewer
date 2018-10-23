@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Input;
 using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
+using LogViewer.Containers;
 using LogViewer.Model;
 using LogViewer.Services;
 using LogViewer.ViewModel.Abstractions;
@@ -172,7 +173,7 @@ namespace LogViewer.ViewModel
             this.Component = component;
 
             // Add component to processor monitor
-            ProcessorMonitor.ComponentStopper.Add(this.ComponentRegisterName, false);
+            ProcessorMonitorContainer.ComponentStopper.Add(this.ComponentRegisterName, false);
 
             // Set visible levels 
             ComponentLevels = new Dictionary<LevelTypes, LevelsVM>
@@ -240,8 +241,12 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
+                    LoggerContainer.LogEntries.Add(new LogVM
+                    {
+                        Timestamp = DateTime.Now,
+                        Message = ex.Message
+                    });
                     StopListener();
-                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             });
 
@@ -269,13 +274,13 @@ namespace LogViewer.ViewModel
             {
                 App.Current.Dispatcher.Invoke(delegate
                 {
-                    if (ComponentLevels.Values.Any(x => x.LevelType != LevelTypes.All && x.IsSelected) && ComponentLevels[LevelTypes.All].IsSelected && IsAllSelected)
+                    if (IsAllSelected && ComponentLevels[LevelTypes.All].IsSelected && ComponentLevels.Values.Any(x => x.LevelType != LevelTypes.All && x.IsSelected))
                     {
                         ComponentLevels[LevelTypes.All].IsSelected = false;
                         IsAllSelected = false;
                     }
 
-                    if (ComponentLevels[LevelTypes.All].IsSelected && !IsAllSelected)
+                    if (!IsAllSelected && ComponentLevels[LevelTypes.All].IsSelected)
                     {
                         foreach (var filterLevel in ComponentLevels)
                         {
@@ -299,7 +304,7 @@ namespace LogViewer.ViewModel
             {
                 IsRunning = true;
                 StoreType = storeType;
-                ProcessorMonitor.ComponentStopper[ComponentRegisterName] = false;
+                ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = false;
 
                 if (!asyncWorker.IsBusy)
                 {
@@ -313,8 +318,12 @@ namespace LogViewer.ViewModel
             }
             catch (Exception ex)
             {
+                LoggerContainer.LogEntries.Add(new LogVM
+                {
+                    Timestamp = DateTime.Now,
+                    Message = ex.Message
+                });
                 StopListener();
-                MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
             }
         }
 
@@ -322,7 +331,6 @@ namespace LogViewer.ViewModel
         {
             App.Current.Dispatcher.Invoke(delegate
             {
-                int prevRows = VisibleConsoleMessages.Count;
                 bool hasChanges = false;
                 var selectedLevels = ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType).ToList();
 
@@ -338,76 +346,92 @@ namespace LogViewer.ViewModel
                 // get entries from RAM or Disk
                 if (StoreType == StoreTypes.Disk)
                 {
-                    IList<LogEventsVM> filteredEntries = null;
-
-                    // filter level
-                    if (!ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
-                    {
-                        filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType) && x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), VisibleMessagesNr);
-                    }
-                    else if (ComponentLevels[LevelTypes.All].IsSelected && !String.IsNullOrEmpty(FilterText))
-                    {
-                        filteredEntries = DbProcessor.Read(ComponentRegisterName, x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), VisibleMessagesNr);
-                    }
-                    else if (!ComponentLevels[LevelTypes.All].IsSelected && String.IsNullOrEmpty(FilterText))
-                    {
-                        filteredEntries = DbProcessor.Read(ComponentRegisterName, x => selectedLevels.Contains((LevelTypes)x.LevelType), VisibleMessagesNr);
-                    }
-                    else
-                    {
-                        filteredEntries = DbProcessor.ReadAll(ComponentRegisterName, VisibleMessagesNr);
-                    }
-
-                    if (hasChanges || filteredEntries.Count != prevRows)
-                    {
-                        // clear visible messages
-                        VisibleConsoleMessages.Clear();
-
-                        foreach (var entry in filteredEntries)
-                        {
-                            // add item to console messages 
-                            VisibleConsoleMessages.Add(entry);
-                        }
-                    }
+                    FilterEntriesDisk(hasChanges, selectedLevels);
                 }
                 else
                 {
-                    IEnumerable<LogEventsVM> filteredEntries = ConsoleMessages.AsEnumerable();
-
-                    // filter level
-                    if (!ComponentLevels[LevelTypes.All].IsSelected)
-                    {
-                        filteredEntries = filteredEntries.Where(x => selectedLevels.Contains(x.LevelType));
-                    }
-
-                    // filter text
-                    if (!String.IsNullOrEmpty(FilterText))
-                    {
-                        filteredEntries = filteredEntries.Where(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()));
-                    }
-
-                    // filter visible rows
-                    filteredEntries = filteredEntries.Take(VisibleMessagesNr);
-
-                    if (hasChanges || filteredEntries.Count() != prevRows)
-                    {
-                        // clear visible messages
-                        VisibleConsoleMessages.Clear();
-
-                        foreach (var entry in filteredEntries)
-                        {
-                            // add item to console messages 
-                            VisibleConsoleMessages.Add(entry);
-                        }
-                    }
+                    FilterEntriesRAM(hasChanges, selectedLevels);
                 }
             });
+        }
+
+        private void FilterEntriesDisk(bool hasChanges, List<LevelTypes> selectedLevels)
+        {
+            IList<LogEventsVM> filteredEntries = null;
+
+            if (ComponentLevels[LevelTypes.All].IsSelected)
+            {
+                if (String.IsNullOrEmpty(FilterText))
+                {
+                    filteredEntries = DbProcessor.ReadAll(ComponentRegisterName, VisibleMessagesNr);
+                }
+                else
+                {
+                    filteredEntries = DbProcessor.Read(ComponentRegisterName, x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()), VisibleMessagesNr);
+                }
+
+            }
+            else
+            {
+                Func<Entry, bool> predicate;
+                if (String.IsNullOrEmpty(FilterText))
+                {
+                    predicate = x => selectedLevels.Contains((LevelTypes)x.LevelType);
+                }
+                else
+                {
+                    predicate = x => selectedLevels.Contains((LevelTypes)x.LevelType) && x.RenderedMessage.ToLower().Contains(FilterText.ToLower());
+
+                }
+                filteredEntries = DbProcessor.Read(ComponentRegisterName, predicate, VisibleMessagesNr);
+            }
+
+            // add filtered entries
+            AddFilteredEntries(filteredEntries, () => hasChanges || filteredEntries.Count() != VisibleConsoleMessages.Count);
+        }
+
+        private void FilterEntriesRAM(bool hasChanges, List<LevelTypes> selectedLevels)
+        {
+            IEnumerable<LogEventsVM> filteredEntries = ConsoleMessages.AsEnumerable();
+
+            // filter level
+            if (!ComponentLevels[LevelTypes.All].IsSelected)
+            {
+                filteredEntries = filteredEntries.Where(x => selectedLevels.Contains(x.LevelType));
+            }
+
+            // filter text
+            if (!String.IsNullOrEmpty(FilterText))
+            {
+                filteredEntries = filteredEntries.Where(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()));
+            }
+
+            // filter visible rows
+            filteredEntries = filteredEntries.Take(VisibleMessagesNr);
+
+            // add filtered entries
+            AddFilteredEntries(filteredEntries, () => hasChanges || filteredEntries.Count() != VisibleConsoleMessages.Count);
+        }
+
+        private void AddFilteredEntries(IEnumerable<LogEventsVM> filteredEntries, Func<bool> predicate)
+        {
+            if (predicate.Invoke())
+            {
+                // clear visible messages
+                VisibleConsoleMessages.Clear();
+
+                foreach (var entry in filteredEntries)
+                {
+                    // add item to console messages 
+                    VisibleConsoleMessages.Add(entry);
+                }
+            }
         }
 
         protected void StopListener()
         {
             asyncWorker.CancelAsync();
-            ProcessorMonitor.ComponentStopper[ComponentRegisterName] = true;
+            ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = true;
         }
 
         protected void PlaySound()

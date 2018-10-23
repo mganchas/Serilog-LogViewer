@@ -1,5 +1,7 @@
-﻿using LogViewer.Model;
+﻿using LogViewer.Containers;
+using LogViewer.Model;
 using LogViewer.Services.Abstractions;
+using LogViewer.ViewModel;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -19,11 +21,11 @@ namespace LogViewer.Services
                     StringBuilder sb = new StringBuilder();
                     bool isValid = false;
 
-                    while ((line = sr.ReadLine()) != null && !ProcessorMonitor.ComponentStopper[componentName])
+                    while ((line = sr.ReadLine()) != null && !ProcessorMonitorContainer.ComponentStopper[componentName])
                     {
-                        if (ProcessorMonitor.ComponentStopper[componentName])
+                        if (ProcessorMonitorContainer.ComponentStopper[componentName])
                         {
-                            ProcessorMonitor.ComponentStopper[componentName] = false;
+                            ProcessorMonitorContainer.ComponentStopper[componentName] = false;
                             break;
                         }
                         
@@ -87,9 +89,8 @@ namespace LogViewer.Services
                     }
 
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    Console.WriteLine(e.Message);
                     throw;
                 }
                 finally

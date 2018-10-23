@@ -1,5 +1,7 @@
-﻿using LogViewer.Model;
+﻿using LogViewer.Containers;
+using LogViewer.Model;
 using LogViewer.Services.Abstractions;
+using LogViewer.ViewModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -45,9 +47,9 @@ namespace LogViewer.Services
                     // Get a stream object for reading and writing
                     stream = client.GetStream();
 
-                    if (ProcessorMonitor.ComponentStopper[componentName])
+                    if (ProcessorMonitorContainer.ComponentStopper[componentName])
                     {
-                        ProcessorMonitor.ComponentStopper[componentName] = false;
+                        ProcessorMonitorContainer.ComponentStopper[componentName] = false;
                         break;
                     }
 
@@ -111,11 +113,10 @@ namespace LogViewer.Services
 
                     // Shutdown and end connection
                     client.Close();
-                } while (!ProcessorMonitor.ComponentStopper[componentName]);
+                } while (!ProcessorMonitorContainer.ComponentStopper[componentName]);
             }
-            catch (SocketException e)
+            catch (Exception)
             {
-                Console.WriteLine(e.Message);
                 throw;
             }
             finally

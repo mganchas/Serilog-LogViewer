@@ -1,4 +1,5 @@
 ﻿using LogViewer.Configs;
+using LogViewer.Containers;
 using LogViewer.Model;
 using LogViewer.Services;
 using LogViewer.ViewModel.Abstractions;
@@ -41,8 +42,11 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    StopListener();
-                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
+                    LoggerContainer.LogEntries.Add(new LogVM
+                    {
+                        Timestamp = DateTime.Now,
+                        Message = ex.Message
+                    });                    
                 }
             };
 
@@ -78,8 +82,12 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    StopListener();
-                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
+                    LoggerContainer.LogEntries.Add(new LogVM
+                    {
+                        Timestamp = DateTime.Now,
+                        Message = ex.Message
+                    });
+                    
                 }
             };
         }
@@ -94,6 +102,8 @@ namespace LogViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
+                    if (bwAsync.CancellationPending) { return; }
+
                     var udpP = new UdpProcessor();
                     udpP.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
 
@@ -109,8 +119,13 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
+                    LoggerContainer.LogEntries.Add(new LogVM
+                    {
+                        Timestamp = DateTime.Now,
+                        Message = ex.Message
+                    });
+                    e.Cancel = true;
                     StopListener();
-                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
         }
@@ -143,6 +158,7 @@ namespace LogViewer.ViewModel
         {
             MessageContainer.RAM.UdpMessages.Remove(ComponentRegisterName);
             MessageContainer.Disk.ComponentCounters.Remove(ComponentRegisterName);
+            ProcessorMonitorContainer.ComponentStopper.Remove(ComponentRegisterName);
         }
 
         public override void ClearComponent()

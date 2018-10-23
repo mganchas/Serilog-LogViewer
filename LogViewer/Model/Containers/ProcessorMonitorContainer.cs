@@ -1,9 +1,8 @@
-﻿using LogViewer.Model;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace LogViewer.Services
+namespace LogViewer.Containers
 {
-    public class ProcessorMonitor
+    public static class ProcessorMonitorContainer
     {
         public static Dictionary<string, bool> ComponentStopper { get; set; } = new Dictionary<string, bool>();
     }

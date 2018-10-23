@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using static LogViewer.Model.Levels;
 
-namespace LogViewer.Services
+namespace LogViewer.Containers
 {
     public static class MessageContainer
     {

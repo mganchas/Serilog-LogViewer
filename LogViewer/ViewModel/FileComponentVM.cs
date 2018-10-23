@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using LogViewer.Configs;
+using LogViewer.Containers;
 using LogViewer.Model;
 using LogViewer.Services;
 using LogViewer.ViewModel.Abstractions;
@@ -65,8 +66,12 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
+                    LoggerContainer.LogEntries.Add(new LogVM
+                    {
+                        Timestamp = DateTime.Now,
+                        Message = ex.Message
+                    });
                     StopListener();
-                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
 
@@ -99,8 +104,12 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
+                    LoggerContainer.LogEntries.Add(new LogVM
+                    {
+                        Timestamp = DateTime.Now,
+                        Message = ex.Message
+                    });
                     StopListener();
-                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
         }
@@ -132,6 +141,8 @@ namespace LogViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
+                    if (bwAsync.CancellationPending) { return; }
+
                     // start file reader
                     var fp = new FileProcessor();
                     fp.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
@@ -147,8 +158,12 @@ namespace LogViewer.ViewModel
                 }
                 catch (Exception ex)
                 {
+                    LoggerContainer.LogEntries.Add(new LogVM
+                    {
+                        Timestamp = DateTime.Now,
+                        Message = ex.Message
+                    });
                     StopListener();
-                    MessageBox.Show(ex.Message, Constants.Messages.ErrorTitle);
                 }
             };
         }
@@ -183,6 +198,7 @@ namespace LogViewer.ViewModel
         {
             MessageContainer.RAM.FileMessages.Remove(ComponentRegisterName);
             MessageContainer.Disk.ComponentCounters.Remove(ComponentRegisterName);
+            ProcessorMonitorContainer.ComponentStopper.Remove(ComponentRegisterName);
         }
 
         public override void ClearComponent()
