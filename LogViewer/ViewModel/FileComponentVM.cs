@@ -54,16 +54,16 @@ namespace LogViewer.ViewModel
 
                 try
                 {
-                    Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
+                    /* increment button counters */
+                    foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
                     {
-                        /* increment button counters */
-                        foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
+                        Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
                         {
                             ComponentLevels[counter.Key].Counter = counter.Value;
-                        }
+                        }));
+                    }
 
-                        FilterMessages();
-                    }));
+                    FilterMessages();
                 }
                 catch (Exception ex)
                 {
@@ -84,9 +84,9 @@ namespace LogViewer.ViewModel
 
                 try
                 {
-                    Application.Current.Dispatcher.Invoke((Action)(() =>
+                    foreach (Entry entry in e.NewItems)
                     {
-                        foreach (Entry entry in e.NewItems)
+                        Application.Current.Dispatcher.Invoke((Action)(() =>
                         {
                             /* increment specific button counter */
                             ComponentLevels[(Levels.LevelTypes)entry.LevelType].Counter++;
@@ -99,12 +99,11 @@ namespace LogViewer.ViewModel
                                 Timestamp = entry.Timestamp,
                                 LevelType = (Levels.LevelTypes)entry.LevelType
                             });
-                        }
+                        }));
+                    }
 
-                        FilterMessages();
-
-                        Application.Current.Dispatcher.Invoke(new Action(delegate { }), DispatcherPriority.ApplicationIdle);
-                    }));
+                    FilterMessages();
+                    //Application.Current.Dispatcher.Invoke(new Action(delegate { }), DispatcherPriority.ApplicationIdle);
                 }
                 catch (Exception ex)
                 {
@@ -142,36 +141,33 @@ namespace LogViewer.ViewModel
 
             asyncWorker.DoWork += (sender, e) =>
             {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
+                BackgroundWorker bwAsync = sender as BackgroundWorker;
+                try
                 {
-                    BackgroundWorker bwAsync = sender as BackgroundWorker;
-                    try
+                    if (bwAsync.CancellationPending) { return; }
+
+                    // start file reader
+                    var fp = new FileProcessor();
+                    fp.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
+
+                    while (!e.Cancel)
                     {
-                        if (bwAsync.CancellationPending) { return; }
-
-                        // start file reader
-                        var fp = new FileProcessor();
-                        fp.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
-
-                        while (!e.Cancel)
+                        if (bwAsync.CancellationPending)
                         {
-                            if (bwAsync.CancellationPending)
-                            {
-                                e.Cancel = true;
-                                StopListener();
-                            }
+                            e.Cancel = true;
+                            StopListener();
                         }
                     }
-                    catch (Exception ex)
+                }
+                catch (Exception ex)
+                {
+                    LoggerContainer.LogEntries.Add(new LogVM
                     {
-                        LoggerContainer.LogEntries.Add(new LogVM
-                        {
-                            Timestamp = DateTime.Now,
-                            Message = ex.InnerException?.Message ?? ex.Message
-                        });
-                        StopListener();
-                    }
-                }));
+                        Timestamp = DateTime.Now,
+                        Message = ex.InnerException?.Message ?? ex.Message
+                    });
+                    StopListener();
+                }
             };
         }
 

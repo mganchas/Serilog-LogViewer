@@ -304,34 +304,31 @@ namespace LogViewer.ViewModel
 
         private void StartAction(StoreTypes storeType)
         {
-            Application.Current.Dispatcher.Invoke((Action)(() =>
+            try
             {
-                try
-                {
-                    IsRunning = true;
-                    StoreType = storeType;
-                    ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = false;
+                IsRunning = true;
+                StoreType = storeType;
+                ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = false;
 
-                    if (!asyncWorker.IsBusy)
-                    {
-                        // Clear previous entries 
-                        CleanUpCommand.Execute(true);
-
-                        // Set background worker
-                        InitializeBackWorker();
-                        asyncWorker.RunWorkerAsync();
-                    }
-                }
-                catch (Exception ex)
+                if (!asyncWorker.IsBusy)
                 {
-                    LoggerContainer.LogEntries.Add(new LogVM
-                    {
-                        Timestamp = DateTime.Now,
-                        Message = ex.InnerException?.Message ?? ex.Message
-                    });
-                    StopListener();
+                    // Clear previous entries 
+                    CleanUpCommand.Execute(true);
+
+                    // Set background worker
+                    InitializeBackWorker();
+                    asyncWorker.RunWorkerAsync();
                 }
-            }));
+            }
+            catch (Exception ex)
+            {
+                LoggerContainer.LogEntries.Add(new LogVM
+                {
+                    Timestamp = DateTime.Now,
+                    Message = ex.InnerException?.Message ?? ex.Message
+                });
+                StopListener();
+            }
         }
 
         protected void FilterMessages()
@@ -422,14 +419,17 @@ namespace LogViewer.ViewModel
         {
             if (predicate.Invoke())
             {
-                // clear visible messages
-                VisibleConsoleMessages.Clear();
-
-                foreach (var entry in filteredEntries)
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
                 {
-                    // add item to console messages 
-                    VisibleConsoleMessages.Add(entry);
-                }
+                    // clear visible messages
+                    VisibleConsoleMessages.Clear();
+
+                    foreach (var entry in filteredEntries)
+                    {
+                        // add item to console messages 
+                        VisibleConsoleMessages.Add(entry);
+                    }
+                }));
             }
         }
 

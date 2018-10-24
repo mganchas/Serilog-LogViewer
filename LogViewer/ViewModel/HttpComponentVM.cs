@@ -27,30 +27,30 @@ namespace LogViewer.ViewModel
             /* Set message collection onchanged event (DISK) */
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
-                {
-                    if (!IsRunning || e.NewItems == null) { return; }
+                if (!IsRunning || e.NewItems == null) { return; }
 
-                    try
+                try
+                {
+                    /* increment button counters */
+                    foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
                     {
-                        /* increment button counters */
-                        foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
+                        Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
                         {
                             ComponentLevels[counter.Key].Counter = counter.Value;
-                        }
+                        }));
+                    }
 
-                        FilterMessages();
-                    }
-                    catch (Exception ex)
+                    FilterMessages();
+                }
+                catch (Exception ex)
+                {
+                    LoggerContainer.LogEntries.Add(new LogVM
                     {
-                        LoggerContainer.LogEntries.Add(new LogVM
-                        {
-                            Timestamp = DateTime.Now,
-                            Message = ex.InnerException?.Message ?? ex.Message
-                        });
-                        StopListener();
-                    }
-                }));
+                        Timestamp = DateTime.Now,
+                        Message = ex.InnerException?.Message ?? ex.Message
+                    });
+                    StopListener();
+                }
             };
 
             // Add new message queue
@@ -59,13 +59,13 @@ namespace LogViewer.ViewModel
             /* Set message collection onchanged event */
             MessageContainer.RAM.HttpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
             {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
-                {
-                    if (!IsRunning || e.NewItems == null) { return; }
+                if (!IsRunning || e.NewItems == null) { return; }
 
-                    try
+                try
+                {
+                    foreach (Entry entry in e.NewItems)
                     {
-                        foreach (Entry entry in e.NewItems)
+                        Application.Current.Dispatcher.Invoke((Action)(() =>
                         {
                             /* increment specific button counter */
                             ComponentLevels[(Levels.LevelTypes)entry.LevelType].Counter++;
@@ -78,20 +78,20 @@ namespace LogViewer.ViewModel
                                 Timestamp = entry.Timestamp,
                                 LevelType = (Levels.LevelTypes)entry.LevelType
                             });
-                        }
+                        }));
+                    }
 
-                        FilterMessages();
-                    }
-                    catch (Exception ex)
+                    FilterMessages();
+                }
+                catch (Exception ex)
+                {
+                    LoggerContainer.LogEntries.Add(new LogVM
                     {
-                        LoggerContainer.LogEntries.Add(new LogVM
-                        {
-                            Timestamp = DateTime.Now,
-                            Message = ex.InnerException?.Message ?? ex.Message
-                        });
-                        StopListener();
-                    }
-                }));
+                        Timestamp = DateTime.Now,
+                        Message = ex.InnerException?.Message ?? ex.Message
+                    });
+                    StopListener();
+                }
             };
         }
 
@@ -102,35 +102,32 @@ namespace LogViewer.ViewModel
             asyncWorker.RunWorkerCompleted += delegate { if (IsRunning) IsRunning = false; };
             asyncWorker.DoWork += (sender, e) =>
             {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
+                BackgroundWorker bwAsync = sender as BackgroundWorker;
+                try
                 {
-                    BackgroundWorker bwAsync = sender as BackgroundWorker;
-                    try
+                    if (bwAsync.CancellationPending) { return; }
+
+                    var httpP = new HttpProcessor();
+                    httpP.ReadData(HttpFullName, ComponentRegisterName, ref asyncWorker, StoreType);
+
+                    while (!e.Cancel)
                     {
-                        if (bwAsync.CancellationPending) { return; }
-
-                        var httpP = new HttpProcessor();
-                        httpP.ReadData(HttpFullName, ComponentRegisterName, ref asyncWorker, StoreType);
-
-                        while (!e.Cancel)
+                        if (bwAsync.CancellationPending)
                         {
-                            if (bwAsync.CancellationPending)
-                            {
-                                e.Cancel = true;
-                                StopListener();
-                            }
+                            e.Cancel = true;
+                            StopListener();
                         }
                     }
-                    catch (Exception ex)
+                }
+                catch (Exception ex)
+                {
+                    LoggerContainer.LogEntries.Add(new LogVM
                     {
-                        LoggerContainer.LogEntries.Add(new LogVM
-                        {
-                            Timestamp = DateTime.Now,
-                            Message = ex.InnerException?.Message ?? ex.Message
-                        });
-                        StopListener();
-                    }
-                }));
+                        Timestamp = DateTime.Now,
+                        Message = ex.InnerException?.Message ?? ex.Message
+                    });
+                    StopListener();
+                }
             };
         }
 
