@@ -394,7 +394,7 @@
                                                 <TextBlock Text="{Binding VisibleConsoleMessages.Count, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Grid>
-                                        <ListBox Grid.Row="1" x:Name="lst_entries" Style="{StaticResource CustomMessagesListbox}" ItemsSource="{Binding VisibleConsoleMessages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <ListBox Grid.Row="1" x:Name="lst_entries" Style="{StaticResource CustomMessagesListbox}" ItemsSource="{Binding VisibleConsoleMessages, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
                                         <!--<TextBlock Grid.Row="2" Text="{Binding ExecutionTime}" Visibility="{Binding Path=HasExecutionTime, Converter={StaticResource BoolToVis}}" HorizontalAlignment="Right" Foreground="{StaticResource TextBoxForeground}" Margin="0,5,0,0" FontStyle="Italic"/>-->
                                     </Grid>
                                 </Grid>
@@ -406,7 +406,7 @@
         </Style.Resources>
     </Style>
 
-    <Style x:Key="ComponentHeader" TargetType="ListBox">
+    <Style x:Key="ComponentHeader" TargetType="{x:Type ListBox}">
         <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="SelectionMode" Value="Single"/>
@@ -436,9 +436,9 @@
                                     <TextBlock Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap"/>
                                 </Grid>
                                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                    <Button Style="{StaticResource RoundButton}" Command="{Binding StartDiskListenerCommand}" ToolTip="{Binding StartDiskTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
+                                    <!--<Button Style="{StaticResource RoundButton}" Command="{Binding StartDiskListenerCommand}" ToolTip="{Binding StartDiskTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
                                         <Image Style="{StaticResource CustomImage}" Source="{Binding PlayDiskImage}" Margin="5"/>
-                                    </Button>
+                                    </Button>-->
                                     <Button Style="{StaticResource RoundButton}" Command="{Binding StartRAMListenerCommand}" ToolTip="{Binding StartRAMTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
                                         <Image Style="{StaticResource CustomImage}" Source="{Binding PlayRAMImage}" Margin="5"/>
                                     </Button>
@@ -475,7 +475,7 @@
         </Setter>
     </Style>
 
-    <Style x:Key="VisualLog" TargetType="ListBox">
+    <Style x:Key="VisualLog" TargetType="{x:Type ListBox}">
         <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="VerticalAlignment" Value="Stretch"/>

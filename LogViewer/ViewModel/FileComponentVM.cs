@@ -3,117 +3,35 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Windows;
-using System.Windows.Threading;
 using LogViewer.Configs;
 using LogViewer.Containers;
 using LogViewer.Model;
 using LogViewer.Services;
-using LogViewer.ViewModel.Abstractions;
 using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
-    public class FileComponentVM : ComponentVM, ICustomComponent
+    public class FileComponentVM : ComponentVM
     {
         private string componentImage;
         public override string ComponentImage => GetCachedValue(ref componentImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}");
-
-        private string executionTime;
-        public string ExecutionTime
-        {
-            get { return $"{executionTime} miliseconds"; }
-            set
-            {
-                executionTime = value;
-                HasExecutionTime = !String.IsNullOrEmpty(value);
-                NotifyPropertyChanged();
-                NotifyPropertyChanged(nameof(HasExecutionTime));
-            }
-        }
-
-        private bool hasExecutionTime;
-        public bool HasExecutionTime
-        {
-            get { return hasExecutionTime; }
-            set { hasExecutionTime = value; NotifyPropertyChanged(); }
-        }
-
-        private Stopwatch ExecutionWatch { get; set; }
 
         public FileComponentVM(string name, string path) : base(name, path, ComponentTypes.File)
         {
             // Add new message queue
             MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
 
-            /* Set message collection onchanged event (DISK) */
+            // Set message collection onchanged event (DISK) 
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
-                if (!IsRunning || e.NewItems == null) { return; }
-
-                try
-                {
-                    /* increment button counters */
-                    foreach (var counter in (sender as ObservableCounterDictionary<Levels.LevelTypes>).GetItemSet())
-                    {
-                        Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
-                        {
-                            ComponentLevels[counter.Key].Counter = counter.Value;
-                        }));
-                    }
-
-                    FilterMessages();
-                }
-                catch (Exception ex)
-                {
-                    LoggerContainer.LogEntries.Add(new LogVM
-                    {
-                        Timestamp = DateTime.Now,
-                        Message = ex.InnerException?.Message ?? ex.Message
-                    });
-                    StopListener();
-                }
-
+                CollectionChangedDISK(e, sender as ObservableCounterDictionary<Levels.LevelTypes>);
             };
 
-            /* Set message collection onchanged event (RAM) */
+            // Set message collection onchanged event (RAM) 
             MessageContainer.RAM.FileMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
             {
-                if (!IsRunning || e.NewItems == null) { return; }
-
-                try
-                {
-                    foreach (Entry entry in e.NewItems)
-                    {
-                        Application.Current.Dispatcher.Invoke((Action)(() =>
-                        {
-                            /* increment specific button counter */
-                            ComponentLevels[(Levels.LevelTypes)entry.LevelType].Counter++;
-                            ComponentLevels[Levels.LevelTypes.All].Counter++;
-
-                            /* add item to console messages */
-                            ConsoleMessages.Add(new LogEventsVM
-                            {
-                                RenderedMessage = entry.RenderedMessage,
-                                Timestamp = entry.Timestamp,
-                                LevelType = (Levels.LevelTypes)entry.LevelType
-                            });
-                        }));
-                    }
-
-                    FilterMessages();
-                    //Application.Current.Dispatcher.Invoke(new Action(delegate { }), DispatcherPriority.ApplicationIdle);
-                }
-                catch (Exception ex)
-                {
-                    LoggerContainer.LogEntries.Add(new LogVM
-                    {
-                        Timestamp = DateTime.Now,
-                        Message = ex.InnerException?.Message ?? ex.Message
-                    });
-                    StopListener();
-                }
+                CollectionChangedRAM(e, sender as ObservableSet<Entry>);
             };
         }
 
@@ -122,18 +40,10 @@ namespace LogViewer.ViewModel
             asyncWorker.WorkerReportsProgress = true;
             asyncWorker.WorkerSupportsCancellation = true;
 
-            // start counting execution time
-            ExecutionTime = String.Empty;
-            ExecutionWatch = new Stopwatch();
-            ExecutionWatch.Start();
 
             asyncWorker.RunWorkerCompleted += delegate
             {
                 if (IsRunning) { IsRunning = false; }
-
-                // calculate execution time
-                ExecutionWatch.Stop();
-                ExecutionTime = ExecutionWatch.ElapsedMilliseconds.ToString();
 
                 // play notification sound
                 PlaySound();
@@ -144,7 +54,7 @@ namespace LogViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
-                    if (bwAsync.CancellationPending) { return; }
+                    if (bwAsync != null && bwAsync.CancellationPending) { return; }
 
                     // start file reader
                     var fp = new FileProcessor();
@@ -152,7 +62,7 @@ namespace LogViewer.ViewModel
 
                     while (!e.Cancel)
                     {
-                        if (bwAsync.CancellationPending)
+                        if (bwAsync != null && bwAsync.CancellationPending)
                         {
                             e.Cancel = true;
                             StopListener();
@@ -171,24 +81,27 @@ namespace LogViewer.ViewModel
             };
         }
 
-        public static bool IsValidComponent(string name, string path, in ObservableCollection<ComponentVM> components)
+        public override bool IsValidComponent(in Span<ComponentVM> components)
         {
             // Check mandatory fields 
-            if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
+            if (String.IsNullOrEmpty(Path) || String.IsNullOrEmpty(Name))
             {
                 MessageBox.Show(Constants.Messages.MandatoryFieldsMissingComponent, Constants.Messages.AlertTitle);
                 return false;
             }
 
             // Check if component already exists 
-            if (components.Any(x => x.Name == name || x.Path == path))
+            foreach (var comp in components)
             {
-                MessageBox.Show(Constants.Messages.DuplicateComponent, Constants.Messages.AlertTitle);
-                return false;
+                if (comp.Name == Name || comp.Path == Path)
+                {
+                    MessageBox.Show(Constants.Messages.DuplicateComponent, Constants.Messages.AlertTitle);
+                    return false;
+                }
             }
 
             // Check if file exists 
-            if (!FileProcessor.Exists(path))
+            if (!FileProcessor.Exists(Path))
             {
                 MessageBox.Show(Constants.Messages.FileNotFoundComponent, Constants.Messages.AlertTitle);
                 return false;

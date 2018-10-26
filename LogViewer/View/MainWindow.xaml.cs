@@ -1,9 +1,7 @@
-﻿using LogViewer.Services;
-using LogViewer.ViewModel;
+﻿using LogViewer.ViewModel;
 using System;
 using System.ComponentModel;
 using System.Windows;
-using System.Windows.Input;
 
 namespace LogViewer.View
 {
@@ -20,13 +18,13 @@ namespace LogViewer.View
         protected override void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
-            DbProcessor.CleanDatabases();
+            //DbProcessor.CleanDatabases();
         }
 
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);
-            DbProcessor.CleanDatabases();
+            //DbProcessor.CleanDatabases();
         }
 
         private void Window_Drop(object sender, DragEventArgs e)

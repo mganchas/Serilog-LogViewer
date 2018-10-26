@@ -4,12 +4,7 @@
     {
         public class Component
         {
-            public const string DefaultComponentName = "DummyComponent";
-            public const string DefaultFileName = "TM main log";
-            public const string DefaultHttpPath = "http://localhost:8080/workflow-log-events";
-            public const string DefaultFilePath = @"C:\Temp\Logs\tm\log-TransactionManagerApp-XXXX.txt";
-            public const int DefaultTimer = 2000;
-            public const int DefaultRows = 100;
+            public const int DefaultRows = 10;
         }
 
         public class Database
@@ -72,13 +67,12 @@
 
         public class Tooltips
         {
-            public const string StartAllRAM = "Start all (RAM)";
+            public const string StartAllRAM = "Start all";
             public const string StartAllDisk = "Start all (Disk)";
             public const string CancelAll = "Cancel all (if running)";
             public const string ClearAll = "Clear all data";
             public const string ResetAll = "Reset components";
             public const string ShowContext = "Show context";
-            public const string ViewDetails = "View details";
         }
 
         public class Messages
@@ -89,7 +83,6 @@
             public const string MandatoryFieldsMissingComponent = "Component Name Path are mandatory";
             public const string InvalidUrlComponent = "Invalid url: Remove protocol prefix (e.g. 127.0.0.1:12345)";
             public const string FileNotFoundComponent = "File not found";
-            public const string InvalidComponentException = "Invalid component";
             public const string ComponentTypeMissing = "You must select a component type";
         }
     }

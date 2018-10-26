@@ -68,11 +68,11 @@
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <ListBox Grid.Column="0" Style="{StaticResource ComponentHeader}" BorderThickness="0,0,2.5,0" BorderBrush="LightGray" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" SelectedIndex="{Binding SelectedIndex}" Visibility="{Binding VisibleComponents}"/>
-            <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedIndex, Mode=OneWay}" BorderThickness="0" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" Visibility="{Binding VisibleComponents}"/>
+            <ListBox Grid.Column="0" Style="{StaticResource ComponentHeader}" BorderThickness="0,0,2,0" BorderBrush="LightGray" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" SelectedIndex="{Binding SelectedIndex}" Visibility="{Binding VisibleComponents}"/>
+            <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedIndex}" BorderThickness="0" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" Visibility="{Binding VisibleComponents}"/>
         </Grid>
 
-        <GridSplitter Grid.Row="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="LightGray" Margin="10,3.5"/>
+        <GridSplitter Grid.Row="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="LightGray" Margin="10,3"/>
 
         <Grid Grid.Row="3">
             <ListBox Margin="5" Style="{StaticResource VisualLog}" ItemsSource="{Binding LogEntries}" VerticalAlignment="Stretch"/>
@@ -81,9 +81,9 @@
         <!-- Export options -->
         <Grid Grid.Row="4" Height="50" Background="{StaticResource Toolbar}">
             <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
-                <Button Style="{StaticResource RoundButton}" Command="{Binding StartAllDiskCommand}" ToolTip="{Binding StartAllDiskTooltip}">
+                <!--<Button Style="{StaticResource RoundButton}" Command="{Binding StartAllDiskCommand}" ToolTip="{Binding StartAllDiskTooltip}">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding StartDiskButtonImage}" Margin="5"/>
-                </Button>
+                </Button>-->
                 <Button Style="{StaticResource RoundButton}" Command="{Binding StartAllRAMCommand}" ToolTip="{Binding StartAllRAMTooltip}">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding StartRAMButtonImage}" Margin="5"/>
                 </Button>

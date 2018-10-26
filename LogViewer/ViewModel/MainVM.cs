@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
-using GalaSoft.MvvmLight.Command;
 using LogViewer.Configs;
 using LogViewer.Model;
 using System.IO;
@@ -90,7 +89,7 @@ namespace LogViewer.ViewModel
         {
             get
             {
-                return Components.Count == 0 ? Visibility.Hidden : Visibility.Visible;
+                return Components?.Count == 0 ? Visibility.Hidden : Visibility.Visible;
             }
         }
 
@@ -123,7 +122,7 @@ namespace LogViewer.ViewModel
         {
             get
             {
-                return new RelayCommand<object>(comp =>
+                return new CommandHandler(comp =>
                 {
                     Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                     {
@@ -143,7 +142,7 @@ namespace LogViewer.ViewModel
 
         public MainVM()
         {
-            AddListenerCommand = new RelayCommand(() =>
+            AddListenerCommand = new CommandHandler(_ =>
             {
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
@@ -158,24 +157,24 @@ namespace LogViewer.ViewModel
                     switch (SelectedComponentType.Type)
                     {
                         case Model.ComponentTypes.File:
-                            newComponent = ComponentFactory<FileComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new FileComponentVM(name, path));
+                            newComponent = new FileComponentVM(Name, Path);
                             break;
 
                         case Model.ComponentTypes.Http:
-                            newComponent = ComponentFactory<HttpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new HttpComponentVM(name, path));
+                            newComponent = new HttpComponentVM(Name, Path);
                             break;
 
                         case Model.ComponentTypes.Tcp:
-                            newComponent = ComponentFactory<TcpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new TcpComponentVM(name, path));
+                            newComponent = new TcpComponentVM(Name, Path);
                             break;
 
                         case Model.ComponentTypes.Udp:
-                            newComponent = ComponentFactory<UdpComponentVM>.GetComponent(this, Name, Path, Components, (name, path) => new UdpComponentVM(name, path));
+                            newComponent = new UdpComponentVM(Name, Path);
                             break;
                     }
 
                     // not a valid component
-                    if (newComponent == null)
+                    if (newComponent == null || !newComponent.IsValidComponent(new Span<ComponentVM>(Components.ToArray())))
                     {
                         return;
                     }
@@ -196,7 +195,7 @@ namespace LogViewer.ViewModel
             });
 
             // Set play (ram) all command
-            StartAllRAMCommand = new RelayCommand(() =>
+            StartAllRAMCommand = new CommandHandler(_ =>
             {
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
@@ -209,7 +208,7 @@ namespace LogViewer.ViewModel
             });
 
             // Set play (disk) all command
-            StartAllDiskCommand = new RelayCommand(() =>
+            StartAllDiskCommand = new CommandHandler(_ =>
             {
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
@@ -222,7 +221,7 @@ namespace LogViewer.ViewModel
             });
 
             // set cancel all command
-            CancelAllCommand = new RelayCommand(() =>
+            CancelAllCommand = new CommandHandler(_ =>
             {
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Send, (Action)(() =>
                 {
@@ -235,7 +234,7 @@ namespace LogViewer.ViewModel
             });
 
             // Set clear command 
-            ClearCommand = new RelayCommand(() =>
+            ClearCommand = new CommandHandler(_ =>
             {
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
@@ -249,7 +248,7 @@ namespace LogViewer.ViewModel
             });
 
             // Set reset command 
-            ResetCommand = new RelayCommand(() =>
+            ResetCommand = new CommandHandler(_ =>
             {
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
@@ -262,7 +261,7 @@ namespace LogViewer.ViewModel
                 }));
             });
 
-            /* Set message collection onchanged event (DISK) */
+            // Set message collection onchanged event (DISK) 
             LoggerContainer.LogEntries.CollectionChanged += (_, e) =>
             {
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
@@ -274,7 +273,7 @@ namespace LogViewer.ViewModel
                 }));
             };
 
-            /* Add listener for visible content */
+            // Add listener for visible content 
             Components.CollectionChanged += (_, e) => { NotifyPropertyChanged(nameof(VisibleComponents)); };
         }
 
@@ -285,7 +284,12 @@ namespace LogViewer.ViewModel
                 foreach (var file in files)
                 {
                     // define new file component
-                    ComponentVM comp = ComponentFactory<FileComponentVM>.GetComponent(this, new DirectoryInfo(file).Name, file, Components, (name, path) => new FileComponentVM(name, path));
+                    ComponentVM comp = new FileComponentVM(new DirectoryInfo(file).Name, file);
+
+                    if (!comp.IsValidComponent(new Span<ComponentVM>(Components.ToArray()))) {
+                        return;
+                    }
+
                     comp.RemoveComponentCommand = DefaultRemoveCommand;
 
                     // add new listener to list

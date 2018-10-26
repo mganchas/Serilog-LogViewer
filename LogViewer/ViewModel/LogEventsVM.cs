@@ -1,6 +1,6 @@
-﻿using GalaSoft.MvvmLight.Command;
-using LogViewer.Configs;
+﻿using LogViewer.Configs;
 using LogViewer.Model;
+using LogViewer.Services;
 using LogViewer.View;
 using System;
 using System.Globalization;
@@ -20,7 +20,7 @@ namespace LogViewer.ViewModel
 
         public string OpenDialogButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
 
-        public ICommand OpenDetailCommand => new RelayCommand(() =>
+        public ICommand OpenDetailCommand => new CommandHandler(_ =>
         {
             var wind = new EntryDetailWindow(new EntryDetailVM
             {
