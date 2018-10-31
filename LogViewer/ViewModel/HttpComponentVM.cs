@@ -96,11 +96,9 @@ namespace LogViewer.ViewModel
             // Check if component already exists 
             foreach (var comp in components)
             {
-                if (comp.Name == Name || comp.Path == Path)
-                {
-                    MessageBox.Show(Constants.Messages.DuplicateComponent, Constants.Messages.AlertTitle);
-                    return false;
-                }
+                if (comp.Name != Name && comp.Path != Path) continue;
+                MessageBox.Show(Constants.Messages.DuplicateComponent, Constants.Messages.AlertTitle);
+                return false;
             }
 
             return true;

@@ -191,8 +191,7 @@ namespace LogViewer.ViewModel
             IsAllSelected = true;
 
             // set level counters
-            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName,
-                new ObservableCounterDictionary<LevelTypes>
+            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName, new ObservableCounterDictionary<LevelTypes>
                 {
                     {LevelTypes.All, 0},
                     {LevelTypes.Verbose, 0},
@@ -270,8 +269,7 @@ namespace LogViewer.ViewModel
             // Set filter search command 
             FilterTextSearchCommand = new CommandHandler(_ =>
             {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-                    (Action) (() => { FilterMessages(); }));
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) (() => { FilterMessages(); }));
             });
 
             // Set filter clear command 
