@@ -214,13 +214,13 @@ namespace LogViewer.ViewModel
                 // Clear messages
                 ConsoleMessages.Clear();
                 VisibleConsoleMessages.Clear();
+                VisibleConsoleMessages = new HashSet<LogEventsVM>();
 
                 // clear database
-                new MongoDbProcessor(ComponentRegisterName).CleanDatabase();
+                new MongoDbProcessor(ComponentRegisterName.Replace(".", "")).CleanDatabase();
 
                 // Clear counters
-                MessageContainer.Disk.ComponentCounters[ComponentRegisterName]
-                    .ResetAllCounters(fireChangedEvent: false);
+                MessageContainer.Disk.ComponentCounters[ComponentRegisterName].ResetAllCounters(fireChangedEvent: false);
 
                 // Clear visible counters 
                 foreach (var lvlCounter in ComponentLevels)
@@ -513,7 +513,14 @@ namespace LogViewer.ViewModel
         {
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Send, (Action) (() =>
             {
-                asyncWorker.CancelAsync();
+                try
+                {
+                    asyncWorker?.CancelAsync();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }                
                 ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = true;
             }));
         }
