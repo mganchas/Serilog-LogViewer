@@ -1,20 +1,26 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 using LogViewer.Configs;
 using LogViewer.Containers;
 using LogViewer.Model;
 using LogViewer.Services;
-using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
     public class HttpComponentVM : ComponentVM
     {
-        private string componentImage;
-        public override string ComponentImage => GetCachedValue(ref componentImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}");
+        private static string componentImage;
+        public override string ComponentImage {
+            get
+            {
+                if (componentImage == null)
+                {
+                    componentImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}";
+                }
+                return componentImage;
+            }
+        }
 
         private string PathFixer => !Path.EndsWith("/") ? $"{Path}/" : Path;
         private string HttpFullName => $"http://{PathFixer}";

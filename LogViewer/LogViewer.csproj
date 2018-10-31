@@ -29,7 +29,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>11</ApplicationRevision>
+    <ApplicationRevision>12</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>true</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -357,14 +357,14 @@
     <Compile Include="Model\ObservableSet.cs" />
     <Compile Include="Model\StoreTypes.cs" />
     <Compile Include="Services\Abstractions\IComponentProcessor.cs" />
+    <Compile Include="Services\Abstractions\IDbProcessor.cs" />
     <Compile Include="Services\CommandHandler.cs" />
-    <Compile Include="Services\DbProcessor.cs" />
+    <Compile Include="Services\MongoDbProcessor.cs" />
     <Compile Include="Services\HttpProcessor.cs" />
     <Compile Include="Model\Containers\MessageContainer.cs" />
     <Compile Include="Model\Containers\ProcessorMonitorContainer.cs" />
     <Compile Include="Services\TcpProcessor.cs" />
     <Compile Include="Services\UdpProcessor.cs" />
-    <Compile Include="Services\VisualCacheGetter.cs" />
     <Compile Include="Model\Containers\LoggerContainer.cs" />
     <Compile Include="ViewModel\ComponentSelectorVM.cs" />
     <Compile Include="ViewModel\LogVM.cs" />

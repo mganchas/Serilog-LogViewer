@@ -7,7 +7,6 @@ using LogViewer.Configs;
 using LogViewer.Model;
 using System.IO;
 using LogViewer.Services;
-using static LogViewer.Services.VisualCacheGetter;
 using LogViewer.Containers;
 using System.Windows.Threading;
 
@@ -15,47 +14,20 @@ namespace LogViewer.ViewModel
 {
     public class MainVM : PropertyChangesNotifier
     {
-        private string startRAMButtonImage;
-        public string StartRAMButtonImage => GetCachedValue(ref startRAMButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}");
-
-        private string startDiskButtonImage;
-        public string StartDiskButtonImage => GetCachedValue(ref startDiskButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}");
-
-        private string clearButtonImage;
-        public string ClearButtonImage => GetCachedValue(ref clearButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageClear}");
-
-        private string resetButtonImage;
-        public string ResetButtonImage => GetCachedValue(ref resetButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageReset}");
-
-        private string cancelButtonImage;
-        public string CancelButtonImage => GetCachedValue(ref cancelButtonImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}");
-
-        private string addImage;
-        public string AddImage => GetCachedValue(ref addImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageAdd}");
-
-        private string componentTypeLabel;
-        public string ComponentTypeLabel => GetCachedValue(ref componentTypeLabel, $"{Constants.Labels.ComponentType}:");
-
-        private string componentNameLabel;
-        public string ComponentNameLabel => GetCachedValue(ref componentNameLabel, $"{Constants.Labels.ComponentName}:");
-
-        private string pathLabel;
-        public string PathLabel => GetCachedValue(ref pathLabel, $"{Constants.Labels.Path}:");
-
-        private string startAllRAMTooltip;
-        public string StartAllRAMTooltip => GetCachedValue(ref startAllRAMTooltip, Constants.Tooltips.StartAllRAM);
-
-        private string startAllDiskTooltip;
-        public string StartAllDiskTooltip => GetCachedValue(ref startAllDiskTooltip, Constants.Tooltips.StartAllDisk);
-
-        private string cancelAllTooltip;
-        public string CancelAllTooltip => GetCachedValue(ref cancelAllTooltip, Constants.Tooltips.CancelAll);
-
-        private string clearAllTooltip;
-        public string ClearAllTooltip => GetCachedValue(ref clearAllTooltip, Constants.Tooltips.ClearAll);
-
-        private string resetAllTooltip;
-        public string ResetAllTooltip => GetCachedValue(ref resetAllTooltip, Constants.Tooltips.ResetAll);
+        public static string StartRAMButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}";
+        public static string StartDiskButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
+        public static string ClearButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageClear}";
+        public static string ResetButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageReset}";
+        public static string CancelButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
+        public static string AddImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageAdd}";
+        public static string ComponentTypeLabel => $"{Constants.Labels.ComponentType}:";
+        public static string ComponentNameLabel => $"{Constants.Labels.ComponentName}:";
+        public static string PathLabel => $"{Constants.Labels.Path}:";
+        public static string StartAllRAMTooltip => Constants.Tooltips.StartAllRAM;
+        public static string StartAllDiskTooltip => Constants.Tooltips.StartAllDisk;
+        public static string CancelAllTooltip => Constants.Tooltips.CancelAll;
+        public static string ClearAllTooltip => Constants.Tooltips.ClearAll;
+        public static string ResetAllTooltip => Constants.Tooltips.ResetAll;
 
         private string name;
         public string Name

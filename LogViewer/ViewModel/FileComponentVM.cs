@@ -1,22 +1,27 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Windows;
 using LogViewer.Configs;
 using LogViewer.Containers;
 using LogViewer.Model;
 using LogViewer.Services;
-using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
     public class FileComponentVM : ComponentVM
     {
-        private string componentImage;
-        public override string ComponentImage => GetCachedValue(ref componentImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}");
-
+        private static string componentImage;
+        public override string ComponentImage {
+            get
+            {
+                if (componentImage == null)
+                {
+                    componentImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}";
+                }
+                return componentImage;
+            }
+        }
+        
         public FileComponentVM(string name, string path) : base(name, path, ComponentTypes.File)
         {
             // Add new message queue

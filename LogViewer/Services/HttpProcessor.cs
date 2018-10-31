@@ -44,7 +44,7 @@ namespace LogViewer.Services
                         if (storeType == StoreTypes.Disk)
                         {
                             // insert into db
-                            DbProcessor.WriteOne(componentName, new Entry
+                            new MongoDbProcessor(componentName).WriteOne(new Entry
                             {
                                 Timestamp = ent.Timestamp,
                                 RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",

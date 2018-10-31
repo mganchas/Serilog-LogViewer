@@ -5,31 +5,31 @@ namespace LogViewer.Services
 {
     public class CommandHandler : ICommand
     {
-        private Action<object> action;
-        private bool canExecute;
+        private readonly Action<object> _action;
+        private readonly bool _canExecute;
 
         public CommandHandler(Action<object> action)
         {
-            this.action = action;
-            this.canExecute = true;
+            this._action = action;
+            this._canExecute = true;
         }
 
         public CommandHandler(Action<object> action, bool canExecute)
         {
-            this.action = action;
-            this.canExecute = canExecute;
+            this._action = action;
+            this._canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter)
         {
-            return canExecute;
+            return _canExecute;
         }
 
         public event EventHandler CanExecuteChanged;
 
         public void Execute(object parameter)
         {
-            action(parameter);
+            _action(parameter);
         }
     }
 }

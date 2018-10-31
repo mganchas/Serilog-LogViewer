@@ -1,21 +1,27 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 using LogViewer.Configs;
 using LogViewer.Containers;
 using LogViewer.Model;
 using LogViewer.Services;
-using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
     public class TcpComponentVM : ComponentVM
     {
-        private string componentImage;
-        public override string ComponentImage => GetCachedValue(ref componentImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageTcp}");
-
+        private static string componentImage;
+        public override string ComponentImage {
+            get
+            {
+                if (componentImage == null)
+                {
+                    componentImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageTcp}";
+                }
+                return componentImage;
+            }
+        }
+        
         private string TcpFullName => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length - 1)}" : Path;
 
         public TcpComponentVM(string name, string path) : base(name, path, ComponentTypes.Tcp)

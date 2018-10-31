@@ -3,19 +3,25 @@ using LogViewer.Containers;
 using LogViewer.Model;
 using LogViewer.Services;
 using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
-using static LogViewer.Services.VisualCacheGetter;
 
 namespace LogViewer.ViewModel
 {
     public class UdpComponentVM : ComponentVM
     {
-        private string componentImage;
-        public override string ComponentImage => GetCachedValue(ref componentImage, $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}");
-
+        private static string componentImage;
+        public override string ComponentImage {
+            get
+            {
+                if (componentImage == null)
+                {
+                    componentImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}";
+                }
+                return componentImage;
+            }
+        }
+        
         public UdpComponentVM(string name, string path) : base(name, path, ComponentTypes.Udp)
         {
             // Add new message queue

@@ -360,7 +360,7 @@
 
                                         <TextBox Grid.Row="1" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}">
                                             <TextBox.InputBindings>
-                                                <KeyBinding Command="{Binding FilterTextClearCommand}" Key="Esc" />
+                                                <KeyBinding Command="{Binding FilterTextClearCommand}" Key="Escape" />
                                                 <KeyBinding Command="{Binding FilterTextSearchCommand}" Key="Enter" />
                                             </TextBox.InputBindings>
                                         </TextBox>
@@ -436,9 +436,9 @@
                                     <TextBlock Text="{Binding Path}" Grid.Row="1" Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap"/>
                                 </Grid>
                                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                    <!--<Button Style="{StaticResource RoundButton}" Command="{Binding StartDiskListenerCommand}" ToolTip="{Binding StartDiskTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
+                                    <Button Style="{StaticResource RoundButton}" Command="{Binding StartDiskListenerCommand}" ToolTip="{Binding StartDiskTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
                                         <Image Style="{StaticResource CustomImage}" Source="{Binding PlayDiskImage}" Margin="5"/>
-                                    </Button>-->
+                                    </Button>
                                     <Button Style="{StaticResource RoundButton}" Command="{Binding StartRAMListenerCommand}" ToolTip="{Binding StartRAMTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
                                         <Image Style="{StaticResource CustomImage}" Source="{Binding PlayRAMImage}" Margin="5"/>
                                     </Button>
