@@ -56,7 +56,7 @@ namespace LogViewer.ViewModel
 
             asyncWorker.DoWork += (sender, e) =>
             {
-                BackgroundWorker bwAsync = sender as BackgroundWorker;
+                var bwAsync = sender as BackgroundWorker;
                 try
                 {
                     if (bwAsync != null && bwAsync.CancellationPending) { return; }
@@ -67,11 +67,9 @@ namespace LogViewer.ViewModel
 
                     while (!e.Cancel)
                     {
-                        if (bwAsync != null && bwAsync.CancellationPending)
-                        {
-                            e.Cancel = true;
-                            StopListener();
-                        }
+                        if (bwAsync == null || !bwAsync.CancellationPending) continue;
+                        e.Cancel = true;
+                        StopListener();
                     }
                 }
                 catch (Exception ex)

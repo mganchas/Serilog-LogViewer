@@ -70,10 +70,6 @@ namespace LogViewer.Services
                 }
                 while (!ProcessorMonitorContainer.ComponentStopper[componentName]);
             }
-            catch (Exception)
-            {
-                throw;
-            }
             finally
             {
                 listener?.Close();

@@ -52,18 +52,16 @@ namespace LogViewer.ViewModel
                 BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
-                    if (bwAsync.CancellationPending) { return; }
+                    if (bwAsync != null && bwAsync.CancellationPending) { return; }
 
                     var tcpP = new TcpProcessor();
                     tcpP.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
 
                     while (!e.Cancel)
                     {
-                        if (bwAsync.CancellationPending)
-                        {
-                            e.Cancel = true;
-                            StopListener();
-                        }
+                        if (bwAsync == null || !bwAsync.CancellationPending) continue;
+                        e.Cancel = true;
+                        StopListener();
                     }
 
                 }

@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Media;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -191,7 +192,8 @@ namespace LogViewer.ViewModel
             IsAllSelected = true;
 
             // set level counters
-            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName, new ObservableCounterDictionary<LevelTypes>
+            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName,
+                new ObservableCounterDictionary<LevelTypes>
                 {
                     {LevelTypes.All, 0},
                     {LevelTypes.Verbose, 0},
@@ -219,7 +221,8 @@ namespace LogViewer.ViewModel
                 new MongoDbProcessor(ComponentRegisterName.Replace(".", "")).CleanDatabase();
 
                 // Clear counters
-                MessageContainer.Disk.ComponentCounters[ComponentRegisterName].ResetAllCounters(fireChangedEvent: false);
+                MessageContainer.Disk.ComponentCounters[ComponentRegisterName]
+                    .ResetAllCounters(fireChangedEvent: false);
 
                 // Clear visible counters 
                 foreach (var lvlCounter in ComponentLevels)
@@ -269,7 +272,8 @@ namespace LogViewer.ViewModel
             // Set filter search command 
             FilterTextSearchCommand = new CommandHandler(_ =>
             {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) (() => { FilterMessages(); }));
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+                    (Action) (() => { FilterMessages(); }));
             });
 
             // Set filter clear command 
@@ -312,7 +316,8 @@ namespace LogViewer.ViewModel
             });
         }
 
-        protected void CollectionChangedDISK(NotifyCollectionChangedEventArgs e, ObservableCounterDictionary<LevelTypes> originalDictionary)
+        protected void CollectionChangedDISK(NotifyCollectionChangedEventArgs e,
+            ObservableCounterDictionary<LevelTypes> originalDictionary)
         {
             if (!IsRunning || e.NewItems == null)
             {
@@ -413,7 +418,7 @@ namespace LogViewer.ViewModel
             }
         }
 
-        protected void FilterMessages()
+        private void FilterMessages()
         {
             bool hasChanges = false;
             var currFilters = new SelectionElements()
@@ -451,15 +456,16 @@ namespace LogViewer.ViewModel
 
             if (ComponentLevels[LevelTypes.All].IsSelected)
             {
-                filteredEntries = String.IsNullOrEmpty(FilterText) ? 
-                    new MongoDbProcessor(ComponentRegisterName).ReadAll(VisibleMessagesNr) : 
-                    new MongoDbProcessor(ComponentRegisterName).ReadText(FilterText.ToLower(), VisibleMessagesNr);
+                filteredEntries = String.IsNullOrEmpty(FilterText)
+                    ? new MongoDbProcessor(ComponentRegisterName).ReadAll(VisibleMessagesNr)
+                    : new MongoDbProcessor(ComponentRegisterName).ReadText(FilterText.ToLower(), VisibleMessagesNr);
             }
             else
             {
-                filteredEntries = String.IsNullOrEmpty(FilterText) ? 
-                    new MongoDbProcessor(ComponentRegisterName).ReadLevels(selectedLevels) : 
-                    new MongoDbProcessor(ComponentRegisterName).ReadLevelsAndText(selectedLevels, FilterText.ToLower());
+                filteredEntries = String.IsNullOrEmpty(FilterText)
+                    ? new MongoDbProcessor(ComponentRegisterName).ReadLevels(selectedLevels)
+                    : new MongoDbProcessor(ComponentRegisterName).ReadLevelsAndText(selectedLevels,
+                        FilterText.ToLower());
             }
 
             var filteredList = new HashSet<LogEventsVM>();
@@ -472,12 +478,10 @@ namespace LogViewer.ViewModel
                     LevelType = (LevelTypes) entry.LevelType
                 });
             }
-            
+
             // add filtered entries
-            Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) (() =>
-            {
-                VisibleConsoleMessages = new HashSet<LogEventsVM>(filteredList);
-            }));
+            Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+                (Action) (() => { VisibleConsoleMessages = new HashSet<LogEventsVM>(filteredList); }));
         }
 
         private void FilterEntriesRAM(IEnumerable<LevelTypes> selectedLevels)
@@ -493,8 +497,26 @@ namespace LogViewer.ViewModel
             // filter text
             if (!String.IsNullOrEmpty(FilterText))
             {
-                filteredEntries =
-                    filteredEntries.Where(x => x.RenderedMessage.ToLower().Contains(FilterText.ToLower()));
+                var orFilters = Regex.Split(filterText, @"\||&"); // funciona o &, não funciona o | com esta expressão
+                var andFilters = filterText.Split('&');
+
+                if (orFilters.Length == 1 && andFilters.Length == 1)
+                {
+                    filteredEntries = filteredEntries
+                        .Where(x => x.RenderedMessage.ToLower().Contains(TransformFilterString(FilterText)));
+                }
+                else
+                {
+                    // process OR's
+                    foreach (var filter in orFilters)
+                    {
+                        
+                    }
+
+                    // process AND's
+                    filteredEntries = orFilters.Aggregate(filteredEntries, (current, filter) =>
+                        current.Where(x => x.RenderedMessage.ToLower().Contains(TransformFilterString(filter))));
+                }
             }
 
             // filter visible rows
@@ -518,9 +540,15 @@ namespace LogViewer.ViewModel
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
-                }                
+                }
+
                 ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = true;
             }));
+        }
+
+        private string TransformFilterString(string filterString)
+        {
+            return filterString.ToLower().Trim();
         }
 
         protected void PlaySound()
