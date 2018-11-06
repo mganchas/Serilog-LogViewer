@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Media;
@@ -497,24 +498,30 @@ namespace LogViewer.ViewModel
             // filter text
             if (!String.IsNullOrEmpty(FilterText))
             {
-                var orFilters = Regex.Split(filterText, @"\||&"); // funciona o &, não funciona o | com esta expressão
-                var andFilters = filterText.Split('&');
+                var orFilters = Regex.Split(filterText, @"\|");
+                var andFilters = Regex.Split(filterText, @"&+");
 
                 if (orFilters.Length == 1 && andFilters.Length == 1)
                 {
                     filteredEntries = filteredEntries
                         .Where(x => x.RenderedMessage.ToLower().Contains(TransformFilterString(FilterText)));
                 }
-                else
+                else if (orFilters.Length > 1)
                 {
                     // process OR's
-                    foreach (var filter in orFilters)
+                    Func<LogEventsVM, bool> predicate = x => false;
+                    foreach (var or in orFilters.Where(x => !String.IsNullOrEmpty(x)))
                     {
-                        
+                        var oldPredicate = predicate;
+                        predicate = x => oldPredicate(x) || x.RenderedMessage.ToLower().Contains(TransformFilterString(or));
                     }
 
+                    filteredEntries = filteredEntries.Where(predicate);
+                }
+                else if (andFilters.Length > 1)
+                {
                     // process AND's
-                    filteredEntries = orFilters.Aggregate(filteredEntries, (current, filter) =>
+                    filteredEntries = andFilters.Aggregate(filteredEntries, (current, filter) =>
                         current.Where(x => x.RenderedMessage.ToLower().Contains(TransformFilterString(filter))));
                 }
             }
