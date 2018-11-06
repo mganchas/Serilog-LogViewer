@@ -392,6 +392,10 @@
                                                 </TextBox>
                                                 <TextBlock Text="Showing:" Foreground="{StaticResource TextBoxForeground}" Margin="5,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding VisibleConsoleMessages.Count, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                                
+                                                <Button Style="{StaticResource RoundButton}" Command="{Binding ExportVisibleMessagesCommand}" ToolTip="{Binding ExportVisibleMessages}" Margin="5,0" VerticalAlignment="Center">
+                                                    <Image Style="{StaticResource CustomImage}" Source="{Binding ExportVisibleMessagesImage}" Margin="5"/>
+                                                </Button>                                                
                                             </StackPanel>
                                         </Grid>
                                         <ListBox Grid.Row="1" x:Name="lst_entries" Style="{StaticResource CustomMessagesListbox}" ItemsSource="{Binding VisibleConsoleMessages, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
@@ -413,7 +417,7 @@
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <Border x:Name="brd" Grid.Column="0" BorderBrush="Transparent" BorderThickness="0,0,4,0" CornerRadius="0" ToolTip="{Binding Name}" Margin="5" Background="Transparent" Cursor="Hand" MinHeight="80" Width="250">
+                    <Border x:Name="brd" BorderBrush="Transparent" BorderThickness="0,0,4,0" CornerRadius="0" ToolTip="{Binding Name}" Margin="5" Background="Transparent" Cursor="Hand" MinHeight="80" Width="250">
                         <Grid VerticalAlignment="Center">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto"/>

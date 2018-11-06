@@ -69,7 +69,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <ListBox Grid.Column="0" Style="{StaticResource ComponentHeader}" BorderThickness="0,0,2,0" BorderBrush="LightGray" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" SelectedIndex="{Binding SelectedIndex}" Visibility="{Binding VisibleComponents}"/>
-            <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedIndex}" BorderThickness="0" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" Visibility="{Binding VisibleComponents}"/>
+            <TabControl Grid.Column="1" SelectedIndex="{Binding SelectedIndex}" BorderThickness="0" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" Visibility="{Binding VisibleComponents}"/>
         </Grid>
 
         <GridSplitter Grid.Row="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="LightGray" Margin="10,3"/>
@@ -80,7 +80,7 @@
 
         <!-- Export options -->
         <Grid Grid.Row="4" Height="50" Background="{StaticResource Toolbar}">
-            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
+            <StackPanel HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
                 <!--<Button Style="{StaticResource RoundButton}" Command="{Binding StartAllDiskCommand}" ToolTip="{Binding StartAllDiskTooltip}">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding StartDiskButtonImage}" Margin="5"/>
                 </Button>-->

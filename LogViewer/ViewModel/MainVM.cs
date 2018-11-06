@@ -121,7 +121,7 @@ namespace LogViewer.ViewModel
                     if (SelectedComponentType == null)
                     {
                         MessageBox.Show(Constants.Messages.ComponentTypeMissing, Constants.Messages.ErrorTitle);
-                        return;
+                        return; 
                     }
 
                     // create new component
@@ -151,6 +151,9 @@ namespace LogViewer.ViewModel
                         return;
                     }
 
+                    // register component behaviour
+                    newComponent.RegisterComponent();
+                    
                     // set component action
                     newComponent.RemoveComponentCommand = DefaultRemoveCommand;
 

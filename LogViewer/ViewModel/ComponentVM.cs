@@ -53,6 +53,7 @@ namespace LogViewer.ViewModel
         public static string StartDiskTitle => Constants.Labels.StartDisk;
         public static string StopTitle => Constants.Labels.Stop;
         public static string SaveChangesTitle => Constants.Labels.SaveChanges;
+        public static string ExportVisibleMessages => Constants.Tooltips.ExportVisibleMessages;
 
         #endregion
 
@@ -69,6 +70,7 @@ namespace LogViewer.ViewModel
         public static string TerminalImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageTerminal}";
         public static string MonitorImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageMonitor}";
         public static string FilterImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}";
+        public static string ExportVisibleMessagesImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageExpand}";
 
         #endregion
 
@@ -176,6 +178,7 @@ namespace LogViewer.ViewModel
         public ICommand FilterTextSearchCommand { get; set; }
         public ICommand FilterTextClearCommand { get; set; }
         public ICommand FilterLevelCommand { get; set; }
+        public ICommand ExportVisibleMessagesCommand { get; set; }
 
         #endregion
 
@@ -185,25 +188,9 @@ namespace LogViewer.ViewModel
             this.Path = path;
             this.Component = component;
 
-            // Add component to processor monitor
-            ProcessorMonitorContainer.ComponentStopper.Add(this.ComponentRegisterName, false);
-
             // Set visible levels 
             ComponentLevels[LevelTypes.All].IsSelected = true;
             IsAllSelected = true;
-
-            // set level counters
-            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName,
-                new ObservableCounterDictionary<LevelTypes>
-                {
-                    {LevelTypes.All, 0},
-                    {LevelTypes.Verbose, 0},
-                    {LevelTypes.Debug, 0},
-                    {LevelTypes.Information, 0},
-                    {LevelTypes.Warning, 0},
-                    {LevelTypes.Error, 0},
-                    {LevelTypes.Fatal, 0}
-                });
 
             // Set cleanup command 
             CleanUpCommand = new CommandHandler((canClean) =>
@@ -567,6 +554,7 @@ namespace LogViewer.ViewModel
         public abstract void RemoveComponent();
         public abstract void ClearComponent();
         public abstract bool IsValidComponent(in Span<ComponentVM> components);
+        public abstract void RegisterComponent();
 
         private class SelectionElements
         {

@@ -26,20 +26,7 @@ namespace LogViewer.ViewModel
 
         public TcpComponentVM(string name, string path) : base(name, path, ComponentTypes.Tcp)
         {
-            // Set message collection onchanged event (DISK) 
-            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
-            {
-                CollectionChangedDISK(e, sender as ObservableCounterDictionary<Levels.LevelTypes>);
-            };
-
-            // Add new message queue
-            MessageContainer.RAM.TcpMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
-
-            // Set message collection onchanged event 
-            MessageContainer.RAM.TcpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
-            {
-                CollectionChangedRAM(e, sender as ObservableSet<Entry>);
-            };
+            
         }
 
         protected override void InitializeBackWorker()
@@ -99,6 +86,40 @@ namespace LogViewer.ViewModel
                 return false;
             }
             return true;
+        }
+
+        public override void RegisterComponent()
+        {
+            // Add component to processor monitor
+            ProcessorMonitorContainer.ComponentStopper.Add(this.ComponentRegisterName, false);
+            
+            // set level counters
+            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName,
+                new ObservableCounterDictionary<Levels.LevelTypes>
+                {
+                    {Levels.LevelTypes.All, 0},
+                    {Levels.LevelTypes.Verbose, 0},
+                    {Levels.LevelTypes.Debug, 0},
+                    {Levels.LevelTypes.Information, 0},
+                    {Levels.LevelTypes.Warning, 0},
+                    {Levels.LevelTypes.Error, 0},
+                    {Levels.LevelTypes.Fatal, 0}
+                });
+            
+            // Set message collection onchanged event (DISK) 
+            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
+            {
+                CollectionChangedDISK(e, sender as ObservableCounterDictionary<Levels.LevelTypes>);
+            };
+
+            // Add new message queue
+            MessageContainer.RAM.TcpMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
+
+            // Set message collection onchanged event 
+            MessageContainer.RAM.TcpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
+            {
+                CollectionChangedRAM(e, sender as ObservableSet<Entry>);
+            };
         }
 
         public override void RemoveComponent()

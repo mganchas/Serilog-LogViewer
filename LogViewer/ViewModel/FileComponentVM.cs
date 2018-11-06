@@ -24,20 +24,7 @@ namespace LogViewer.ViewModel
         
         public FileComponentVM(string name, string path) : base(name, path, ComponentTypes.File)
         {
-            // Add new message queue
-            MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
-
-            // Set message collection onchanged event (DISK) 
-            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
-            {
-                CollectionChangedDISK(e, sender as ObservableCounterDictionary<Levels.LevelTypes>);
-            };
-
-            // Set message collection onchanged event (RAM) 
-            MessageContainer.RAM.FileMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
-            {
-                CollectionChangedRAM(e, sender as ObservableSet<Entry>);
-            };
+            
         }
 
         protected override void InitializeBackWorker()
@@ -109,6 +96,40 @@ namespace LogViewer.ViewModel
             }
 
             return true;
+        }
+
+        public override void RegisterComponent()
+        {
+            // Add component to processor monitor
+            ProcessorMonitorContainer.ComponentStopper.Add(this.ComponentRegisterName, false);
+            
+            // set level counters
+            MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName,
+                new ObservableCounterDictionary<Levels.LevelTypes>
+                {
+                    {Levels.LevelTypes.All, 0},
+                    {Levels.LevelTypes.Verbose, 0},
+                    {Levels.LevelTypes.Debug, 0},
+                    {Levels.LevelTypes.Information, 0},
+                    {Levels.LevelTypes.Warning, 0},
+                    {Levels.LevelTypes.Error, 0},
+                    {Levels.LevelTypes.Fatal, 0}
+                });
+            
+            // Add new message queue
+            MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
+
+            // Set message collection onchanged event (DISK) 
+            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
+            {
+                CollectionChangedDISK(e, sender as ObservableCounterDictionary<Levels.LevelTypes>);
+            };
+
+            // Set message collection onchanged event (RAM) 
+            MessageContainer.RAM.FileMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
+            {
+                CollectionChangedRAM(e, sender as ObservableSet<Entry>);
+            };
         }
 
         public override void RemoveComponent()

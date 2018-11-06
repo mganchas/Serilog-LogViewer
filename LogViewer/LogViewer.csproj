@@ -386,6 +386,9 @@
     <Compile Include="ViewModel\LevelsVM.cs" />
     <Compile Include="ViewModel\LogEventsVM.cs" />
     <Compile Include="ViewModel\MainVM.cs" />
+    <Compile Include="View\VisibleMessagesWindow.xaml.cs">
+      <DependentUpon>VisibleMessagesWindow.xaml</DependentUpon>
+    </Compile>
     <Page Include="View\EntryDetailWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -406,6 +409,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\VisibleMessagesWindow.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -519,6 +523,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\expand.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

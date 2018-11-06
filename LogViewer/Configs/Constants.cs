@@ -40,6 +40,7 @@
             public const string ImageGlobe = "globe.png";
             public const string ImagePlug = "plug.png";
             public const string ImageDocument = "document.png";
+            public const string ImageExpand = "expand.png";
 
             public const string ImageFile = "file.png";
             public const string ImageHttp = "http.png";
@@ -73,6 +74,7 @@
             public const string ClearAll = "Clear all data";
             public const string ResetAll = "Reset components";
             public const string ShowContext = "Show context";
+            public const string ExportVisibleMessages = "Export visible messages";
         }
 
         public class Messages
