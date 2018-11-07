@@ -125,31 +125,10 @@ namespace LogViewer.ViewModel
                     }
 
                     // create new component
-                    ComponentVM newComponent = null;
-                    switch (SelectedComponentType.Type)
-                    {
-                        case Model.ComponentTypes.File:
-                            newComponent = new FileComponentVM(Name, Path);
-                            break;
-
-                        case Model.ComponentTypes.Http:
-                            newComponent = new HttpComponentVM(Name, Path);
-                            break;
-
-                        case Model.ComponentTypes.Tcp:
-                            newComponent = new TcpComponentVM(Name, Path);
-                            break;
-
-                        case Model.ComponentTypes.Udp:
-                            newComponent = new UdpComponentVM(Name, Path);
-                            break;
-                    }
-
+                    var newComponent = ComponentFactory.GetNewComponent(SelectedComponentType.Type, Name, Path);
+                    
                     // not a valid component
-                    if (newComponent == null || !newComponent.IsValidComponent(new Span<ComponentVM>(Components.ToArray())))
-                    {
-                        return;
-                    }
+                    if (!newComponent.IsValidComponent(new Span<ComponentVM>(Components.ToArray()))) { return; }
 
                     // register component behaviour
                     newComponent.RegisterComponent();
@@ -259,19 +238,22 @@ namespace LogViewer.ViewModel
                 foreach (var file in files)
                 {
                     // define new file component
-                    ComponentVM comp = new FileComponentVM(new DirectoryInfo(file).Name, file);
+                    ComponentVM newComponent = ComponentFactory.GetNewComponent(Model.ComponentTypes.File, new DirectoryInfo(file).Name, file);
 
-                    if (!comp.IsValidComponent(new Span<ComponentVM>(Components.ToArray()))) {
-                        return;
-                    }
+                    // not a valid component
+                    if (!newComponent.IsValidComponent(new Span<ComponentVM>(Components.ToArray()))) { return; }
 
-                    comp.RemoveComponentCommand = DefaultRemoveCommand;
+                    // register component behaviour
+                    newComponent.RegisterComponent();
+
+                    // set component action
+                    newComponent.RemoveComponentCommand = DefaultRemoveCommand;
 
                     // add new listener to list
-                    Components.Add(comp);
+                    Components.Add(newComponent);
 
                     // select last added component
-                    SelectedComponent = Components.First(x => x == comp);
+                    SelectedComponent = Components.First(x => x == newComponent);
                 }
             }));
         }

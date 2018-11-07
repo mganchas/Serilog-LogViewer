@@ -517,10 +517,10 @@ namespace LogViewer.ViewModel
             filteredEntries = filteredEntries.Take(VisibleMessagesNr);
 
             // add filtered entries
-            Application.Current.Dispatcher.Invoke((Action) (() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 VisibleConsoleMessages = new HashSet<LogEventsVM>(filteredEntries);
-            }));
+            });
         }
 
         protected void StopListener()
@@ -531,21 +531,21 @@ namespace LogViewer.ViewModel
                 {
                     asyncWorker?.CancelAsync();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    Console.WriteLine(e);
+                    // ignored
                 }
 
                 ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = true;
             }));
         }
 
-        private string TransformFilterString(string filterString)
+        private static string TransformFilterString(string filterString)
         {
             return filterString.ToLower().Trim();
         }
 
-        protected void PlaySound()
+        protected static void PlaySound()
         {
             SystemSounds.Hand.Play();
         }
