@@ -86,7 +86,7 @@ namespace LogViewer.Services
                         if (storeType == StoreTypes.MongoDB)
                         {
                             // insert into db
-                            new MongoDbProcessor(componentName).WriteOne(new Entry
+                            new MongoDBProcessor(componentName).WriteOne(new Entry
                             {
                                 Timestamp = ent.Timestamp,
                                 RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",

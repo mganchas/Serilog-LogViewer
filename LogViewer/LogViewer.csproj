@@ -365,10 +365,16 @@
     <Compile Include="Containers\LoggerContainer.cs" />
     <Compile Include="Containers\MessageContainer.cs" />
     <Compile Include="Containers\ProcessorMonitorContainer.cs" />
+    <Compile Include="Model\Abstractions\IEntry.cs" />
+    <Compile Include="StoreProcessors\ElasticSearchProcessor.cs" />
+    <Compile Include="StoreProcessors\LocalProcessor.cs" />
+    <Compile Include="StoreProcessors\SqlLiteProcessor.cs" />
+    <Compile Include="StoreProcessors\SqlServerProcessor.cs" />
     <Compile Include="Factories\ComponentFactory.cs" />
-    <Compile Include="DbProcessors\Abstractions\IDbProcessor.cs" />
-    <Compile Include="DbProcessors\MongoDbProcessor.cs" />
+    <Compile Include="StoreProcessors\Abstractions\IDbProcessor.cs" />
+    <Compile Include="StoreProcessors\MongoDBProcessor.cs" />
     <Compile Include="Structures\ComponentTypes.cs" />
+    <Compile Include="Structures\Helpers\LevelTypesHelper.cs" />
     <Compile Include="Structures\LevelTypes.cs" />
     <Compile Include="Structures\ObservableDictionary.cs" />
     <Compile Include="Structures\ObservableSet.cs" />
@@ -384,7 +390,6 @@
     </Compile>
     <Compile Include="Model\Entry.cs" />
     <Compile Include="Configs\Constants.cs" />
-    <Compile Include="Model\LevelTypes.cs" />
     <Compile Include="ViewModel\ComponentVM.cs" />
     <Compile Include="ViewModel\EntryDetailVM.cs" />
     <Compile Include="ViewModel\LevelsVM.cs" />

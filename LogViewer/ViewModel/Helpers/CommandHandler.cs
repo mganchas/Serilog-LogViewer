@@ -10,14 +10,14 @@ namespace LogViewer.Services
 
         public CommandHandler(Action<object> action)
         {
-            this._action = action;
-            this._canExecute = true;
+            _action = action;
+            _canExecute = true;
         }
 
         public CommandHandler(Action<object> action, bool canExecute)
         {
-            this._action = action;
-            this._canExecute = canExecute;
+            _action = action;
+            _canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter)

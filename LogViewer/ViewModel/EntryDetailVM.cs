@@ -7,50 +7,50 @@ namespace LogViewer.ViewModel
 {
     public class EntryDetailVM : PropertyChangesNotifier
     {
-        private string timestampTitle;
+        private string _timestampTitle;
         public string TimestampTitle
         {
             get
             {
-                if (String.IsNullOrEmpty(timestampTitle)) {
-                    timestampTitle = $"{Constants.Labels.Timestamp}:";
+                if (String.IsNullOrEmpty(_timestampTitle)) {
+                    _timestampTitle = $"{Constants.Labels.Timestamp}:";
                 }
-                return timestampTitle;
+                return _timestampTitle;
             }
         }
 
-        private string levelTitle;
+        private string _levelTitle;
         public string LevelTitle
         {
             get
             {
-                if (String.IsNullOrEmpty(levelTitle)) {
-                    levelTitle = $"{Constants.Labels.Level}:";
+                if (String.IsNullOrEmpty(_levelTitle)) {
+                    _levelTitle = $"{Constants.Labels.Level}:";
                 }
-                return levelTitle;
+                return _levelTitle;
             }
         }
 
         public string TimestampFormat => Timestamp.ToString(Constants.Formats.TimeFormat, CultureInfo.InvariantCulture);
-        private DateTimeOffset timestamp;
+        private DateTimeOffset _timestamp;
         public DateTimeOffset Timestamp
         {
-            get { return timestamp; }
-            set { timestamp = value; NotifyPropertyChanged(); }
+            get { return _timestamp; }
+            set { _timestamp = value; NotifyPropertyChanged(); }
         }
 
-        private string level;
+        private string _level;
         public string Level
         {
-            get { return level; }
-            set { level = value; NotifyPropertyChanged(); }
+            get { return _level; }
+            set { _level = value; NotifyPropertyChanged(); }
         }
 
-        private string message;
+        private string _message;
         public string Message
         {
-            get { return message; }
-            set { message = value; NotifyPropertyChanged(); }
+            get { return _message; }
+            set { _message = value; NotifyPropertyChanged(); }
         }
     }
 }

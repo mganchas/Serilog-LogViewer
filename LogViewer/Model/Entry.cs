@@ -1,12 +1,13 @@
 ﻿using Newtonsoft.Json;
 using System;
+using LogViewer.Model.Abstractions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace LogViewer.Model
 {
     [BsonDiscriminator("entry")]
-    public class Entry
+    public class Entry : IEntry
     {
         [BsonId]
         public ObjectId _Id { get; set; }
@@ -31,10 +32,5 @@ namespace LogViewer.Model
 
         [BsonElement("levelType")]
         public int LevelType { get; set; }
-    }
-
-    public class LogEntries
-    {
-        [JsonProperty("events")] public Entry[] Entries { get; set; }
     }
 }

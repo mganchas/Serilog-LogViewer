@@ -3,6 +3,9 @@
     public enum StoreTypes
     {
         Local,
-        MongoDB
+        MongoDB,
+        SqlLite,
+        ElasticSearch,
+        SqlServer
     }
 }

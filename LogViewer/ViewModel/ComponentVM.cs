@@ -219,7 +219,7 @@ namespace LogViewer.ViewModel
                 VisibleConsoleMessages = new HashSet<LogEventsVM>();
 
                 // clear database
-                new MongoDbProcessor(ComponentRegisterName.Replace(".", "")).CleanDatabase();
+                new MongoDBProcessor(ComponentRegisterName.Replace(".", "")).CleanDatabase();
 
                 // Clear counters
                 MessageContainer.Disk.ComponentCounters[ComponentRegisterName]
@@ -464,14 +464,14 @@ namespace LogViewer.ViewModel
             if (ComponentLevels[LevelTypes.All].IsSelected)
             {
                 filteredEntries = String.IsNullOrEmpty(FilterText)
-                    ? new MongoDbProcessor(ComponentRegisterName).ReadAll(VisibleMessagesNr)
-                    : new MongoDbProcessor(ComponentRegisterName).ReadText(FilterText.ToLower(), VisibleMessagesNr);
+                    ? new MongoDBProcessor(ComponentRegisterName).ReadAll<Entry>(VisibleMessagesNr)
+                    : new MongoDBProcessor(ComponentRegisterName).ReadText<Entry>(FilterText.ToLower(), VisibleMessagesNr);
             }
             else
             {
                 filteredEntries = String.IsNullOrEmpty(FilterText)
-                    ? new MongoDbProcessor(ComponentRegisterName).ReadLevels(selectedLevels)
-                    : new MongoDbProcessor(ComponentRegisterName).ReadLevelsAndText(selectedLevels,
+                    ? new MongoDBProcessor(ComponentRegisterName).ReadLevels<Entry>(selectedLevels)
+                    : new MongoDBProcessor(ComponentRegisterName).ReadLevelsAndText<Entry>(selectedLevels,
                         FilterText.ToLower());
             }
 

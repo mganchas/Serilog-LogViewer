@@ -29,52 +29,37 @@ namespace LogViewer.ViewModel
         public static string ClearAllTooltip => Constants.Tooltips.ClearAll;
         public static string ResetAllTooltip => Constants.Tooltips.ResetAll;
 
-        private string name;
+        private string _name;
         public string Name
         {
-            get { return name; }
-            set { name = value; NotifyPropertyChanged(); }
+            get { return _name; }
+            set { _name = value; NotifyPropertyChanged(); }
         }
 
-        private string path;
+        private string _path;
         public string Path
         {
-            get { return path; }
-            set { path = value; NotifyPropertyChanged(); }
+            get { return _path; }
+            set { _path = value; NotifyPropertyChanged(); }
         }
 
-        private ComponentVM selectedComponent;
+        private ComponentVM _selectedComponent;
         public ComponentVM SelectedComponent
         {
-            get { return selectedComponent; }
-            set { selectedComponent = value; NotifyPropertyChanged(); }
+            get { return _selectedComponent; }
+            set { _selectedComponent = value; NotifyPropertyChanged(); }
         }
 
-        private int selectedIndex;
+        private int _selectedIndex;
         public int SelectedIndex
         {
-            get { return selectedIndex; }
-            set { selectedIndex = value; NotifyPropertyChanged(); }
+            get { return _selectedIndex; }
+            set { _selectedIndex = value; NotifyPropertyChanged(); }
         }
 
-        public Visibility VisibleComponents
-        {
-            get
-            {
-                if (Components == null || Components.Count == 0)
-                {
-                    return Visibility.Collapsed;
-                }
-                else
-                {
-                    return Visibility.Visible;
-                }
-            }
-        }
-        
-        
+        public Visibility VisibleComponents => Components == null || Components.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        public ComponentSelectorVM[] ComponentTypes => new ComponentSelectorVM[]
+        public ComponentSelectorVM[] ComponentTypes { get; } = 
         {
             new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}", Type = Model.ComponentTypes.File },
             new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}", Type = Model.ComponentTypes.Http },
@@ -82,11 +67,11 @@ namespace LogViewer.ViewModel
             new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}", Type = Model.ComponentTypes.Udp }
         };
 
-        private ComponentSelectorVM selectedComponentType;
+        private ComponentSelectorVM _selectedComponentType;
         public ComponentSelectorVM SelectedComponentType
         {
-            get { return selectedComponentType; }
-            set { selectedComponentType = value; NotifyPropertyChanged(); }
+            get { return _selectedComponentType; }
+            set { _selectedComponentType = value; NotifyPropertyChanged(); }
         }
 
         public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();

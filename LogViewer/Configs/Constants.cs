@@ -7,11 +7,6 @@
             public const int DefaultRows = 10;
         }
 
-        public class Database
-        {
-            public const string RealmName = "LogViewer.realm";
-        }
-
         public class Formats
         {
             public const string TimeFormat = "dd MMM yyyy HH:mm:ss";
@@ -22,8 +17,6 @@
             public const string ImagePath = "/LogViewer;component/Configs/Images/";
             public const string ImageSearch = "search.png";
             public const string ImageCancel = "cancel.png";
-            public const string ImageEntry = "entry.png";
-            public const string ImageExit = "exit.png";
             public const string ImageClear = "clear.png";
             public const string ImageDelete = "delete.png";
             public const string ImageReset = "garbage.png";
@@ -37,9 +30,6 @@
             public const string ImageFilter = "filter.png";
             public const string ImagePlay = "play.png";
             public const string ImagePlayBlue = "play_blue.png";
-            public const string ImageGlobe = "globe.png";
-            public const string ImagePlug = "plug.png";
-            public const string ImageDocument = "document.png";
             public const string ImageExpand = "expand.png";
 
             public const string ImageFile = "file.png";

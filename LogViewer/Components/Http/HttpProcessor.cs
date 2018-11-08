@@ -34,9 +34,9 @@ namespace LogViewer.Services
                     }
 
                     // parse json into an Entry array
-                    var ents = JsonConvert.DeserializeObject<LogEntries>(data);
+                    var ents = JsonConvert.DeserializeObject<Entry[]>(data);
 
-                    foreach (var ent in ents.Entries)
+                    foreach (var ent in ents)
                     {
                         var lvlType = Levels.GetLevelTypeFromString(ent.Level);
 
@@ -44,7 +44,7 @@ namespace LogViewer.Services
                         if (storeType == StoreTypes.MongoDB)
                         {
                             // insert into db
-                            new MongoDbProcessor(componentName).WriteOne(new Entry
+                            new MongoDBProcessor(componentName).WriteOne(new Entry
                             {
                                 Timestamp = ent.Timestamp,
                                 RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",

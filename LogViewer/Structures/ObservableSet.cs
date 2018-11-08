@@ -42,7 +42,7 @@ namespace LogViewer.Model
         public void Clear()
         {
             ItemSet.Clear();
-            CollectionChanged.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, null));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, null));
         }
 
         public HashSet<T> GetItemSet()

@@ -4,6 +4,6 @@ namespace LogViewer.Containers
 {
     public static class ProcessorMonitorContainer
     {
-        public static Dictionary<string, bool> ComponentStopper { get; set; } = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> ComponentStopper { get; } = new Dictionary<string, bool>();
     }
 }

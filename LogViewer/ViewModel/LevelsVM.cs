@@ -9,46 +9,46 @@ namespace LogViewer.ViewModel
     {
         public LevelTypes LevelType { get; private set; }
 
-        private string text;
+        private string _text;
         public string Text
         {
             get
             {
-                if (String.IsNullOrEmpty(text))
+                if (String.IsNullOrEmpty(_text))
                 {
-                    text = Enum.GetName(typeof(LevelTypes), LevelType);
+                    _text = Enum.GetName(typeof(LevelTypes), LevelType);
                     NotifyPropertyChanged();
                 }
-                return text;
+                return _text;
             }
         }
 
-        private int counter;
+        private int _counter;
         public int Counter
         {
-            get { return counter; }
-            set { counter = value; NotifyPropertyChanged(); }
+            get { return _counter; }
+            set { _counter = value; NotifyPropertyChanged(); }
         }
 
-        private Brush textColor;
+        private Brush _textColor;
         public Brush TextColor
         {
             get
             {
-                if (textColor == null)
+                if (_textColor == null)
                 {
-                    textColor = Levels.GetLevelColor(LevelType);
+                    _textColor = Levels.GetLevelColor(LevelType);
                     NotifyPropertyChanged();
                 }
-                return textColor;
+                return _textColor;
             }
         }
 
-        private bool isSelected;
+        private bool _isSelected;
         public bool IsSelected
         {
-            get { return isSelected; }
-            set { isSelected = value; NotifyPropertyChanged(); }
+            get { return _isSelected; }
+            set { _isSelected = value; NotifyPropertyChanged(); }
         }
 
         public LevelsVM(LevelTypes level) => LevelType = level;

@@ -5,6 +5,6 @@ namespace LogViewer.Containers
 {
     public static class LoggerContainer
     {
-        public static ObservableSet<LogVM> LogEntries { get; set; } = new ObservableSet<LogVM>();
+        public static ObservableSet<LogVM> LogEntries { get; } = new ObservableSet<LogVM>();
     }
 }
