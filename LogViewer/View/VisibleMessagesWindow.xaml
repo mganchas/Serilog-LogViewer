@@ -3,10 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:local="clr-namespace:LogViewer.View"
+        xmlns:vm="clr-namespace:LogViewer.ViewModel"
+        xmlns:uc="clr-namespace:LogViewer.View"
         mc:Ignorable="d"
-        Title="VisibleMessagesWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="{Binding WindowTitle}" MinHeight="500" Height="500" MinWidth="800" Width="800">
+
+    <Grid Margin="5">
+        <uc:UCComponent DataContext="{Binding Component}"/>
     </Grid>
 </Window>

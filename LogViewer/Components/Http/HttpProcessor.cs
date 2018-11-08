@@ -41,7 +41,7 @@ namespace LogViewer.Services
                         var lvlType = Levels.GetLevelTypeFromString(ent.Level);
 
                         // Save type validation (Disk or RAM)
-                        if (storeType == StoreTypes.Disk)
+                        if (storeType == StoreTypes.MongoDB)
                         {
                             // insert into db
                             new MongoDbProcessor(componentName).WriteOne(new Entry
@@ -54,7 +54,7 @@ namespace LogViewer.Services
 
                             // increment counters
                             MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(lvlType);
-                            MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(Levels.LevelTypes.All);
+                            MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(LevelTypes.All);
                         }
                         else
                         {

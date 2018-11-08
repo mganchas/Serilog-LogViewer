@@ -8,7 +8,7 @@ using LogViewer.Services;
 
 namespace LogViewer.ViewModel
 {
-    public class FileComponentVM : ComponentVM
+    public class HttpComponentVM : ComponentVM
     {
         private static string componentImage;
         public override string ComponentImage {
@@ -16,13 +16,16 @@ namespace LogViewer.ViewModel
             {
                 if (componentImage == null)
                 {
-                    componentImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}";
+                    componentImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}";
                 }
                 return componentImage;
             }
         }
-        
-        public FileComponentVM(string name, string path) : base(name, path, ComponentTypes.File)
+
+        private string PathFixer => !Path.EndsWith("/") ? $"{Path}/" : Path;
+        private string HttpFullName => $"http://{PathFixer}";
+
+        public HttpComponentVM(string name, string path) : base(name, path, ComponentTypes.Http)
         {
             
         }
@@ -31,26 +34,16 @@ namespace LogViewer.ViewModel
         {
             asyncWorker.WorkerReportsProgress = true;
             asyncWorker.WorkerSupportsCancellation = true;
-
-
-            asyncWorker.RunWorkerCompleted += delegate
-            {
-                if (IsRunning) { IsRunning = false; }
-
-                // play notification sound
-                PlaySound();
-            };
-
+            asyncWorker.RunWorkerCompleted += delegate { if (IsRunning) IsRunning = false; };
             asyncWorker.DoWork += (sender, e) =>
             {
-                var bwAsync = sender as BackgroundWorker;
+                BackgroundWorker bwAsync = sender as BackgroundWorker;
                 try
                 {
                     if (bwAsync != null && bwAsync.CancellationPending) { return; }
 
-                    // start file reader
-                    var fp = new FileProcessor();
-                    fp.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
+                    var httpP = new HttpProcessor();
+                    httpP.ReadData(HttpFullName, ComponentRegisterName, ref asyncWorker, StoreType);
 
                     while (!e.Cancel)
                     {
@@ -79,19 +72,17 @@ namespace LogViewer.ViewModel
                 MessageBox.Show(Constants.Messages.MandatoryFieldsMissingComponent, Constants.Messages.AlertTitle);
                 return false;
             }
+            if (Path.ToLower().Contains("http"))
+            {
+                MessageBox.Show(Constants.Messages.InvalidUrlComponent, Constants.Messages.AlertTitle);
+                return false;
+            }
 
             // Check if component already exists 
             foreach (var comp in components)
             {
                 if (comp.Name != Name && comp.Path != Path) continue;
                 MessageBox.Show(Constants.Messages.DuplicateComponent, Constants.Messages.AlertTitle);
-                return false;
-            }
-
-            // Check if file exists 
-            if (!FileProcessor.Exists(Path))
-            {
-                MessageBox.Show(Constants.Messages.FileNotFoundComponent, Constants.Messages.AlertTitle);
                 return false;
             }
 
@@ -105,28 +96,28 @@ namespace LogViewer.ViewModel
             
             // set level counters
             MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName,
-                new ObservableCounterDictionary<Levels.LevelTypes>
+                new ObservableCounterDictionary<LevelTypes>
                 {
-                    {Levels.LevelTypes.All, 0},
-                    {Levels.LevelTypes.Verbose, 0},
-                    {Levels.LevelTypes.Debug, 0},
-                    {Levels.LevelTypes.Information, 0},
-                    {Levels.LevelTypes.Warning, 0},
-                    {Levels.LevelTypes.Error, 0},
-                    {Levels.LevelTypes.Fatal, 0}
+                    {LevelTypes.All, 0},
+                    {LevelTypes.Verbose, 0},
+                    {LevelTypes.Debug, 0},
+                    {LevelTypes.Information, 0},
+                    {LevelTypes.Warning, 0},
+                    {LevelTypes.Error, 0},
+                    {LevelTypes.Fatal, 0}
                 });
             
-            // Add new message queue
-            MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
-
             // Set message collection onchanged event (DISK) 
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
-                CollectionChangedDISK(e, sender as ObservableCounterDictionary<Levels.LevelTypes>);
+                CollectionChangedDISK(e, sender as ObservableCounterDictionary<LevelTypes>);
             };
 
-            // Set message collection onchanged event (RAM) 
-            MessageContainer.RAM.FileMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
+            // Add new message queue
+            MessageContainer.RAM.HttpMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
+
+            // Set message collection onchanged event 
+            MessageContainer.RAM.HttpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
             {
                 CollectionChangedRAM(e, sender as ObservableSet<Entry>);
             };
@@ -134,14 +125,14 @@ namespace LogViewer.ViewModel
 
         public override void RemoveComponent()
         {
-            MessageContainer.RAM.FileMessages.Remove(ComponentRegisterName);
+            MessageContainer.RAM.HttpMessages.Remove(ComponentRegisterName);
             MessageContainer.Disk.ComponentCounters.Remove(ComponentRegisterName);
             ProcessorMonitorContainer.ComponentStopper.Remove(ComponentRegisterName);
         }
 
         public override void ClearComponent()
         {
-            MessageContainer.RAM.FileMessages[ComponentRegisterName].Value.Clear();
+            MessageContainer.RAM.HttpMessages[ComponentRegisterName].Value.Clear();
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
         }
     }

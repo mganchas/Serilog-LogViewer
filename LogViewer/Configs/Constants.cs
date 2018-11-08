@@ -19,7 +19,7 @@
 
         public class Images
         {
-            public const string ImagePath = "/LogViewer;component/Images/";
+            public const string ImagePath = "/LogViewer;component/Configs/Images/";
             public const string ImageSearch = "search.png";
             public const string ImageCancel = "cancel.png";
             public const string ImageEntry = "entry.png";

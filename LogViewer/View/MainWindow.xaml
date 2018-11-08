@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:LogViewer.ViewModel"
+        xmlns:uc="clr-namespace:LogViewer.View"
         mc:Ignorable="d"
         Title="Log Viewer" MinHeight="650" Height="650" MinWidth="1100" Width="1100" AllowDrop="True" DragDrop.Drop="Window_Drop">
 
@@ -63,27 +64,24 @@
         </Grid>
 
         <!-- Components -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Visibility="{Binding VisibleComponents}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <ListBox Grid.Column="0" Style="{StaticResource ComponentHeader}" BorderThickness="0,0,2,0" BorderBrush="LightGray" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" SelectedIndex="{Binding SelectedIndex}" Visibility="{Binding VisibleComponents}"/>
-            <TabControl Grid.Column="1" SelectedIndex="{Binding SelectedIndex}" BorderThickness="0" Style="{StaticResource CustomTabControl}" ItemsSource="{Binding Components}" Visibility="{Binding VisibleComponents}"/>
+            <ListBox Grid.Column="0" Style="{StaticResource ComponentHeader}" BorderThickness="0,0,2,0" BorderBrush="LightGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" SelectedIndex="{Binding SelectedIndex}" Visibility="{Binding VisibleComponents}"/>
+            <uc:UCComponent Grid.Column="1" DataContext="{Binding SelectedComponent}"/>
         </Grid>
 
         <GridSplitter Grid.Row="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="LightGray" Margin="10,3"/>
 
         <Grid Grid.Row="3">
-            <ListBox Margin="5" Style="{StaticResource VisualLog}" ItemsSource="{Binding LogEntries}" VerticalAlignment="Stretch"/>
+            <ListBox Margin="5" Style="{StaticResource VisualLog}" ItemsSource="{Binding LogEntries}" />
         </Grid>
 
         <!-- Export options -->
         <Grid Grid.Row="4" Height="50" Background="{StaticResource Toolbar}">
             <StackPanel HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
-                <!--<Button Style="{StaticResource RoundButton}" Command="{Binding StartAllDiskCommand}" ToolTip="{Binding StartAllDiskTooltip}">
-                    <Image Style="{StaticResource CustomImage}" Source="{Binding StartDiskButtonImage}" Margin="5"/>
-                </Button>-->
                 <Button Style="{StaticResource RoundButton}" Command="{Binding StartAllRAMCommand}" ToolTip="{Binding StartAllRAMTooltip}">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding StartRAMButtonImage}" Margin="5"/>
                 </Button>

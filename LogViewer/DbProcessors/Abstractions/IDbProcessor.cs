@@ -11,10 +11,10 @@ namespace LogViewer.Services.Abstractions
         void WriteMany(IEnumerable<T> entries);
         IEnumerable<T> ReadAll();
         IEnumerable<T> ReadAll(int numberOfRows);
-        IEnumerable<T> ReadLevels(IEnumerable<Levels.LevelTypes> levels);
-        IEnumerable<T> ReadLevels(IEnumerable<Levels.LevelTypes> levels, int numberOfRows);
-        IEnumerable<T> ReadLevelsAndText(IEnumerable<Levels.LevelTypes> levels, string text);
-        IEnumerable<T> ReadLevelsAndText(IEnumerable<Levels.LevelTypes> levels, string text, int numberOfRows);
+        IEnumerable<T> ReadLevels(IEnumerable<LevelTypes> levels);
+        IEnumerable<T> ReadLevels(IEnumerable<LevelTypes> levels, int numberOfRows);
+        IEnumerable<T> ReadLevelsAndText(IEnumerable<LevelTypes> levels, string text);
+        IEnumerable<T> ReadLevelsAndText(IEnumerable<LevelTypes> levels, string text, int numberOfRows);
         IEnumerable<T> ReadText(string text);
         IEnumerable<T> ReadText(string text, int numberOfRows);
         void CleanDatabase();

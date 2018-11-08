@@ -1,46 +1,56 @@
-﻿using LogViewer.Configs;
+﻿using System;
+using System.ComponentModel;
+using System.Windows;
+using LogViewer.Configs;
 using LogViewer.Containers;
 using LogViewer.Model;
 using LogViewer.Services;
-using System;
-using System.ComponentModel;
-using System.Windows;
 
 namespace LogViewer.ViewModel
 {
-    public class UdpComponentVM : ComponentVM
+    public class FileComponentVM : ComponentVM
     {
-        private static string componentImage;
+        private static string componentImage; 
         public override string ComponentImage {
             get
             {
                 if (componentImage == null)
                 {
-                    componentImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}";
+                    componentImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}";
                 }
                 return componentImage;
             }
         }
         
-        public UdpComponentVM(string name, string path) : base(name, path, ComponentTypes.Udp)
+        public FileComponentVM(string name, string path) : base(name, path, ComponentTypes.File)
         {
             
         }
 
         protected override void InitializeBackWorker()
         {
-            //asyncWorker.WorkerReportsProgress = true;
+            asyncWorker.WorkerReportsProgress = true;
             asyncWorker.WorkerSupportsCancellation = true;
-            asyncWorker.RunWorkerCompleted += delegate { if (IsRunning) IsRunning = false; };
+
+
+            asyncWorker.RunWorkerCompleted += delegate
+            {
+                if (IsRunning) { IsRunning = false; }
+
+                // play notification sound
+                PlaySound();
+            };
+
             asyncWorker.DoWork += (sender, e) =>
             {
-                BackgroundWorker bwAsync = sender as BackgroundWorker;
+                var bwAsync = sender as BackgroundWorker;
                 try
                 {
                     if (bwAsync != null && bwAsync.CancellationPending) { return; }
 
-                    var udpP = new UdpProcessor();
-                    udpP.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
+                    // start file reader
+                    var fp = new FileProcessor();
+                    fp.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
 
                     while (!e.Cancel)
                     {
@@ -48,7 +58,6 @@ namespace LogViewer.ViewModel
                         e.Cancel = true;
                         StopListener();
                     }
-
                 }
                 catch (Exception ex)
                 {
@@ -57,7 +66,6 @@ namespace LogViewer.ViewModel
                         Timestamp = DateTime.Now,
                         Message = ex.InnerException?.Message ?? ex.Message
                     });
-                    e.Cancel = true;
                     StopListener();
                 }
             };
@@ -71,11 +79,6 @@ namespace LogViewer.ViewModel
                 MessageBox.Show(Constants.Messages.MandatoryFieldsMissingComponent, Constants.Messages.AlertTitle);
                 return false;
             }
-            if (Path.ToLower().Contains("udp"))
-            {
-                MessageBox.Show(Constants.Messages.InvalidUrlComponent, Constants.Messages.AlertTitle);
-                return false;
-            }
 
             // Check if component already exists 
             foreach (var comp in components)
@@ -84,6 +87,14 @@ namespace LogViewer.ViewModel
                 MessageBox.Show(Constants.Messages.DuplicateComponent, Constants.Messages.AlertTitle);
                 return false;
             }
+
+            // Check if file exists 
+            if (!FileProcessor.Exists(Path))
+            {
+                MessageBox.Show(Constants.Messages.FileNotFoundComponent, Constants.Messages.AlertTitle);
+                return false;
+            }
+
             return true;
         }
 
@@ -94,28 +105,28 @@ namespace LogViewer.ViewModel
             
             // set level counters
             MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName,
-                new ObservableCounterDictionary<Levels.LevelTypes>
+                new ObservableCounterDictionary<LevelTypes>
                 {
-                    {Levels.LevelTypes.All, 0},
-                    {Levels.LevelTypes.Verbose, 0},
-                    {Levels.LevelTypes.Debug, 0},
-                    {Levels.LevelTypes.Information, 0},
-                    {Levels.LevelTypes.Warning, 0},
-                    {Levels.LevelTypes.Error, 0},
-                    {Levels.LevelTypes.Fatal, 0}
+                    {LevelTypes.All, 0},
+                    {LevelTypes.Verbose, 0},
+                    {LevelTypes.Debug, 0},
+                    {LevelTypes.Information, 0},
+                    {LevelTypes.Warning, 0},
+                    {LevelTypes.Error, 0},
+                    {LevelTypes.Fatal, 0}
                 });
             
             // Add new message queue
-            MessageContainer.RAM.UdpMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
+            MessageContainer.RAM.FileMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
 
-            // Set message collection onchanged event (DISK)
+            // Set message collection onchanged event (DISK) 
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
-                CollectionChangedDISK(e, sender as ObservableCounterDictionary<Levels.LevelTypes>);
+                CollectionChangedDISK(e, sender as ObservableCounterDictionary<LevelTypes>);
             };
 
-            // Set message collection onchanged event
-            MessageContainer.RAM.UdpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
+            // Set message collection onchanged event (RAM) 
+            MessageContainer.RAM.FileMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
             {
                 CollectionChangedRAM(e, sender as ObservableSet<Entry>);
             };
@@ -123,14 +134,14 @@ namespace LogViewer.ViewModel
 
         public override void RemoveComponent()
         {
-            MessageContainer.RAM.UdpMessages.Remove(ComponentRegisterName);
+            MessageContainer.RAM.FileMessages.Remove(ComponentRegisterName);
             MessageContainer.Disk.ComponentCounters.Remove(ComponentRegisterName);
             ProcessorMonitorContainer.ComponentStopper.Remove(ComponentRegisterName);
         }
 
         public override void ClearComponent()
         {
-            MessageContainer.RAM.UdpMessages[ComponentRegisterName].Value.Clear();
+            MessageContainer.RAM.FileMessages[ComponentRegisterName].Value.Clear();
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
         }
     }

@@ -2,7 +2,7 @@
 {
     public enum StoreTypes
     {
-        Disk,
-        RAM
+        Local,
+        MongoDB
     }
 }

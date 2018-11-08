@@ -8,7 +8,7 @@ using LogViewer.Services;
 
 namespace LogViewer.ViewModel
 {
-    public class HttpComponentVM : ComponentVM
+    public class TcpComponentVM : ComponentVM
     {
         private static string componentImage;
         public override string ComponentImage {
@@ -16,16 +16,15 @@ namespace LogViewer.ViewModel
             {
                 if (componentImage == null)
                 {
-                    componentImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}";
+                    componentImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageTcp}";
                 }
                 return componentImage;
             }
         }
+        
+        private string TcpFullName => Path.EndsWith("/") ? $"{Path.Substring(0, Path.Length - 1)}" : Path;
 
-        private string PathFixer => !Path.EndsWith("/") ? $"{Path}/" : Path;
-        private string HttpFullName => $"http://{PathFixer}";
-
-        public HttpComponentVM(string name, string path) : base(name, path, ComponentTypes.Http)
+        public TcpComponentVM(string name, string path) : base(name, path, ComponentTypes.Tcp)
         {
             
         }
@@ -42,8 +41,8 @@ namespace LogViewer.ViewModel
                 {
                     if (bwAsync != null && bwAsync.CancellationPending) { return; }
 
-                    var httpP = new HttpProcessor();
-                    httpP.ReadData(HttpFullName, ComponentRegisterName, ref asyncWorker, StoreType);
+                    var tcpP = new TcpProcessor();
+                    tcpP.ReadData(Path, ComponentRegisterName, ref asyncWorker, StoreType);
 
                     while (!e.Cancel)
                     {
@@ -51,6 +50,7 @@ namespace LogViewer.ViewModel
                         e.Cancel = true;
                         StopListener();
                     }
+
                 }
                 catch (Exception ex)
                 {
@@ -72,7 +72,7 @@ namespace LogViewer.ViewModel
                 MessageBox.Show(Constants.Messages.MandatoryFieldsMissingComponent, Constants.Messages.AlertTitle);
                 return false;
             }
-            if (Path.ToLower().Contains("http"))
+            if (Path.ToLower().Contains("tcp"))
             {
                 MessageBox.Show(Constants.Messages.InvalidUrlComponent, Constants.Messages.AlertTitle);
                 return false;
@@ -85,7 +85,6 @@ namespace LogViewer.ViewModel
                 MessageBox.Show(Constants.Messages.DuplicateComponent, Constants.Messages.AlertTitle);
                 return false;
             }
-
             return true;
         }
 
@@ -96,28 +95,28 @@ namespace LogViewer.ViewModel
             
             // set level counters
             MessageContainer.Disk.ComponentCounters.Add(ComponentRegisterName,
-                new ObservableCounterDictionary<Levels.LevelTypes>
+                new ObservableCounterDictionary<LevelTypes>
                 {
-                    {Levels.LevelTypes.All, 0},
-                    {Levels.LevelTypes.Verbose, 0},
-                    {Levels.LevelTypes.Debug, 0},
-                    {Levels.LevelTypes.Information, 0},
-                    {Levels.LevelTypes.Warning, 0},
-                    {Levels.LevelTypes.Error, 0},
-                    {Levels.LevelTypes.Fatal, 0}
+                    {LevelTypes.All, 0},
+                    {LevelTypes.Verbose, 0},
+                    {LevelTypes.Debug, 0},
+                    {LevelTypes.Information, 0},
+                    {LevelTypes.Warning, 0},
+                    {LevelTypes.Error, 0},
+                    {LevelTypes.Fatal, 0}
                 });
             
             // Set message collection onchanged event (DISK) 
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
             {
-                CollectionChangedDISK(e, sender as ObservableCounterDictionary<Levels.LevelTypes>);
+                CollectionChangedDISK(e, sender as ObservableCounterDictionary<LevelTypes>);
             };
 
             // Add new message queue
-            MessageContainer.RAM.HttpMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
+            MessageContainer.RAM.TcpMessages.Add(ComponentRegisterName, new Lazy<ObservableSet<Entry>>());
 
             // Set message collection onchanged event 
-            MessageContainer.RAM.HttpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
+            MessageContainer.RAM.TcpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
             {
                 CollectionChangedRAM(e, sender as ObservableSet<Entry>);
             };
@@ -125,14 +124,14 @@ namespace LogViewer.ViewModel
 
         public override void RemoveComponent()
         {
-            MessageContainer.RAM.HttpMessages.Remove(ComponentRegisterName);
+            MessageContainer.RAM.TcpMessages.Remove(ComponentRegisterName);
             MessageContainer.Disk.ComponentCounters.Remove(ComponentRegisterName);
             ProcessorMonitorContainer.ComponentStopper.Remove(ComponentRegisterName);
         }
 
         public override void ClearComponent()
         {
-            MessageContainer.RAM.HttpMessages[ComponentRegisterName].Value.Clear();
+            MessageContainer.RAM.TcpMessages[ComponentRegisterName].Value.Clear();
             MessageContainer.Disk.ComponentCounters[ComponentRegisterName].Clear();
         }
     }

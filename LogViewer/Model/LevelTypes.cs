@@ -7,29 +7,6 @@ namespace LogViewer.Model
 {
     public static class Levels
     {
-        public enum LevelTypes
-        {
-            All,
-
-            [Description("VRB")]
-            Verbose,
-
-            [Description("DBG")]
-            Debug,
-
-            [Description("INF")]
-            Information,
-
-            [Description("WRN")]
-            Warning,
-
-            [Description("ERR")]
-            Error,
-
-            [Description("FTL")]
-            Fatal
-        }
-
         private static Dictionary<LevelTypes, SolidColorBrush> LevelColors => new Dictionary<LevelTypes, SolidColorBrush>
         {
             { LevelTypes.Verbose, Brushes.Purple },

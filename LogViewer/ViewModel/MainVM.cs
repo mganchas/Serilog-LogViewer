@@ -61,9 +61,18 @@ namespace LogViewer.ViewModel
         {
             get
             {
-                return Components?.Count == 0 ? Visibility.Hidden : Visibility.Visible;
+                if (Components == null || Components.Count == 0)
+                {
+                    return Visibility.Collapsed;
+                }
+                else
+                {
+                    return Visibility.Visible;
+                }
             }
         }
+        
+        
 
         public ComponentSelectorVM[] ComponentTypes => new ComponentSelectorVM[]
         {

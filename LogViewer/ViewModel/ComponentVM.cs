@@ -14,6 +14,7 @@ using LogViewer.Configs;
 using LogViewer.Containers;
 using LogViewer.Model;
 using LogViewer.Services;
+using LogViewer.View;
 using static LogViewer.Model.Levels;
 using Expression = System.Windows.Expression;
 
@@ -125,6 +126,18 @@ namespace LogViewer.ViewModel
                 NotifyPropertyChanged(nameof(AllowChanges));
             }
         }
+        
+        private bool canExport = true;
+
+        public bool CanExport
+        {
+            get { return canExport; }
+            set
+            {
+                canExport = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         private bool allowChanges = true;
 
@@ -222,13 +235,13 @@ namespace LogViewer.ViewModel
             // set start listener/reader
             StartDiskListenerCommand = new CommandHandler(_ =>
             {
-                StoreType = StoreTypes.Disk;
+                StoreType = StoreTypes.MongoDB;
                 StartAction();
             });
 
             StartRAMListenerCommand = new CommandHandler(_ =>
             {
-                StoreType = StoreTypes.RAM;
+                StoreType = StoreTypes.Local;
                 StartAction();
             });
 
@@ -302,10 +315,16 @@ namespace LogViewer.ViewModel
                     FilterMessages();
                 }));
             });
+            
+            // Set export command
+            ExportVisibleMessagesCommand = new CommandHandler(_ =>
+            {
+                var newComponent = CopyComponent(this);
+                new VisibleMessagesWindow(newComponent as ComponentVM).Show();
+            });
         }
 
-        protected void CollectionChangedDISK(NotifyCollectionChangedEventArgs e,
-            ObservableCounterDictionary<LevelTypes> originalDictionary)
+        protected void CollectionChangedDISK(NotifyCollectionChangedEventArgs e, ObservableCounterDictionary<LevelTypes> originalDictionary)
         {
             if (!IsRunning || e.NewItems == null)
             {
@@ -349,15 +368,15 @@ namespace LogViewer.ViewModel
                     Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) (() =>
                     {
                         // increment specific button counter 
-                        ComponentLevels[(Levels.LevelTypes) entry.LevelType].Counter++;
-                        ComponentLevels[Levels.LevelTypes.All].Counter++;
+                        ComponentLevels[(LevelTypes) entry.LevelType].Counter++;
+                        ComponentLevels[LevelTypes.All].Counter++;
 
                         // add item to console messages 
                         ConsoleMessages.Add(new LogEventsVM
                         {
                             RenderedMessage = entry.RenderedMessage,
                             Timestamp = entry.Timestamp,
-                            LevelType = (Levels.LevelTypes) entry.LevelType
+                            LevelType = (LevelTypes) entry.LevelType
                         });
                     }));
 
@@ -428,7 +447,7 @@ namespace LogViewer.ViewModel
             }
 
             // get entries from RAM or Disk
-            if (StoreType == StoreTypes.Disk)
+            if (StoreType == StoreTypes.MongoDB)
             {
                 FilterEntriesDisk(currFilters.Levels);
             }
@@ -543,6 +562,26 @@ namespace LogViewer.ViewModel
         private static string TransformFilterString(string filterString)
         {
             return filterString.ToLower().Trim();
+        }
+
+        private static ComponentVM CopyComponent(ComponentVM componentToCopy)
+        {
+            var newComponent = ComponentFactory.GetNewComponent(componentToCopy.Component, componentToCopy.Name, componentToCopy.Path);
+
+            componentToCopy.GetType().GetProperties()
+                .Join(newComponent.GetType().GetProperties(), 
+                    itemSource => itemSource.Name, itemTarget => itemTarget.Name,
+                    (propSource, propTarget) => new { PropertySource = propSource, PropertyTarget = propTarget })
+                .ToList()
+                .ForEach((item) =>
+                {
+                    // check for read-only properties
+                    if (item.PropertyTarget.SetMethod == null) return; 
+                    
+                    item.PropertyTarget.SetValue(newComponent, item.PropertySource.GetValue(componentToCopy, null), null);    
+                });
+            
+            return newComponent;
         }
 
         protected static void PlaySound()
