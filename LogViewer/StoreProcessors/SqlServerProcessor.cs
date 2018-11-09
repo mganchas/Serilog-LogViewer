@@ -1,28 +1,36 @@
+using System;
 using System.Collections.Generic;
-using LogViewer.Model;
-using LogViewer.Model.Abstractions;
+using LogViewer.Components.Levels;
+using LogViewer.Entries.Abstractions;
 using LogViewer.Services.Abstractions;
 
-namespace LogViewer.Services
+namespace LogViewer.StoreProcessors
 {
     public class SqlServerProcessor : IDbProcessor
     {
-        public void WriteOne<T>(T record)
+        private static readonly Lazy<SqlServerProcessor> _lazy = new Lazy<SqlServerProcessor>(() => new SqlServerProcessor());
+        public static SqlServerProcessor Instance => _lazy.Value;
+        
+        public SqlServerProcessor()
+        {
+        }
+        
+        public void WriteOne<T>(T record) where T : IEntry
         {
             throw new System.NotImplementedException();
         }
 
-        public void WriteMany<T>(IEnumerable<T> entries)
+        public void WriteMany<T>(IEnumerable<T> entries) where T : IEntry
         {
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<T> ReadAll<T>()
+        public IEnumerable<T> ReadAll<T>() where T : IEntry
         {
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<T> ReadAll<T>(int numberOfRows)
+        public IEnumerable<T> ReadAll<T>(int numberOfRows) where T : IEntry
         {
             throw new System.NotImplementedException();
         }

@@ -1,20 +1,22 @@
-﻿using LogViewer.Model;
-using LogViewer.ViewModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
-using LogViewer.Model.Abstractions;
+using LogViewer.Components.Levels;
+using LogViewer.Entries.Abstractions;
 using LogViewer.Services.Abstractions;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using static LogViewer.Model.Levels;
 
-namespace LogViewer.Services
+namespace LogViewer.StoreProcessors
 {
     public class MongoDBProcessor : IDbProcessor
     {
+        private static readonly Lazy<MongoDBProcessor> _lazy = new Lazy<MongoDBProcessor>(() => new MongoDBProcessor());
+        public static MongoDBProcessor Instance => _lazy.Value;
+        
+        public MongoDBProcessor()
+        {
+        }
+        
         private const string CollectionName = "entries";
         private readonly string _dbName;
 
@@ -23,7 +25,7 @@ namespace LogViewer.Services
             this._dbName = dbName;
         }
 
-        public void WriteOne<T>(T record)
+        public void WriteOne<T>(T record) where T : IEntry
         {
             var client = new MongoClient();
             var database = client.GetDatabase(_dbName);
@@ -31,7 +33,7 @@ namespace LogViewer.Services
             collection.InsertOne(record);
         }
 
-        public void WriteMany<T>(IEnumerable<T> records)
+        public void WriteMany<T>(IEnumerable<T> records) where T : IEntry
         {
             var client = new MongoClient();
             var database = client.GetDatabase(_dbName);
@@ -39,7 +41,7 @@ namespace LogViewer.Services
             collection.InsertMany(records);
         }
 
-        public IEnumerable<T> ReadAll<T>()
+        public IEnumerable<T> ReadAll<T>() where T : IEntry
         {
             var client = new MongoClient();
             var database = client.GetDatabase(_dbName);
@@ -47,7 +49,7 @@ namespace LogViewer.Services
             return collection.Find(_ => true).ToList();
         }
 
-        public IEnumerable<T> ReadAll<T>(int numberOfRows)
+        public IEnumerable<T> ReadAll<T>(int numberOfRows) where T : IEntry
         {
             return ReadAll<T>().Take(numberOfRows);
         }

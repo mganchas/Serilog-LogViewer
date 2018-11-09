@@ -349,80 +349,72 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="View\App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
-    <Compile Include="Components\Abstractions\IComponentProcessor.cs" />
-    <Compile Include="Components\File\FileComponentVM.cs" />
-    <Compile Include="Components\File\FileProcessor.cs" />
-    <Compile Include="Components\Http\HttpComponentVM.cs" />
-    <Compile Include="Components\Http\HttpProcessor.cs" />
-    <Compile Include="Components\Tcp\TcpComponentVM.cs" />
-    <Compile Include="Components\Tcp\TcpProcessor.cs" />
-    <Compile Include="Components\Udp\UdpComponentVM.cs" />
-    <Compile Include="Components\Udp\UdpProcessor.cs" />
-    <Compile Include="Containers\LoggerContainer.cs" />
-    <Compile Include="Containers\MessageContainer.cs" />
-    <Compile Include="Containers\ProcessorMonitorContainer.cs" />
-    <Compile Include="Model\Abstractions\IEntry.cs" />
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Components\ComponentSelectorVM.cs" />
+    <Compile Include="Components\ComponentTypes.cs" />
+    <Compile Include="Components\ComponentVM.cs" />
+    <Compile Include="Components\Detached\VisibleMessagesVM.cs" />
+    <Compile Include="Components\Detached\VisibleMessagesWindow.xaml.cs">
+      <DependentUpon>VisibleMessagesWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Components\Helpers\ComponentValidator.cs" />
+    <Compile Include="Components\Levels\Helpers\LevelTypesHelper.cs" />
+    <Compile Include="Components\Levels\LevelsVM.cs" />
+    <Compile Include="Components\Levels\LevelTypes.cs" />
+    <Compile Include="Components\Processors\Abstractions\IComponentProcessor.cs" />
+    <Compile Include="Components\Processors\ComponentProcessorFactory.cs" />
+    <Compile Include="Components\Processors\FileProcessor.cs" />
+    <Compile Include="Components\Processors\HttpProcessor.cs" />
+    <Compile Include="Components\Processors\TcpProcessor.cs" />
+    <Compile Include="Components\Processors\UdpProcessor.cs" />
+    <Compile Include="Components\Views\UCComponent.xaml.cs">
+      <DependentUpon>UCComponent.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entries\Detached\EntryDetailVM.cs" />
+    <Compile Include="Entries\Detached\EntryDetailWindow.xaml.cs">
+      <DependentUpon>EntryDetailWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entries\EntryVM.cs" />
+    <Compile Include="Logging\LogVM.cs" />
+    <Compile Include="Entries\Abstractions\IEntry.cs" />
+    <Compile Include="MainVM.cs" />
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="StoreProcessors\ElasticSearchProcessor.cs" />
     <Compile Include="StoreProcessors\LocalProcessor.cs" />
     <Compile Include="StoreProcessors\SqlLiteProcessor.cs" />
     <Compile Include="StoreProcessors\SqlServerProcessor.cs" />
-    <Compile Include="Factories\ComponentFactory.cs" />
     <Compile Include="StoreProcessors\Abstractions\IDbProcessor.cs" />
     <Compile Include="StoreProcessors\MongoDBProcessor.cs" />
-    <Compile Include="Structures\ComponentTypes.cs" />
-    <Compile Include="Structures\Helpers\LevelTypesHelper.cs" />
-    <Compile Include="Structures\LevelTypes.cs" />
-    <Compile Include="Structures\ObservableDictionary.cs" />
-    <Compile Include="Structures\ObservableSet.cs" />
-    <Compile Include="Structures\StoreTypes.cs" />
-    <Compile Include="ViewModel\Abstractions\IComponent.cs" />
-    <Compile Include="ViewModel\ComponentSelectorVM.cs" />
-    <Compile Include="ViewModel\Helpers\CommandHandler.cs" />
-    <Compile Include="ViewModel\Helpers\PropertyChangesNotifier.cs" />
-    <Compile Include="ViewModel\LogVM.cs" />
-    <Compile Include="ViewModel\VisibleMessagesVM.cs" />
-    <Compile Include="View\EntryDetailWindow.xaml.cs">
-      <DependentUpon>EntryDetailWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Model\Entry.cs" />
+    <Compile Include="StoreProcessors\StoreTypes.cs" />
+    <Compile Include="Structures\Collections\ObservableDictionary.cs" />
+    <Compile Include="Structures\Collections\ObservableSet.cs" />
+    <Compile Include="Structures\Containers\LoggerContainer.cs" />
+    <Compile Include="Structures\Containers\MessageContainer.cs" />
+    <Compile Include="Structures\Containers\ProcessorMonitorContainer.cs" />
+    <Compile Include="ViewModelHelpers\CommandHandler.cs" />
+    <Compile Include="ViewModelHelpers\PropertyChangesNotifier.cs" />
+    <Compile Include="Entries\Entry.cs" />
     <Compile Include="Configs\Constants.cs" />
-    <Compile Include="ViewModel\ComponentVM.cs" />
-    <Compile Include="ViewModel\EntryDetailVM.cs" />
-    <Compile Include="ViewModel\LevelsVM.cs" />
-    <Compile Include="ViewModel\LogEventsVM.cs" />
-    <Compile Include="ViewModel\MainVM.cs" />
-    <Compile Include="View\UCComponent.xaml.cs">
-      <DependentUpon>UCComponent.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\VisibleMessagesWindow.xaml.cs">
-      <DependentUpon>VisibleMessagesWindow.xaml</DependentUpon>
-    </Compile>
-    <Page Include="View\EntryDetailWindow.xaml">
+    <Page Include="Components\Detached\VisibleMessagesWindow.xaml" />
+    <Page Include="Components\Views\UCComponent.xaml" />
+    <Page Include="Entries\Detached\EntryDetailWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\MainWindow.xaml">
+    <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="View\App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="View\MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
     <Page Include="Styles\CustomStyles.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\UCComponent.xaml" />
-    <Page Include="View\VisibleMessagesWindow.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -497,6 +489,12 @@
     <Resource Include="Configs\Images\terminal.png" />
     <Resource Include="Configs\Images\udp.png" />
     <Resource Include="Configs\Images\VB.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

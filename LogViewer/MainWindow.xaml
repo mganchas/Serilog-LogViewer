@@ -1,0 +1,101 @@
+﻿<Window x:Class="LogViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:LogViewer.ViewModel"
+        xmlns:uc="clr-namespace:LogViewer.View"
+        xmlns:logViewer="clr-namespace:LogViewer"
+        mc:Ignorable="d"
+        Title="Log Viewer" MinHeight="650" Height="650" MinWidth="1100" Width="1100" AllowDrop="True" DragDrop.Drop="Window_Drop">
+
+    <Window.DataContext>
+        <logViewer:MainVM/>
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="80"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Start options -->
+        <Grid Grid.Row="0" Height="65" Background="{StaticResource Toolbar}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Component type -->
+                <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding ComponentTypeLabel}" Style="{StaticResource TextBlockTitles}"/>
+                <ComboBox Grid.Column="1" Grid.Row="0" Text="{Binding Type}" Margin="5,0" Style="{StaticResource IconAndTextCombobox}" ItemsSource="{Binding ComponentTypes, Mode=OneTime}" Height="28" SelectedItem="{Binding SelectedComponentType}"/>
+
+                <!-- Component name -->
+                <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding ComponentNameLabel}" Style="{StaticResource TextBlockTitles}"/>
+                <TextBox Grid.Column="3" Grid.Row="0" Text="{Binding Name}" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch" Height="28"/>
+                
+                <!-- Http path -->
+                <TextBlock Grid.Column="4" Grid.Row="0" Text="{Binding PathLabel}" Style="{StaticResource TextBlockTitles}"/>
+                <TextBox Grid.Column="5" Grid.Row="0" Text="{Binding Path}" Foreground="Blue" Margin="5,0" Style="{StaticResource CustomTextBox}" HorizontalAlignment="Stretch" Height="28"/>
+            </Grid>
+
+            <!-- Action buttons -->
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center">
+                <Button Style="{StaticResource RoundButton}" Command="{Binding AddListenerCommand}" ToolTip="Start/Stop Listener">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding AddImage}" Margin="5"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Components -->
+        <Grid Grid.Row="1" Visibility="{Binding VisibleComponents}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <ListBox Grid.Column="0" Style="{StaticResource ComponentHeader}" BorderThickness="0,0,2,0" BorderBrush="LightGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" SelectedIndex="{Binding SelectedIndex}" Visibility="{Binding VisibleComponents}"/>
+            <uc:UCComponent Grid.Column="1" DataContext="{Binding SelectedComponent}"/>
+        </Grid>
+
+        <GridSplitter Grid.Row="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="LightGray" Margin="10,3"/>
+
+        <Grid Grid.Row="3">
+            <ListBox Margin="5" Style="{StaticResource VisualLog}" ItemsSource="{Binding LogEntries}" />
+        </Grid>
+
+        <!-- Export options -->
+        <Grid Grid.Row="4" Height="50" Background="{StaticResource Toolbar}">
+            <StackPanel HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
+                <Button Style="{StaticResource RoundButton}" Command="{Binding StartAllRAMCommand}" ToolTip="{Binding StartAllRAMTooltip}">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding StartRAMButtonImage}" Margin="5"/>
+                </Button>
+                <Button Style="{StaticResource RoundButton}" Command="{Binding CancelAllCommand}" ToolTip="{Binding CancelAllTooltip}">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding CancelButtonImage}" Margin="5"/>
+                </Button>
+                <Button Style="{StaticResource RoundButton}" Command="{Binding ClearCommand}" ToolTip="{Binding ClearAllTooltip}">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding ClearButtonImage}" Margin="5"/>
+                </Button>
+                <Button Style="{StaticResource RoundButton}" Command="{Binding ResetCommand}" ToolTip="{Binding ResetAllTooltip}">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding ResetButtonImage}" Margin="5"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

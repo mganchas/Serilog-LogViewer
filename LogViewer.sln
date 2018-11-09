@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogViewer", "LogViewer\LogViewer.csproj", "{5D766605-E411-4330-B759-72DE8C776E3E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogViewerTests", "LogViewerTests\LogViewerTests.csproj", "{6AD621A1-9F73-4FE4-9135-BF205998D5DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{5D766605-E411-4330-B759-72DE8C776E3E}.Release|x64.Build.0 = Release|x64
 		{5D766605-E411-4330-B759-72DE8C776E3E}.Release|x86.ActiveCfg = Release|x86
 		{5D766605-E411-4330-B759-72DE8C776E3E}.Release|x86.Build.0 = Release|x86
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Debug|x64.Build.0 = Debug|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Debug|x86.Build.0 = Debug|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Release|x64.ActiveCfg = Release|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Release|x64.Build.0 = Release|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Release|x86.ActiveCfg = Release|Any CPU
+		{6AD621A1-9F73-4FE4-9135-BF205998D5DB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
