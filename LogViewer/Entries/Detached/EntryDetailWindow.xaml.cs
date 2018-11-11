@@ -1,7 +1,5 @@
-﻿using LogViewer.ViewModel;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
-using LogViewer.Entries;
 using LogViewer.Entries.Detached;
 
 namespace LogViewer.View

@@ -47,6 +47,28 @@
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <Style x:Key="ToggleRoundButton" TargetType="{x:Type RadioButton}">
+        <Setter Property="Height" Value="35" />
+        <Setter Property="Width" Value="35" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RadioButton}">
+                    <Border Background="Transparent" Cursor="Hand" x:Name="brd" BorderThickness="1.5"
+                            BorderBrush="Transparent" CornerRadius="0">
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" TargetName="brd" Value="{StaticResource DarkBlue}" />
+                            <Setter Property="Background" TargetName="brd" Value="{StaticResource Toolbar}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <Style x:Key="ButtonWithTextAndCounter" TargetType="{x:Type RadioButton}">
         <Setter Property="Template">
@@ -347,160 +369,6 @@
         </Setter>
     </Style>
 
-    <Style x:Key="CustomTabControl" TargetType="{x:Type TabControl}">
-        <Setter Property="TabStripPlacement" Value="Left" />
-        <Style.Resources>
-            <Style TargetType="TabItem">
-                <Setter Property="Visibility" Value="Collapsed" />
-                <Setter Property="Background" Value="{StaticResource Toolbar}" />
-                <Setter Property="Padding" Value="3" />
-                <Setter Property="ContentTemplate">
-                    <Setter.Value>
-                        <DataTemplate>
-                            <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                    BorderThickness="0">
-                                <Grid Margin="5">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto" />
-                                        <RowDefinition Height="auto" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
-
-                                    <!-- Levels -->
-                                    <Grid Grid.Row="0" Margin="5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="auto" />
-                                            <RowDefinition Height="*" />
-                                        </Grid.RowDefinitions>
-
-                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal"
-                                                    Margin="0,0,0,10">
-                                            <Image Height="20" Width="20" HorizontalAlignment="Left"
-                                                   ToolTip="{Binding LevelsTitle}"
-                                                   VerticalAlignment="Center" Style="{StaticResource CustomImage}"
-                                                   Source="{Binding MonitorImage}" Opacity="1" />
-                                            <TextBlock Text="{Binding LevelsTitle}" Margin="5,0"
-                                                       HorizontalAlignment="Left"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="{StaticResource TextBoxForeground}" />
-                                        </StackPanel>
-
-                                        <ListBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="7"
-                                                 Style="{StaticResource LevelsListbox}"
-                                                 ItemsSource="{Binding ComponentLevels}" Margin="0,0,5,0">
-                                            <i:Interaction.Triggers>
-                                                <i:EventTrigger EventName="SelectionChanged">
-                                                    <i:InvokeCommandAction Command="{Binding FilterLevelCommand}" />
-                                                </i:EventTrigger>
-                                            </i:Interaction.Triggers>
-                                        </ListBox>
-                                    </Grid>
-
-                                    <!-- Filters -->
-                                    <Grid Grid.Row="1" Margin="5">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="auto" />
-                                            <RowDefinition Height="*" />
-                                        </Grid.RowDefinitions>
-
-                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,10">
-                                            <Image Height="20" Width="20" HorizontalAlignment="Left"
-                                                   ToolTip="{Binding FilterTitle}"
-                                                   VerticalAlignment="Center" Style="{StaticResource CustomImage}"
-                                                   Source="{Binding FilterImage}" Opacity="1" />
-                                            <TextBlock Text="{Binding FilterTitle}" Margin="5,0"
-                                                       HorizontalAlignment="Left"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="{StaticResource TextBoxForeground}" />
-                                        </StackPanel>
-
-                                        <TextBox Grid.Row="1"
-                                                 Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}">
-                                            <TextBox.InputBindings>
-                                                <KeyBinding Command="{Binding FilterTextClearCommand}" Key="Escape" />
-                                                <KeyBinding Command="{Binding FilterTextSearchCommand}" Key="Enter" />
-                                            </TextBox.InputBindings>
-                                        </TextBox>
-                                    </Grid>
-
-                                    <!-- Messages -->
-                                    <Grid Grid.Row="2" Margin="5">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="auto" />
-                                            <RowDefinition Height="*" />
-                                            <!--<RowDefinition Height="auto"/>-->
-                                        </Grid.RowDefinitions>
-
-                                        <Grid Grid.Row="0" Margin="0,10">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal"
-                                                        HorizontalAlignment="Left">
-                                                <Image Height="20" Width="20" HorizontalAlignment="Left"
-                                                       ToolTip="{Binding TerminalTitle}"
-                                                       VerticalAlignment="Center" Style="{StaticResource CustomImage}"
-                                                       Source="{Binding TerminalImage}" Opacity="1" />
-                                                <TextBlock Text="{Binding TerminalTitle}" Margin="5,0"
-                                                           HorizontalAlignment="Left"
-                                                           VerticalAlignment="Center"
-                                                           Foreground="{StaticResource TextBoxForeground}" />
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal"
-                                                        HorizontalAlignment="Right">
-                                                <TextBlock Text="Filter:"
-                                                           Foreground="{StaticResource TextBoxForeground}" Margin="5,0"
-                                                           VerticalAlignment="Center" />
-                                                <TextBox
-                                                    Text="{Binding VisibleMessagesNr, UpdateSourceTrigger=PropertyChanged}"
-                                                    Margin="5,0"
-                                                    VerticalAlignment="Center">
-                                                    <TextBox.InputBindings>
-                                                        <KeyBinding Command="{Binding FilterTextSearchCommand}"
-                                                                    Key="Enter" />
-                                                    </TextBox.InputBindings>
-                                                </TextBox>
-                                                <TextBlock Text="Showing:"
-                                                           Foreground="{StaticResource TextBoxForeground}" Margin="5,0"
-                                                           VerticalAlignment="Center" />
-                                                <TextBlock
-                                                    Text="{Binding VisibleConsoleMessages.Count, UpdateSourceTrigger=PropertyChanged}"
-                                                    Margin="5,0,0,0" VerticalAlignment="Center" />
-
-                                                <Button Style="{StaticResource RoundButton}"
-                                                        Command="{Binding ExportVisibleMessagesCommand}"
-                                                        ToolTip="{Binding ExportVisibleMessages}" Margin="5,0"
-                                                        VerticalAlignment="Center">
-                                                    <Image Style="{StaticResource CustomImage}"
-                                                           Source="{Binding ExportVisibleMessagesImage}"
-                                                           Margin="5" />
-                                                </Button>
-                                            </StackPanel>
-                                        </Grid>
-                                        <ListBox Grid.Row="1" x:Name="lst_entries"
-                                                 Style="{StaticResource CustomMessagesListbox}"
-                                                 ItemsSource="{Binding VisibleConsoleMessages, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        <!--<TextBlock Grid.Row="2" Text="{Binding ExecutionTime}" Visibility="{Binding Path=HasExecutionTime, Converter={StaticResource BoolToVis}}" HorizontalAlignment="Right" Foreground="{StaticResource TextBoxForeground}" Margin="0,5,0,0" FontStyle="Italic"/>-->
-                                    </Grid>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </Style.Resources>
-    </Style>
-
     <Style x:Key="ComponentHeader" TargetType="{x:Type ListBox}">
         <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
         <Setter Property="Background" Value="Transparent" />
@@ -539,17 +407,52 @@
                                                Foreground="{StaticResource TextBoxForeground}" TextWrapping="Wrap" />
                                 </Grid>
                                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                    <!-- <Button Style="{StaticResource RoundButton}" Command="{Binding StartDiskListenerCommand}" ToolTip="{Binding StartDiskTitle}" Margin="5" Height="30" Width="30" VerticalAlignment="Center" Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}"> -->
-                                    <!--     <Image Style="{StaticResource CustomImage}" Source="{Binding PlayDiskImage}" Margin="5"/> -->
-                                    <!-- </Button> -->
-                                    <Button Style="{StaticResource RoundButton}"
-                                            Command="{Binding StartRAMListenerCommand}"
-                                            ToolTip="{Binding StartRAMTitle}" Margin="5" Height="30" Width="30"
+                                    <RadioButton x:Name="playButton" Style="{StaticResource ToggleRoundButton}"
+                                            ToolTip="{Binding StartTitle}" Margin="5" Height="30" Width="30"
                                             VerticalAlignment="Center"
                                             Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
-                                        <Image Style="{StaticResource CustomImage}" Source="{Binding PlayRAMImage}"
-                                               Margin="5" />
-                                    </Button>
+                                        <Image Style="{StaticResource CustomImage}" Source="{Binding PlayImage}" Margin="5" />
+                                    </RadioButton>
+                                    
+                                    <!-- Command="{Binding StartListenerCommand}" -->
+                                    
+                                    <Popup AllowsTransparency="True" x:Name="popup_processors" IsOpen="{Binding IsChecked, ElementName=playButton}" StaysOpen="False" PlacementTarget="{Binding ElementName=playButton}" PopupAnimation="Fade">
+                                        <Border BorderBrush="LightGray" BorderThickness="1" Background="White" CornerRadius="0" Width="200" Height="200">
+                                            <Grid Margin="10" Width="Auto" Height="Auto">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <!-- RAM -->
+                                                <Label Grid.Column="0" Grid.Row="0" Content="RAM" VerticalAlignment="Center"/>
+                                                <Image Grid.Column="1" Grid.Row="0" Style="{StaticResource CustomImage}" Source="{Binding RamImage}" Margin="5"/>
+                                                
+                                                <!-- MongoDB -->
+                                                <Label Grid.Column="0" Grid.Row="1" Content="MongoDB" VerticalAlignment="Center"/>
+                                                <Image Grid.Column="1" Grid.Row="1" Style="{StaticResource CustomImage}" Source="{Binding MongoDBImage}" Margin="5"/>
+                                                
+                                                <!-- Sqlite -->
+                                                <Label Grid.Column="0" Grid.Row="2" Content="Sqlite" VerticalAlignment="Center"/>
+                                                <Image Grid.Column="1" Grid.Row="2" Style="{StaticResource CustomImage}" Source="{Binding SqliteImage}" Margin="5"/>
+                                                
+                                                <!-- Sql Server -->
+                                                <Label Grid.Column="0" Grid.Row="3" Content="Sql Server" VerticalAlignment="Center"/>
+                                                <Image Grid.Column="1" Grid.Row="3" Style="{StaticResource CustomImage}" Source="{Binding SqlServerImage}" Margin="5"/>
+                                                
+                                                <!-- Elastic Search -->
+                                                <Label Grid.Column="0" Grid.Row="4" Content="Elastic Search" VerticalAlignment="Center"/>
+                                                <Image Grid.Column="1" Grid.Row="4" Style="{StaticResource CustomImage}" Source="{Binding ElasticSearchImage}" Margin="5"/>
+                                            </Grid>
+                                        </Border>
+                                    </Popup>
 
                                     <Button Style="{StaticResource RoundButton}"
                                             Command="{Binding StopListenerCommand}" ToolTip="{Binding StopTitle}"

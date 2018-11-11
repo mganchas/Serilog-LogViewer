@@ -1,11 +1,11 @@
-﻿using System.ComponentModel;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using LogViewer.Components.Levels.Helpers;
 using LogViewer.Components.Processors.Abstractions;
 using LogViewer.Entries;
-using LogViewer.Services.Abstractions;
+using LogViewer.StoreProcessors.Abstractions;
 using LogViewer.Structures.Containers;
 using Newtonsoft.Json;
 
@@ -13,7 +13,14 @@ namespace LogViewer.Components.Processors
 {
     public sealed class UdpProcessor : IComponentProcessor
     {
-        public void ReadData(string path, string componentName, ref BackgroundWorker asyncWorker, IDbProcessor dbProcessor)
+        private static readonly Lazy<UdpProcessor> _lazy = new Lazy<UdpProcessor>(() => new UdpProcessor());
+        public static UdpProcessor Instance => _lazy.Value;
+
+        public UdpProcessor()
+        {
+        }
+        
+        public void ReadData(string path, string componentName, IDbProcessor dbProcessor)
         {
             UdpClient listener = null;
             try
@@ -24,11 +31,11 @@ namespace LogViewer.Components.Processors
                 var port = int.Parse(splitPath[1]);
 
                 listener = new UdpClient(port);
-                IPEndPoint groupEP = new IPEndPoint(localAddr, port);
+                var groupEP = new IPEndPoint(localAddr, port);
 
                 do
                 {
-                    byte[] bytes = listener.Receive(ref groupEP);
+                    var bytes = listener.Receive(ref groupEP);
 
                     if (ProcessorMonitorContainer.ComponentStopper[componentName])
                     {
@@ -40,40 +47,19 @@ namespace LogViewer.Components.Processors
                     var ent = JsonConvert.DeserializeObject<Entry>(data);
                     var lvlType = LevelTypesHelper.GetLevelTypeFromString(ent.Level);
 
-                    // Save type validation (Disk or RAM)
-//                    if (storeType == StoreTypes.MongoDB)
-//                    {
-//                        // insert into db
-//                        new MongoDBProcessor(componentName).WriteOne(new Entry
-//                        {
-//                            Timestamp = ent.Timestamp,
-//                            RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
-//                            LevelType = (int)lvlType,
-//                            Component = componentName
-//                        });
-//
-//                        // increment counters
-//                        MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(lvlType);
-//                        MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(LevelTypes.All);
-//                    }
-//                    else
-//                    {
-//                        // insert into dictionary
-//                        MessageContainer.RAM.UdpMessages[componentName].Value.Add(new Entry
-//                        {
-//                            Timestamp = ent.Timestamp,
-//                            RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
-//                            LevelType = (int)lvlType,
-//                            Component = componentName
-//                        });
-//                    }
-                }
-                while (!ProcessorMonitorContainer.ComponentStopper[componentName]);
+                    // save entry
+                    dbProcessor.WriteOne(new Entry
+                    {
+                        Timestamp = ent.Timestamp,
+                        RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
+                        LevelType = (int) lvlType,
+                        Component = componentName
+                    });
+                } while (!ProcessorMonitorContainer.ComponentStopper[componentName]);
             }
             finally
             {
                 listener?.Close();
-                asyncWorker.CancelAsync();
             }
         }
     }

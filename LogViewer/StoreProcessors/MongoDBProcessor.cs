@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using LogViewer.Components.Levels;
 using LogViewer.Entries.Abstractions;
-using LogViewer.Services.Abstractions;
+using LogViewer.StoreProcessors.Abstractions;
 using MongoDB.Driver;
 
 namespace LogViewer.StoreProcessors
 {
-    public class MongoDBProcessor : IDbProcessor
+    public sealed class MongoDBProcessor : IDbProcessor
     {
         private static readonly Lazy<MongoDBProcessor> _lazy = new Lazy<MongoDBProcessor>(() => new MongoDBProcessor());
         public static MongoDBProcessor Instance => _lazy.Value;
@@ -97,7 +97,7 @@ namespace LogViewer.StoreProcessors
             return ReadText<T>(text).Take(numberOfRows);
         }
 
-        public void CleanDatabase()
+        public void CleanData()
         {
             var client = new MongoClient();
             var database = client.GetDatabase(_dbName);

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using LogViewer.Components.Levels;
 using LogViewer.Entries.Abstractions;
 
-namespace LogViewer.Services.Abstractions
+namespace LogViewer.StoreProcessors.Abstractions
 {
     public interface IDbProcessor
     {
@@ -16,6 +16,6 @@ namespace LogViewer.Services.Abstractions
         IEnumerable<T> ReadLevelsAndText<T>(IEnumerable<LevelTypes> levels, string text, int numberOfRows) where T : IEntry;
         IEnumerable<T> ReadText<T>(string text) where T : IEntry;
         IEnumerable<T> ReadText<T>(string text, int numberOfRows) where T : IEntry;
-        void CleanDatabase();
+        void CleanData();
     }
 }

@@ -2,7 +2,7 @@
 using System.Globalization;
 using LogViewer.Components.Levels;
 using LogViewer.Configs;
-using LogViewer.ViewModel.Helpers;
+using LogViewer.ViewModelHelpers;
 
 namespace LogViewer.Entries.Detached
 {
@@ -13,7 +13,7 @@ namespace LogViewer.Entries.Detached
         {
             get
             {
-                if (String.IsNullOrEmpty(_timestampTitle)) {
+                if (string.IsNullOrEmpty(_timestampTitle)) {
                     _timestampTitle = $"{Constants.Labels.Timestamp}:";
                 }
                 return _timestampTitle;
@@ -25,7 +25,7 @@ namespace LogViewer.Entries.Detached
         {
             get
             {
-                if (String.IsNullOrEmpty(_levelTitle)) {
+                if (string.IsNullOrEmpty(_levelTitle)) {
                     _levelTitle = $"{Constants.Labels.Level}:";
                 }
                 return _levelTitle;

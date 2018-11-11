@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Media;
 using LogViewer.Components.Levels.Helpers;
-using LogViewer.ViewModel.Helpers;
+using LogViewer.ViewModelHelpers;
 
 namespace LogViewer.Components.Levels
 {
@@ -14,7 +14,7 @@ namespace LogViewer.Components.Levels
         {
             get
             {
-                if (String.IsNullOrEmpty(_text))
+                if (string.IsNullOrEmpty(_text))
                 {
                     _text = Enum.GetName(typeof(LevelTypes), LevelType);
                     NotifyPropertyChanged();
@@ -26,7 +26,7 @@ namespace LogViewer.Components.Levels
         private int _counter;
         public int Counter
         {
-            get { return _counter; }
+            get => _counter;
             set { _counter = value; NotifyPropertyChanged(); }
         }
 
@@ -44,13 +44,14 @@ namespace LogViewer.Components.Levels
             }
         }
 
-        private bool _isSelected;
+        private bool _isSelected = false;
         public bool IsSelected
         {
-            get { return _isSelected; }
+            get => _isSelected;
             set { _isSelected = value; NotifyPropertyChanged(); }
         }
 
         public LevelsVM(LevelTypes level) => LevelType = level;
+        public LevelsVM(LevelTypes level, bool isSelected) : this(level) => IsSelected = isSelected;
     }
 }

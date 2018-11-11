@@ -5,22 +5,28 @@ using System.Text;
 using LogViewer.Components.Levels.Helpers;
 using LogViewer.Components.Processors.Abstractions;
 using LogViewer.Entries;
-using LogViewer.Services.Abstractions;
+using LogViewer.StoreProcessors.Abstractions;
 using LogViewer.Structures.Containers;
 
 namespace LogViewer.Components.Processors
 {
     public sealed class FileProcessor : IComponentProcessor
     {
-        public void ReadData(string path, string componentName, ref BackgroundWorker asyncWorker, IDbProcessor dbProcessor)
+        private static readonly Lazy<FileProcessor> _lazy = new Lazy<FileProcessor>(() => new FileProcessor());
+        public static FileProcessor Instance => _lazy.Value;
+
+        public FileProcessor()
         {
-            using (StreamReader sr = new StreamReader(path))
+        }
+        
+        public void ReadData(string path, string componentName, IDbProcessor dbProcessor)
+        {
+            using (var sr = new StreamReader(path))
             {
                 try
                 {
                     string line = null;
-                    StringBuilder sb = new StringBuilder();
-                    bool isValid = false;
+                    var sb = new StringBuilder();
 
                     while ((line = sr.ReadLine()) != null && !ProcessorMonitorContainer.ComponentStopper[componentName])
                     {
@@ -30,12 +36,11 @@ namespace LogViewer.Components.Processors
                             break;
                         }
 
-                        var level_init = line.IndexOf('[');
-                        var level_end = line.IndexOf(']');
+                        var levelInit = line.IndexOf('[');
+                        var levelEnd = line.IndexOf(']');
                         var split = line.Split(' ');
 
-                        isValid = !(split.Length < 5 || level_init == -1 || level_end == -1 ||
-                                    (level_end - level_init) != 4);
+                        var isValid = !(split.Length < 5 || levelInit == -1 || levelEnd == -1 || levelEnd - levelInit != 4);
 
                         if (!isValid) // add to queue
                         {
@@ -50,15 +55,15 @@ namespace LogViewer.Components.Processors
                             else
                             {
                                 // previous event lines
-                                string prevLines = sb.ToString().TrimEnd();
-                                string lvlRaw = prevLines.Substring(level_init + 1, 3);
+                                var prevLines = sb.ToString().TrimEnd();
+                                var lvlRaw = prevLines.Substring(levelInit + 1, 3);
                                 var lvlType = LevelTypesHelper.GetLevelTypeFromString(lvlRaw);
 
                                 // save entry
-                                dbProcessor.WriteOne(new Entry()
+                                dbProcessor.WriteOne(new Entry
                                 {
                                     Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
-                                    RenderedMessage = prevLines.Substring(level_end + 1),
+                                    RenderedMessage = prevLines.Substring(levelEnd + 1),
                                     LevelType = (int) lvlType,
                                     Component = componentName
                                 });
@@ -72,23 +77,13 @@ namespace LogViewer.Components.Processors
                         }
                     }
                 }
-                catch (Exception e)
-                {
-                    throw e;
-                }
                 finally
                 {
                     sr?.Close();
-                    asyncWorker.CancelAsync();
                 }
             }
 
             GC.Collect();
-        }
-
-        public static bool Exists(string file)
-        {
-            return File.Exists(file);
         }
     }
 }

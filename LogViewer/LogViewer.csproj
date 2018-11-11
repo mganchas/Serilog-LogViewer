@@ -353,23 +353,22 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Components\ComponentSelectorVM.cs" />
+    <Compile Include="Components\ComponentSelector.cs" />
     <Compile Include="Components\ComponentTypes.cs" />
     <Compile Include="Components\ComponentVM.cs" />
     <Compile Include="Components\Detached\VisibleMessagesVM.cs" />
     <Compile Include="Components\Detached\VisibleMessagesWindow.xaml.cs">
       <DependentUpon>VisibleMessagesWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Components\Helpers\ComponentImageFactory.cs" />
+    <Compile Include="Components\Helpers\ComponentProcessorFactory.cs" />
     <Compile Include="Components\Helpers\ComponentValidator.cs" />
-    <Compile Include="Components\Levels\Helpers\LevelTypesHelper.cs" />
-    <Compile Include="Components\Levels\LevelsVM.cs" />
-    <Compile Include="Components\Levels\LevelTypes.cs" />
     <Compile Include="Components\Processors\Abstractions\IComponentProcessor.cs" />
-    <Compile Include="Components\Processors\ComponentProcessorFactory.cs" />
     <Compile Include="Components\Processors\FileProcessor.cs" />
     <Compile Include="Components\Processors\HttpProcessor.cs" />
     <Compile Include="Components\Processors\TcpProcessor.cs" />
     <Compile Include="Components\Processors\UdpProcessor.cs" />
+    <Compile Include="Components\ComponentFilters.cs" />
     <Compile Include="Components\Views\UCComponent.xaml.cs">
       <DependentUpon>UCComponent.xaml</DependentUpon>
     </Compile>
@@ -378,6 +377,9 @@
       <DependentUpon>EntryDetailWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entries\EntryVM.cs" />
+    <Compile Include="Levels\Helpers\LevelTypesHelper.cs" />
+    <Compile Include="Levels\LevelsVM.cs" />
+    <Compile Include="Levels\LevelTypes.cs" />
     <Compile Include="Logging\LogVM.cs" />
     <Compile Include="Entries\Abstractions\IEntry.cs" />
     <Compile Include="MainVM.cs" />
@@ -386,6 +388,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="StoreProcessors\ElasticSearchProcessor.cs" />
+    <Compile Include="StoreProcessors\Helpers\StoreTypeProcessorFactory.cs" />
     <Compile Include="StoreProcessors\LocalProcessor.cs" />
     <Compile Include="StoreProcessors\SqlLiteProcessor.cs" />
     <Compile Include="StoreProcessors\SqlServerProcessor.cs" />
@@ -398,6 +401,7 @@
     <Compile Include="Structures\Containers\MessageContainer.cs" />
     <Compile Include="Structures\Containers\ProcessorMonitorContainer.cs" />
     <Compile Include="ViewModelHelpers\CommandHandler.cs" />
+    <Compile Include="ViewModelHelpers\IEnrichedCommand.cs" />
     <Compile Include="ViewModelHelpers\PropertyChangesNotifier.cs" />
     <Compile Include="Entries\Entry.cs" />
     <Compile Include="Configs\Constants.cs" />
@@ -495,6 +499,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Configs\Images\elasticsearch.png" />
+    <Resource Include="Configs\Images\ram.png" />
+    <Resource Include="Configs\Images\sqlite.png" />
+    <Resource Include="Configs\Images\sqlserver.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Configs\Images\mongodb.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

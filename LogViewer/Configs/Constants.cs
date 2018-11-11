@@ -1,18 +1,18 @@
 ﻿namespace LogViewer.Configs
 {
-    public sealed class Constants
+    public static class Constants
     {
-        public class Component
+        public static class Component
         {
             public const int DefaultRows = 10;
         }
 
-        public class Formats
+        public static class Formats
         {
             public const string TimeFormat = "dd MMM yyyy HH:mm:ss";
         }
 
-        public class Images
+        public static class Images
         {
             public const string ImagePath = "/LogViewer;component/Configs/Images/";
             public const string ImageSearch = "search.png";
@@ -31,6 +31,12 @@
             public const string ImagePlay = "play.png";
             public const string ImagePlayBlue = "play_blue.png";
             public const string ImageExpand = "expand.png";
+            
+            public const string ImageRam = "ram.png";
+            public const string ImageSqlServer = "sqlserver.png";
+            public const string ImageSqlite = "sqlite.png";
+            public const string ImageElasticSearch = "elasticsearch.png";
+            public const string ImageMongoDB = "mongodb.png";
 
             public const string ImageFile = "file.png";
             public const string ImageHttp = "http.png";
@@ -38,15 +44,14 @@
             public const string ImageUdp = "udp.png";
         }
 
-        public class Labels
+        public static class Labels
         {
             public const string Messages = nameof(Messages);
             public const string Filters = nameof(Filters);
             public const string Levels = nameof(Levels);
             public const string Edit = nameof(Edit);
             public const string Remove = nameof(Remove);
-            public const string StartRAM = "Start (RAM) execution";
-            public const string StartDisk = "Start (Disk) execution";
+            public const string Start = "Start execution";
             public const string Stop = "Stop execution";            
             public const string SaveChanges = "Save changes";
             public const string Timestamp = nameof(Timestamp);
@@ -56,7 +61,7 @@
             public const string Path = "Path";
         }
 
-        public class Tooltips
+        public static class Tooltips
         {
             public const string StartAllRAM = "Start all";
             public const string StartAllDisk = "Start all (Disk)";
@@ -64,12 +69,11 @@
             public const string ClearAll = "Clear all data";
             public const string ResetAll = "Reset components";
             public const string ShowContext = "Show context";
-            public const string ExportVisibleMessages = "Export visible messages";
+            public const string ExportContent = "Export visible messages";
         }
 
-        public class Messages
+        public static class Messages
         {
-            public const string AlertTitle = "Alert";
             public const string ErrorTitle = "Error";
             public const string DuplicateComponent = "Component already on the Components list";
             public const string MandatoryFieldsMissingComponent = "Component Name Path are mandatory";

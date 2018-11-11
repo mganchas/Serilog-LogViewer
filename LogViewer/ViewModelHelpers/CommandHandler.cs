@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace LogViewer.ViewModel.Helpers
+namespace LogViewer.ViewModelHelpers
 {
-    public class CommandHandler : ICommand
+    public class CommandHandler : IEnrichedCommand
     {
         private readonly Action<object> _action;
         private readonly bool _canExecute;
@@ -30,6 +30,11 @@ namespace LogViewer.ViewModel.Helpers
         public void Execute(object parameter)
         {
             _action(parameter);
+        }
+        
+        public void Execute()
+        {
+            _action(null);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace LogViewer.Components.Levels.Helpers
                 {LevelTypes.Warning, Brushes.Orange},
                 {LevelTypes.Error, Brushes.Red},
                 {LevelTypes.Fatal, Brushes.Green},
-                {LevelTypes.All, Brushes.Black},
+                {LevelTypes.All, Brushes.Black}
             };
 
         public static ObservableCounterDictionary<LevelTypes> LevelTypesCounterList { get; } = new ObservableCounterDictionary<LevelTypes>
@@ -42,7 +42,7 @@ namespace LogViewer.Components.Levels.Helpers
             {
                 var field = typeof(LevelTypes).GetField(item);
                 var attr = field?.GetCustomAttributes(typeof(DescriptionAttribute), false);
-                var desc = (attr == null || attr.Length == 0)
+                var desc = attr == null || attr.Length == 0
                     ? string.Empty
                     : (attr[0] as DescriptionAttribute)?.Description;
 

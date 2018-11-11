@@ -1,16 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using LogViewer.Components;
-using LogViewer.Components.Processors;
+using LogViewer.Components.Helpers;
 using LogViewer.Configs;
 using LogViewer.Logging;
 using LogViewer.Structures.Containers;
-using LogViewer.ViewModel.Helpers;
+using LogViewer.ViewModelHelpers;
 
 namespace LogViewer
 {
@@ -34,187 +34,123 @@ namespace LogViewer
         private string _name;
         public string Name
         {
-            get { return _name; }
-            set { _name = value; NotifyPropertyChanged(); }
+            get => _name;
+            set
+            {
+                _name = value;
+                NotifyPropertyChanged();
+            }
         }
 
         private string _path;
         public string Path
         {
-            get { return _path; }
-            set { _path = value; NotifyPropertyChanged(); }
+            get => _path;
+            set
+            {
+                _path = value;
+                NotifyPropertyChanged();
+            }
         }
 
         private ComponentVM _selectedComponent;
         public ComponentVM SelectedComponent
         {
-            get { return _selectedComponent; }
-            set { _selectedComponent = value; NotifyPropertyChanged(); }
+            get => _selectedComponent;
+            set
+            {
+                _selectedComponent = value;
+                NotifyPropertyChanged();
+            }
         }
 
         private int _selectedIndex;
         public int SelectedIndex
         {
-            get { return _selectedIndex; }
-            set { _selectedIndex = value; NotifyPropertyChanged(); }
+            get => _selectedIndex;
+            set
+            {
+                _selectedIndex = value;
+                NotifyPropertyChanged();
+            }
         }
 
         public Visibility VisibleComponents => Components == null || Components.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        public ComponentSelectorVM[] ComponentTypes { get; } = 
+        public IEnumerable<ComponentSelector> ComponentTypes { get; } = new[]
         {
-            new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}", Type = LogViewer.Components.ComponentTypes.File },
-            new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}", Type = LogViewer.Components.ComponentTypes.Http },
-            new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageTcp}", Type = LogViewer.Components.ComponentTypes.Tcp },
-            new ComponentSelectorVM { Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}", Type = LogViewer.Components.ComponentTypes.Udp }
+            new ComponentSelector
+            {
+                Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}",
+                Type = LogViewer.Components.ComponentTypes.File
+            },
+            new ComponentSelector
+            {
+                Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}",
+                Type = LogViewer.Components.ComponentTypes.Http
+            },
+            new ComponentSelector
+            {
+                Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageTcp}",
+                Type = LogViewer.Components.ComponentTypes.Tcp
+            },
+            new ComponentSelector
+            {
+                Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}",
+                Type = LogViewer.Components.ComponentTypes.Udp
+            }
         };
 
-        private ComponentSelectorVM _selectedComponentType;
-        public ComponentSelectorVM SelectedComponentType
+        private ComponentSelector _selectedComponentType;
+        public ComponentSelector SelectedComponentType
         {
-            get { return _selectedComponentType; }
-            set { _selectedComponentType = value; NotifyPropertyChanged(); }
+            get => _selectedComponentType;
+            set
+            {
+                _selectedComponentType = value;
+                NotifyPropertyChanged();
+            }
         }
 
         public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
         public ObservableCollection<LogVM> LogEntries { get; set; } = new ObservableCollection<LogVM>();
 
         #region Commands
-        public ICommand AddListenerCommand { get; set; }
-        public ICommand ClearCommand { get; set; }
-        public ICommand ResetCommand { get; set; }
-        public ICommand StartAllRAMCommand { get; set; }
-        public ICommand StartAllDiskCommand { get; set; }
-        public ICommand CancelAllCommand { get; set; }
-        private ICommand DefaultRemoveCommand
+
+        public IEnrichedCommand AddListenerCommand { get; set; }
+        public IEnrichedCommand ClearCommand { get; set; }
+        public IEnrichedCommand ResetCommand { get; set; }
+        public IEnrichedCommand StartAllCommand { get; set; }
+        public IEnrichedCommand CancelAllCommand { get; set; }
+        private IEnrichedCommand DefaultRemoveCommand
         {
             get
             {
                 return new CommandHandler(comp =>
                 {
-                    Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
+                    Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action) (() =>
                     {
                         var compVM = comp as ComponentVM;
 
                         compVM.RemoveComponent();
                         Components.Remove(compVM);
 
-                        SelectedComponent = Components.Count > 0 ? Components[0] : null;
+                        SelectedComponent = Components?.Count > 0 ? Components[0] : null;
 
                         GC.Collect();
                     }));
                 });
             }
         }
+
         #endregion
 
         public MainVM()
         {
-            AddListenerCommand = new CommandHandler(_ =>
-            {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
-                {
-                    if (SelectedComponentType == null)
-                    {
-                        MessageBox.Show(Constants.Messages.ComponentTypeMissing, Constants.Messages.ErrorTitle);
-                        return; 
-                    }
-
-//                    // create new component
-//                    var newComponent = ComponentFactory.GetNewComponent(SelectedComponentType.Type);
-//                    
-//                    // not a valid component
-//                    if (!newComponent.IsValidComponent(new Span<ComponentVM>(Components.ToArray()))) { return; }
-//
-//                    // register component behaviour
-//                    newComponent.RegisterComponent();
-//                    
-//                    // set component action
-//                    newComponent.RemoveComponentCommand = DefaultRemoveCommand;
-//
-//                    // add new listener to list
-//                    Components.Add(newComponent);
-//
-//                    // clean selection inputs
-//                    Name = string.Empty;
-//                    Path = string.Empty;
-//
-//                    // select last added component
-//                    SelectedComponent = Components.First(x => x == newComponent);
-                }));
-            });
-
-            // Set play (ram) all command
-            StartAllRAMCommand = new CommandHandler(_ =>
-            {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
-                {
-                    // if not running, start each component 
-                    foreach (var item in Components.Where(x => !x.IsRunning))
-                    {
-                        item.StartRAMListenerCommand.Execute(null);
-                    }
-                }));
-            });
-
-            // Set play (disk) all command
-            StartAllDiskCommand = new CommandHandler(_ =>
-            {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
-                {
-                    // if not running, start each component 
-                    foreach (var item in Components.Where(x => !x.IsRunning))
-                    {
-                        item.StartDiskListenerCommand.Execute(null);
-                    }
-                }));
-            });
-
-            // set cancel all command
-            CancelAllCommand = new CommandHandler(_ =>
-            {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Send, (Action)(() =>
-                {
-                    // if not running, start each component 
-                    foreach (var item in Components.Where(x => x.IsRunning))
-                    {
-                        item.StopListenerCommand.Execute(null);
-                    }
-                }));
-            });
-
-            // Set clear command 
-            ClearCommand = new CommandHandler(_ =>
-            {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
-                {
-                    // Clear data for each component 
-                    foreach (var item in Components)
-                    {
-                        item.CleanUpCommand.Execute(!item.IsRunning);
-                    }
-                    GC.Collect();
-                }));
-            });
-
-            // Set reset command 
-            ResetCommand = new CommandHandler(_ =>
-            {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
-                {
-                    foreach (var comp in Components)
-                    {
-                        comp.RemoveComponent();
-                    }
-                    Components.Clear();
-                    GC.Collect();
-                }));
-            });
-
             // Set message collection onchanged event (DISK) 
             LoggerContainer.LogEntries.CollectionChanged += (_, e) =>
             {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action)(() =>
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) (() =>
                 {
                     foreach (LogVM exception in e.NewItems)
                     {
@@ -225,11 +161,119 @@ namespace LogViewer
 
             // Add listener for visible content 
             Components.CollectionChanged += (_, e) => { NotifyPropertyChanged(nameof(VisibleComponents)); };
+            
+            // Register commands' behaviour
+            RegisterAddListenerCommand();
+            RegisterStartAllCommand();
+            RegisterCancelAllCommand();
+            RegisterClearAllCommand();
+            RegisterResetCommand();
         }
 
-        public void AddDroppedComponents(string[] files)
+        private void RegisterAddListenerCommand()
         {
-            Application.Current.Dispatcher.Invoke(DispatcherPriority.Send, (Action)(() =>
+            AddListenerCommand = new CommandHandler(_ =>
+            {
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action) (() =>
+                {
+                    if (SelectedComponentType == null)
+                    {
+                        MessageBox.Show(Constants.Messages.ComponentTypeMissing, Constants.Messages.ErrorTitle);
+                        return;
+                    }
+
+                    if (Components.Contains(Name, Path))
+                    {
+                        MessageBox.Show(Constants.Messages.DuplicateComponent, Constants.Messages.ErrorTitle);
+                        return;
+                    }
+
+                    // create new component
+                    var newComponent = new ComponentVM(Name, Path, SelectedComponentType.Type)
+                    {
+                        RemoveComponentCommand = DefaultRemoveCommand
+                    };
+
+                    // add new listener to list
+                    Components.Add(newComponent);
+
+                    // clean selection inputs
+                    Name = string.Empty;
+                    Path = string.Empty;
+
+                    // select last added component
+                    SelectedComponent = Components.First(x => x == newComponent);
+                }));
+            });
+        }
+
+        private void RegisterStartAllCommand()
+        {
+            StartAllCommand = new CommandHandler(_ =>
+            {
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action) (() =>
+                {
+                    // if not running, start each component 
+                    foreach (var item in Components.Where(x => !x.IsRunning))
+                    {
+                        item.StartListenerCommand.Execute();
+                    }
+                }));
+            });
+        }
+
+        private void RegisterCancelAllCommand()
+        {
+            CancelAllCommand = new CommandHandler(_ =>
+            {
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action) (() =>
+                {
+                    // if not running, start each component 
+                    foreach (var item in Components.Where(x => x.IsRunning))
+                    {
+                        item.StopListenerCommand.Execute();
+                    }
+                }));
+            });
+        }
+
+        private void RegisterClearAllCommand()
+        {
+            ClearCommand = new CommandHandler(_ =>
+            {
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action) (() =>
+                {
+                    // Clear data for each component 
+                    foreach (var item in Components.Where(x => !x.IsRunning))
+                    {
+                        item.CleanUpCommand.Execute();
+                    }
+
+                    GC.Collect();
+                }));
+            });
+        }
+
+        private void RegisterResetCommand()
+        {
+            ResetCommand = new CommandHandler(_ =>
+            {
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action) (() =>
+                {
+                    foreach (var comp in Components)
+                    {
+                        comp.RemoveComponent();
+                    }
+
+                    Components.Clear();
+                    GC.Collect();
+                }));
+            });
+        }
+
+        public static void AddDroppedComponents(string[] files)
+        {
+            Application.Current.Dispatcher.Invoke(DispatcherPriority.Send, (Action) (() =>
             {
                 foreach (var file in files)
                 {

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using LogViewer.Components.Levels;
 using LogViewer.Entries.Abstractions;
-using LogViewer.Services.Abstractions;
+using LogViewer.StoreProcessors.Abstractions;
 
 namespace LogViewer.StoreProcessors
 {
-    public class ElasticSearchProcessor : IDbProcessor
+    public sealed class ElasticSearchProcessor : IDbProcessor
     {
         private static readonly Lazy<ElasticSearchProcessor> _lazy = new Lazy<ElasticSearchProcessor>(() => new ElasticSearchProcessor());
         public static ElasticSearchProcessor Instance => _lazy.Value;
@@ -65,7 +65,7 @@ namespace LogViewer.StoreProcessors
             throw new System.NotImplementedException();
         }
 
-        public void CleanDatabase()
+        public void CleanData()
         {
             throw new System.NotImplementedException();
         }

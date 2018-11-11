@@ -28,7 +28,7 @@ namespace LogViewer
 
         private void Window_Drop(object sender, DragEventArgs e)
         {
-            (DataContext as MainVM)?.AddDroppedComponents((string[])e.Data.GetData(DataFormats.FileDrop));
+            MainVM.AddDroppedComponents((string[])e.Data.GetData(DataFormats.FileDrop));
         }
     }
 }

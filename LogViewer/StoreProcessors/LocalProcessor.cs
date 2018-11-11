@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using LogViewer.Components.Levels;
 using LogViewer.Entries.Abstractions;
-using LogViewer.Services.Abstractions;
+using LogViewer.StoreProcessors.Abstractions;
 
 namespace LogViewer.StoreProcessors
 {
@@ -65,7 +65,7 @@ namespace LogViewer.StoreProcessors
             throw new System.NotImplementedException();
         }
 
-        public void CleanDatabase()
+        public void CleanData()
         {
             throw new System.NotImplementedException();
         }

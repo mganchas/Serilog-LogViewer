@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:LogViewer.ViewModel"
         xmlns:uc="clr-namespace:LogViewer.View"
         xmlns:logViewer="clr-namespace:LogViewer"
         mc:Ignorable="d"
@@ -80,10 +79,10 @@
             <ListBox Margin="5" Style="{StaticResource VisualLog}" ItemsSource="{Binding LogEntries}" />
         </Grid>
 
-        <!-- Export options -->
+        <!-- Available Actions -->
         <Grid Grid.Row="4" Height="50" Background="{StaticResource Toolbar}">
             <StackPanel HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
-                <Button Style="{StaticResource RoundButton}" Command="{Binding StartAllRAMCommand}" ToolTip="{Binding StartAllRAMTooltip}">
+                <Button Style="{StaticResource RoundButton}" Command="{Binding StartAllCommand}" ToolTip="{Binding StartAllCommand}">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding StartRAMButtonImage}" Margin="5"/>
                 </Button>
                 <Button Style="{StaticResource RoundButton}" Command="{Binding CancelAllCommand}" ToolTip="{Binding CancelAllTooltip}">

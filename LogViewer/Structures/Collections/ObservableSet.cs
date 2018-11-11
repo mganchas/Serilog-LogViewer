@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Specialized;
-using LogViewer.ViewModel.Helpers;
+using LogViewer.ViewModelHelpers;
 
 namespace LogViewer.Structures.Collections
 {

@@ -1,30 +1,20 @@
 using System;
-using LogViewer.Components;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace LogViewer.ViewModel.Helpers
+namespace LogViewer.Components.Helpers
 {
     public static class ComponentValidator
     {
-        public static bool Contains(this Span<ComponentVM> components, ComponentVM component)
+        public static bool Contains(this IEnumerable<ComponentVM> components, ComponentVM component)
         {
-            foreach (var comp in components)
-            {
-                if (comp.Name == component.Name || comp.Path == component.Path) {
-                    return true;
-                }
-            }
-            return false;
+            if (component == null) throw new ArgumentNullException(nameof(component));
+            return components.Any(comp => comp.Name == component.Name || comp.Path == component.Path);
         }
         
-        public static bool Contains(this Span<ComponentVM> components, string name, string path)
+        public static bool Contains(this IEnumerable<ComponentVM> components, string name, string path)
         {
-            foreach (var comp in components)
-            {
-                if (comp.Name == name || comp.Path == path) {
-                    return true;
-                }
-            }
-            return false;
+            return components.Any(comp => comp.Name == name || comp.Path == path);
         }
     }
 }

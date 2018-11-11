@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace LogViewer.ViewModel.Helpers
+namespace LogViewer.ViewModelHelpers
 {
     public class PropertyChangesNotifier : INotifyPropertyChanged
     {

@@ -5,13 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              mc:Ignorable="d"
-             xmlns:vm="clr-namespace:LogViewer.ViewModel"
              d:DesignHeight="300" d:DesignWidth="300">
     
-    <!-- <UserControl.DataContext> -->
-    <!--     <vm:ComponentVM/> -->
-    <!-- </UserControl.DataContext> -->
-       
     <Grid>
         <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="0">
             <Grid Margin="5">
@@ -98,8 +93,8 @@
                             <TextBlock Text="Showing:" Foreground="{StaticResource TextBoxForeground}" Margin="5,0" VerticalAlignment="Center" />
                             <TextBlock
                                 Text="{Binding VisibleConsoleMessages.Count, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" VerticalAlignment="Center" />
-                            <Button Style="{StaticResource RoundButton}" Command="{Binding ExportVisibleMessagesCommand}" ToolTip="{Binding ExportVisibleMessages}" Margin="5,0" VerticalAlignment="Center" Visibility="{Binding Path=CanExport, Converter={StaticResource BoolToVis}}">
-                                <Image Style="{StaticResource CustomImage}" Source="{Binding ExportVisibleMessagesImage}" Margin="5" />
+                            <Button Style="{StaticResource RoundButton}" Command="{Binding ExportContentCommand}" ToolTip="{Binding ExportContent}" Margin="5,0" VerticalAlignment="Center" Visibility="{Binding Path=CanExport, Converter={StaticResource BoolToVis}}">
+                                <Image Style="{StaticResource CustomImage}" Source="{Binding ExportContentImage}" Margin="5" />
                             </Button>
                         </StackPanel>
                     </Grid>

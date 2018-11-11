@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using LogViewer.ViewModel.Helpers;
+using LogViewer.ViewModelHelpers;
 
 namespace LogViewer.Structures.Collections
 {

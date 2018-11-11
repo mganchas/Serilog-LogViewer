@@ -8,38 +8,39 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using LogViewer.Components.Helpers;
 using LogViewer.Components.Levels;
 using LogViewer.Components.Levels.Helpers;
-using LogViewer.Components.Processors;
+using LogViewer.Components.Processors.Abstractions;
 using LogViewer.Configs;
 using LogViewer.Entries;
 using LogViewer.Entries.Abstractions;
 using LogViewer.Logging;
 using LogViewer.StoreProcessors;
-using LogViewer.Structures;
+using LogViewer.StoreProcessors.Abstractions;
+using LogViewer.StoreProcessors.Helpers;
 using LogViewer.Structures.Collections;
 using LogViewer.Structures.Containers;
 using LogViewer.View;
-using LogViewer.ViewModel;
-using LogViewer.ViewModel.Helpers;
+using LogViewer.ViewModelHelpers;
 
 namespace LogViewer.Components
 {
-    public abstract class ComponentVM : PropertyChangesNotifier
+    public sealed class ComponentVM : PropertyChangesNotifier
     {
         public ComponentVM Self => this;
-        protected BackgroundWorker asyncWorker = new BackgroundWorker();
-        protected string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
+
+        private string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
 
         private ComponentTypes ComponentType { get; set; }
 
-        private bool IsAllSelected { get; set; }
+        private bool IsAllSelected { get; set; } = true;
 
-        private SelectionElements SelectionFilters { get; set; }
+        private ComponentFilters SelectionFilters { get; set; }
 
         public Dictionary<LevelTypes, LevelsVM> ComponentLevels { get; } = new Dictionary<LevelTypes, LevelsVM>
         {
-            {LevelTypes.All, new LevelsVM(LevelTypes.All)},
+            {LevelTypes.All, new LevelsVM(LevelTypes.All, true)},
             {LevelTypes.Verbose, new LevelsVM(LevelTypes.Verbose)},
             {LevelTypes.Debug, new LevelsVM(LevelTypes.Debug)},
             {LevelTypes.Information, new LevelsVM(LevelTypes.Information)},
@@ -55,20 +56,30 @@ namespace LogViewer.Components
         public static string LevelsTitle => Constants.Labels.Levels;
         public static string EditTitle => Constants.Labels.Edit;
         public static string RemoveTitle => Constants.Labels.Remove;
-        public static string StartRAMTitle => Constants.Labels.StartRAM;
-        public static string StartDiskTitle => Constants.Labels.StartDisk;
+        public static string StartTitle => Constants.Labels.Start;
         public static string StopTitle => Constants.Labels.Stop;
         public static string SaveChangesTitle => Constants.Labels.SaveChanges;
-        public static string ExportVisibleMessages => Constants.Tooltips.ExportVisibleMessages;
+        public static string ExportContent => Constants.Tooltips.ExportContent;
 
         #endregion
 
         #region Images
 
-        public abstract string ComponentImage { get; }
-
-        public static string PlayDiskImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
-        public static string PlayRAMImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}";
+        private string _componentImage;
+        public string ComponentImage
+        {
+            get 
+            {
+                if (string.IsNullOrEmpty(_componentImage))
+                {
+                    _componentImage = ComponentType.GetComponentImage();
+                    NotifyPropertyChanged();
+                }
+                return _componentImage;
+            }
+        }
+        
+        public static string PlayImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}";
         public static string CancelImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
         public static string RemoveImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageDelete}";
         public static string EditImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageEdit}";
@@ -76,204 +87,209 @@ namespace LogViewer.Components
         public static string TerminalImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageTerminal}";
         public static string MonitorImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageMonitor}";
         public static string FilterImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}";
-
-        public static string ExportVisibleMessagesImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageExpand}";
-
+        public static string ExportContentImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageExpand}";        
+        public static string RamImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageRam}";
+        public static string MongoDBImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageMongoDB}";
+        public static string SqliteImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSqlite}";
+        public static string SqlServerImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageSqlServer}";
+        public static string ElasticSearchImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageElasticSearch}";
         #endregion
 
         #region Visual properties
 
-        private string name;
-        public string Name
-        {
-            get { return name; }
-            set { name = value; }
-        }
+        private StoreTypes StoreType { get; set; }
+        private IDbProcessor DbProcessor { get; set; }
+        private IComponentProcessor ComponentProcessor { get; set; }
 
-        private StoreTypes storeType;
-        public StoreTypes StoreType
-        {
-            get { return storeType; }
-            set { storeType = value; }
-        }
+        public string Name { get; }
+        public string Path { get; }
+        
+        public List<LogEventsVM> ConsoleMessages { get; } = new List<LogEventsVM>();
 
-        private string path;
-        public string Path
+        private HashSet<LogEventsVM> _visibleConsoleMessages = new HashSet<LogEventsVM>();
+        public HashSet<LogEventsVM> VisibleConsoleMessages
         {
-            get { return path; }
-            set { path = value; }
-        }
-
-        private string filterText;
-        public string FilterText
-        {
-            get { return filterText; }
+            get => _visibleConsoleMessages;
             set
             {
-                filterText = value;
+                _visibleConsoleMessages = value;
                 NotifyPropertyChanged();
             }
         }
 
-        private bool isRunning;
-        public bool IsRunning
+        private string _filterText;
+        public string FilterText
         {
-            get { return isRunning; }
+            get => _filterText;
             set
             {
-                isRunning = value;
+                _filterText = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool _isRunning;
+        public bool IsRunning
+        {
+            get => _isRunning;
+            set
+            {
+                _isRunning = value;
                 AllowChanges = !value;
                 NotifyPropertyChanged();
                 NotifyPropertyChanged(nameof(AllowChanges));
             }
         }
 
-        private bool canExport = true;
+        private bool _canExport = true;
         public bool CanExport
         {
-            get { return canExport; }
+            get => _canExport;
             set
             {
-                canExport = value;
+                _canExport = value;
                 NotifyPropertyChanged();
             }
         }
 
-        private bool allowChanges = true;
+        private bool _allowChanges = true;
         public bool AllowChanges
         {
-            get { return allowChanges; }
+            get => _allowChanges;
             set
             {
-                allowChanges = value;
+                _allowChanges = value;
                 NotifyPropertyChanged();
             }
         }
 
-        private int visibleMessagesNr = Constants.Component.DefaultRows;
+        private int _visibleMessagesNr = Constants.Component.DefaultRows;
         public int VisibleMessagesNr
         {
-            get { return visibleMessagesNr; }
+            get => _visibleMessagesNr;
             set
             {
-                visibleMessagesNr = value;
+                _visibleMessagesNr = value;
                 NotifyPropertyChanged();
             }
         }
-
-        public List<LogEventsVM> ConsoleMessages { get; set; } = new List<LogEventsVM>();
-
-        private HashSet<LogEventsVM> visibleConsoleMessages = new HashSet<LogEventsVM>();
-        public HashSet<LogEventsVM> VisibleConsoleMessages
-        {
-            get { return visibleConsoleMessages; }
-            set
-            {
-                visibleConsoleMessages = value;
-                NotifyPropertyChanged();
-            }
-        }
-
         #endregion
 
         #region Commands
 
-        public ICommand StartDiskListenerCommand { get; set; }
-        public ICommand StartRAMListenerCommand { get; set; }
-        public ICommand StopListenerCommand { get; set; }
-        public ICommand CleanUpCommand { get; set; }
-        public ICommand EditComponentCommand { get; set; }
-        public ICommand RemoveComponentCommand { get; set; }
-        public ICommand SaveChangesCommand { get; set; }
-        public ICommand FilterTextSearchCommand { get; set; }
-        public ICommand FilterTextClearCommand { get; set; }
-        public ICommand FilterLevelCommand { get; set; }
-        public ICommand ExportVisibleMessagesCommand { get; set; }
+        public IEnrichedCommand StartListenerCommand { get; set; }
+        public IEnrichedCommand StopListenerCommand { get; set; }
+        public IEnrichedCommand CleanUpCommand { get; set; }
+        public IEnrichedCommand RemoveComponentCommand { get; set; }
+        public IEnrichedCommand FilterTextSearchCommand { get; set; }
+        public IEnrichedCommand FilterTextClearCommand { get; set; }
+        public IEnrichedCommand FilterLevelCommand { get; set; }
+        public IEnrichedCommand ExportContentCommand { get; set; }
 
         #endregion
 
         public ComponentVM(string name, string path, ComponentTypes componentType)
         {
-            this.Name = name;
-            this.Path = path;
-            this.ComponentType = componentType;
+            Name = name;
+            Path = path;
+            ComponentType = componentType;
 
-            // Set visible levels 
-            ComponentLevels[LevelTypes.All].IsSelected = true;
-            IsAllSelected = true;
+            RegisterComponent();
+        }
 
-            // Set cleanup command 
-            CleanUpCommand = new CommandHandler((canClean) =>
-            {
-                if (!(bool) canClean)
+        private void RegisterComponent()
+        {
+            // Set component specific processor
+            ComponentProcessor = ComponentType.GetComponentProcessor();
+            
+            // Add component to processor monitor
+            ProcessorMonitorContainer.ComponentStopper.Add(ComponentRegisterName, false);
+
+            // set level counters
+            MessageContainer.Counters[ComponentType].Add(ComponentRegisterName, LevelTypesHelper.LevelTypesCounterList);
+
+            // Add new message queue
+            MessageContainer.Messages[ComponentType].Add(ComponentRegisterName, new Lazy<ObservableSet<IEntry>>());
+
+            // Register collection changed event
+            MessageContainer.Messages[ComponentType][ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
                 {
-                    return;
-                }
+                    CollectionChanged(e, sender as ObservableSet<IEntry>);
+                };
+            
+            // Register commands' behaviour
+            RegisterStartCommand();
+            RegisterStopCommand();
+            RegisterCleanCommand();
+            RegisterFilterTextSearchCommand();
+            RegisterFilterTextClearCommand();
+            RegisterFilterLevelCommand();
+            RegisterExportContentCommand();
+        }
 
-                // Clear messages
-                ConsoleMessages.Clear();
-                VisibleConsoleMessages.Clear();
-                VisibleConsoleMessages = new HashSet<LogEventsVM>();
-
-                // clear database
-//                new MongoDBProcessor(ComponentRegisterName.Replace(".", "")).CleanDatabase();
-
-                // Clear counters
-//                MessageContainer.Disk.ComponentCounters[ComponentRegisterName].ResetAllCounters(fireChangedEvent: false);
-
-                // Clear visible counters 
-                foreach (var lvlCounter in ComponentLevels)
-                {
-                    lvlCounter.Value.Counter = 0;
-                }
-            });
-
-            // set start listener/reader
-            StartDiskListenerCommand = new CommandHandler(_ =>
+        private void RegisterStartCommand()
+        {
+            StartListenerCommand = new CommandHandler(_ =>
             {
-                StoreType = StoreTypes.MongoDB;
-                StartAction();
-            });
-
-            StartRAMListenerCommand = new CommandHandler(_ =>
-            {
+                // TODO: get store type
                 StoreType = StoreTypes.Local;
+
+                // get db processor for selected store type 
+                DbProcessor = StoreTypeProcessorFactory.GetStoreProcessor(StoreType);
+
                 StartAction();
             });
+        }
 
-            // Set stop listener/reader command 
+        private void RegisterStopCommand()
+        {
             StopListenerCommand = new CommandHandler(_ =>
             {
-                Application.Current.Dispatcher.Invoke((Action) (() =>
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    try
+                    IsRunning = false;
+                    StopListener();
+                });
+            });
+        }
+        
+        private void RegisterCleanCommand()
+        {
+            CleanUpCommand = new CommandHandler(_ =>
+            {
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) (() =>
+                {
+                    if (DbProcessor == null)
                     {
-                        IsRunning = false;
-                        if (asyncWorker.IsBusy)
-                        {
-                            StopListener();
-                        }
+                        throw new NullReferenceException("DbProcessor is null");
                     }
-                    catch (Exception ex)
+
+                    // Clear messages
+                    ConsoleMessages.Clear();
+                    VisibleConsoleMessages = new HashSet<LogEventsVM>();
+
+                    // Clear counters
+                    DbProcessor.CleanData();
+
+                    // Clear visible counters 
+                    foreach (var lvlCounter in ComponentLevels)
                     {
-                        LoggerContainer.LogEntries.Add(new LogVM
-                        {
-                            Timestamp = DateTime.Now,
-                            Message = ex.InnerException?.Message ?? ex.Message
-                        });
-                        StopListener();
+                        lvlCounter.Value.Counter = 0;
                     }
                 }));
             });
+        }
 
-            // Set filter search command 
+        private void RegisterFilterTextSearchCommand()
+        {
             FilterTextSearchCommand = new CommandHandler(_ =>
             {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-                    (Action) (() => { FilterMessages(); }));
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) FilterMessages);
             });
+        }
 
-            // Set filter clear command 
+        private void RegisterFilterTextClearCommand()
+        {
             FilterTextClearCommand = new CommandHandler(_ =>
             {
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) (() =>
@@ -282,8 +298,10 @@ namespace LogViewer.Components
                     FilterMessages();
                 }));
             });
+        }
 
-            // Set levels filter command
+        private void RegisterFilterLevelCommand()
+        {
             FilterLevelCommand = new CommandHandler(_ =>
             {
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) (() =>
@@ -311,111 +329,33 @@ namespace LogViewer.Components
                     FilterMessages();
                 }));
             });
+        }
 
-            // Set export command
-            ExportVisibleMessagesCommand = new CommandHandler(_ =>
+        private void RegisterExportContentCommand()
+        {
+            ExportContentCommand = new CommandHandler(_ =>
             {
-                var newComponent = CopyComponent(this);
-                new VisibleMessagesWindow(newComponent as ComponentVM).Show();
+                new VisibleMessagesWindow(CopyComponent(this)).Show();
             });
         }
-        
-        public void RegisterComponent()
-        {
-            // Add component to processor monitor
-            ProcessorMonitorContainer.ComponentStopper.Add(ComponentRegisterName, false);
-            
-            // set level counters
-            MessageContainer.Counters[ComponentType].Add(ComponentRegisterName, LevelTypesHelper.LevelTypesCounterList);
-            
-            // Add new message queue
-            MessageContainer.Messages[ComponentType].Add(ComponentRegisterName, new Lazy<ObservableSet<IEntry>>());
 
-//            // Set message collection onchanged event (DISK)
-//            MessageContainer.Disk.ComponentCounters[ComponentRegisterName].CollectionChanged += (sender, e) =>
-//            {
-//                CollectionChangedDISK(e, sender as ObservableCounterDictionary<LevelTypes>);
-//            };
-//
-//            // Set message collection onchanged event
-//            MessageContainer.RAM.UdpMessages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
-//            {
-//                CollectionChangedRAM(e, sender as ObservableSet<Entry>);
-//            };
-        }
-
-        protected void CollectionChangedDISK(NotifyCollectionChangedEventArgs e, ObservableCounterDictionary<LevelTypes> originalDictionary)
+        private void CollectionChanged(NotifyCollectionChangedEventArgs e, ObservableSet<IEntry> originalSet)
         {
             if (!IsRunning || e.NewItems == null)
             {
                 return;
             }
 
-            try
-            {
-                // increment button counters 
-                foreach (var counter in originalDictionary.GetItemSet())
-                {
-                    Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-                        (Action) (() => { ComponentLevels[counter.Key].Counter = counter.Value; }));
+            Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) (() =>
+            {                       
+                // increment button counters
+                foreach (IEntry entry in e.NewItems) {
+                    ComponentLevels[(LevelTypes) entry.LevelType].Counter++;    
                 }
-
-                FilterMessages();
-            }
-            catch (Exception ex)
-            {
-                LoggerContainer.LogEntries.Add(new LogVM
-                {
-                    Timestamp = DateTime.Now,
-                    Message = ex.InnerException?.Message ?? ex.Message
-                });
-                StopListener();
-            }
-        }
-
-        protected void CollectionChangedRAM(NotifyCollectionChangedEventArgs e, ObservableSet<Entry> originalSet)
-        {
-            if (!IsRunning || e.NewItems == null)
-            {
-                return;
-            }
-
-            try
-            {
-                var entries = new HashSet<Entry>();
-                foreach (Entry entry in e.NewItems)
-                {
-                    Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, (Action) (() =>
-                    {
-                        // increment specific button counter 
-                        ComponentLevels[(LevelTypes) entry.LevelType].Counter++;
-                        ComponentLevels[LevelTypes.All].Counter++;
-
-                        // add item to console messages 
-                        ConsoleMessages.Add(new LogEventsVM
-                        {
-                            RenderedMessage = entry.RenderedMessage,
-                            Timestamp = entry.Timestamp,
-                            LevelType = (LevelTypes) entry.LevelType
-                        });
-                    }));
-
-                    entries.Add(entry);
-                }
-
-                // remove unnecessary entry from original list
-                originalSet.RemoveRange(entries);
-
-                FilterMessages();
-            }
-            catch (Exception ex)
-            {
-                LoggerContainer.LogEntries.Add(new LogVM
-                {
-                    Timestamp = DateTime.Now,
-                    Message = ex.InnerException?.Message ?? ex.Message
-                });
-            }
+                ComponentLevels[LevelTypes.All].Counter += e.NewItems.Count;
+            }));
+            
+            FilterMessages();
         }
 
         private void StartAction()
@@ -425,14 +365,11 @@ namespace LogViewer.Components
                 IsRunning = true;
                 ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = false;
 
-                if (asyncWorker.IsBusy) return;
-
                 // Clear previous entries 
-                CleanUpCommand.Execute(true);
+                CleanUpCommand.Execute();
 
-                // Set background worker
-                InitializeBackWorker();
-                asyncWorker.RunWorkerAsync();
+                // Create running task
+                // TODO: implement task run
             }
             catch (Exception ex)
             {
@@ -447,8 +384,8 @@ namespace LogViewer.Components
 
         private void FilterMessages()
         {
-            bool hasChanges = false;
-            var currFilters = new SelectionElements()
+            var hasChanges = false;
+            var currFilters = new ComponentFilters
             {
                 FilterText = this.FilterText,
                 Levels = ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType).ToList()
@@ -483,14 +420,14 @@ namespace LogViewer.Components
 
             if (ComponentLevels[LevelTypes.All].IsSelected)
             {
-                filteredEntries = String.IsNullOrEmpty(FilterText)
+                filteredEntries = string.IsNullOrEmpty(FilterText)
                     ? new MongoDBProcessor(ComponentRegisterName).ReadAll<Entry>(VisibleMessagesNr)
                     : new MongoDBProcessor(ComponentRegisterName).ReadText<Entry>(FilterText.ToLower(),
                         VisibleMessagesNr);
             }
             else
             {
-                filteredEntries = String.IsNullOrEmpty(FilterText)
+                filteredEntries = string.IsNullOrEmpty(FilterText)
                     ? new MongoDBProcessor(ComponentRegisterName).ReadLevels<Entry>(selectedLevels)
                     : new MongoDBProcessor(ComponentRegisterName).ReadLevelsAndText<Entry>(selectedLevels,
                         FilterText.ToLower());
@@ -523,10 +460,10 @@ namespace LogViewer.Components
             }
 
             // filter text
-            if (!String.IsNullOrEmpty(FilterText))
+            if (!string.IsNullOrEmpty(FilterText))
             {
-                var orFilters = Regex.Split(filterText, @"\|");
-                var andFilters = Regex.Split(filterText, @"&+");
+                var orFilters = Regex.Split(_filterText, @"\|");
+                var andFilters = Regex.Split(_filterText, @"&+");
 
                 if (orFilters.Length == 1 && andFilters.Length == 1)
                 {
@@ -537,7 +474,7 @@ namespace LogViewer.Components
                 {
                     // process OR's
                     Func<LogEventsVM, bool> predicate = x => false;
-                    foreach (var or in orFilters.Where(x => !String.IsNullOrEmpty(x)))
+                    foreach (var or in orFilters.Where(x => !string.IsNullOrEmpty(x)))
                     {
                         var oldPredicate = predicate;
                         predicate = x =>
@@ -564,21 +501,14 @@ namespace LogViewer.Components
             });
         }
 
-        protected void StopListener()
+        private void StopListener()
         {
-            Application.Current.Dispatcher.Invoke(DispatcherPriority.Send, (Action) (() =>
-            {
-                try
+            Application.Current.Dispatcher.Invoke(DispatcherPriority.Send,
+                (Action) (() =>
                 {
-                    asyncWorker?.CancelAsync();
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
-
-                ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = true;
-            }));
+                    IsRunning = false;
+                    ProcessorMonitorContainer.ComponentStopper[ComponentRegisterName] = true;
+                }));
         }
 
         private static string TransformFilterString(string filterString)
@@ -605,17 +535,14 @@ namespace LogViewer.Components
 //                });
 //
 //            return newComponent;
-            return null;
+            return new ComponentVM("", "", ComponentTypes.File);
         }
 
-        protected static void PlaySound()
+        private static void PlaySound()
         {
             SystemSounds.Hand.Play();
         }
 
-        protected abstract void InitializeBackWorker();
-        public abstract bool IsValidComponent(in Span<ComponentVM> components);
-        
         public void RemoveComponent()
         {
             MessageContainer.Messages[ComponentType].Remove(ComponentRegisterName);
@@ -627,17 +554,6 @@ namespace LogViewer.Components
         {
             MessageContainer.Messages[ComponentType][ComponentRegisterName].Value.Clear();
             MessageContainer.Counters[ComponentType][ComponentRegisterName].Clear();
-        }
-
-        private class SelectionElements
-        {
-            public string FilterText { get; set; }
-            public IEnumerable<LevelTypes> Levels { get; set; }
-
-            public bool Equals(SelectionElements obj)
-            {
-                return this.FilterText == obj.FilterText && this.Levels.SequenceEqual(obj.Levels);
-            }
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Net;
 using LogViewer.Components.Levels.Helpers;
 using LogViewer.Components.Processors.Abstractions;
 using LogViewer.Entries;
-using LogViewer.Services.Abstractions;
+using LogViewer.StoreProcessors.Abstractions;
 using LogViewer.Structures.Containers;
 using Newtonsoft.Json;
 
@@ -13,7 +13,14 @@ namespace LogViewer.Components.Processors
 {
     public class HttpProcessor : IComponentProcessor
     {
-        public void ReadData(string path, string componentName, ref BackgroundWorker asyncWorker, IDbProcessor dbProcessor)
+        private static readonly Lazy<HttpProcessor> _lazy = new Lazy<HttpProcessor>(() => new HttpProcessor());
+        public static HttpProcessor Instance => _lazy.Value;
+
+        public HttpProcessor()
+        {
+        }
+        
+        public void ReadData(string path, string componentName, IDbProcessor dbProcessor)
         {
             HttpListener web = null;
             try
@@ -41,53 +48,24 @@ namespace LogViewer.Components.Processors
                     {
                         var lvlType = LevelTypesHelper.GetLevelTypeFromString(ent.Level);
 
-                        // Save type validation (Disk or RAM)
-//                        if (storeType == StoreTypes.MongoDB)
-//                        {
-//                            // insert into db
-//                            new MongoDBProcessor(componentName).WriteOne(new Entry
-//                            {
-//                                Timestamp = ent.Timestamp,
-//                                RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",
-//                                LevelType = (int)lvlType,
-//                                Component = componentName
-//                            });
-//
-//                            // increment counters
-//                            MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(lvlType);
-//                            MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(LevelTypes.All);
-//                        }
-//                        else
-//                        {
-//                            // insert into dictionary
-//                            MessageContainer.RAM.HttpMessages[componentName].Value.Add(new Entry
-//                            {
-//                                Timestamp = ent.Timestamp,
-//                                RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",
-//                                LevelType = (int)lvlType,
-//                                Component = componentName
-//                            });
-//                        }
+                        // save entry
+                        dbProcessor.WriteOne(new Entry
+                        {
+                            Timestamp = ent.Timestamp,
+                            RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",
+                            LevelType = (int) lvlType,
+                            Component = componentName
+                        });
                     }
                 } while (!ProcessorMonitorContainer.ComponentStopper[componentName]);
-
-            }
-            catch (Exception)
-            {
-                throw;
             }
             finally
             {
-                if (web != null)
+                if (web != null && web.IsListening)
                 {
-                    if (web.IsListening) {
-                        web.Stop();
-                    }
-                    web = null;
+                    web.Stop();
                 }
-                asyncWorker.CancelAsync();
             }
         }
     }
-
 }

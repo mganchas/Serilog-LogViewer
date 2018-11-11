@@ -7,7 +7,7 @@ using LogViewer.Components.Levels.Helpers;
 using LogViewer.Configs;
 using LogViewer.Entries.Detached;
 using LogViewer.View;
-using LogViewer.ViewModel.Helpers;
+using LogViewer.ViewModelHelpers;
 
 namespace LogViewer.Entries
 {
@@ -24,7 +24,7 @@ namespace LogViewer.Entries
         {
             get
             {
-                if (String.IsNullOrEmpty(_openDialogButtonImage))
+                if (string.IsNullOrEmpty(_openDialogButtonImage))
                 {
                     _openDialogButtonImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageSearch}";
                 }

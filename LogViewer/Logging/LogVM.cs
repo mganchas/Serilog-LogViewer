@@ -12,7 +12,7 @@ namespace LogViewer.Logging
         {
             get
             {
-                if (String.IsNullOrEmpty(_typeImage))
+                if (string.IsNullOrEmpty(_typeImage))
                 {
                     _typeImage = $"{Constants.Images.ImagePath}{Constants.Images.ImageError}";
                 }

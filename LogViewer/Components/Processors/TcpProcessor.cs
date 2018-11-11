@@ -6,7 +6,7 @@ using System.Text;
 using LogViewer.Components.Levels.Helpers;
 using LogViewer.Components.Processors.Abstractions;
 using LogViewer.Entries;
-using LogViewer.Services.Abstractions;
+using LogViewer.StoreProcessors.Abstractions;
 using LogViewer.Structures.Containers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -15,10 +15,17 @@ namespace LogViewer.Components.Processors
 {
     public class TcpProcessor : IComponentProcessor
     {
-        public void ReadData(string path, string componentName, ref BackgroundWorker asyncWorker, IDbProcessor dbProcessor)
+        private static readonly Lazy<TcpProcessor> _lazy = new Lazy<TcpProcessor>(() => new TcpProcessor());
+        public static TcpProcessor Instance => _lazy.Value;
+
+        public TcpProcessor()
+        {
+        }
+        
+        public void ReadData(string path, string componentName, IDbProcessor dbProcessor)
         {
             TcpListener server = null;
-            
+
             try
             {
                 // get the address and port to listen
@@ -33,7 +40,7 @@ namespace LogViewer.Components.Processors
                 server.Start();
 
                 // Buffer for reading data
-                Byte[] bytes = new Byte[256];
+                var bytes = new byte[256];
                 NetworkStream stream = null;
                 TcpClient client = null;
                 int i;
@@ -55,7 +62,7 @@ namespace LogViewer.Components.Processors
                     }
 
                     // Loop to receive all the data sent by the client.
-                    StringBuilder sb = new StringBuilder();
+                    var sb = new StringBuilder();
                     while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
                     {
                         // Translate data bytes to a ASCII string.
@@ -83,48 +90,24 @@ namespace LogViewer.Components.Processors
                         var ent = JsonConvert.DeserializeObject<Entry>(item.ToString());
                         var lvlType = LevelTypesHelper.GetLevelTypeFromString(ent.Level);
 
-                        // Save type validation (Disk or RAM)
-//                        if (storeType == StoreTypes.MongoDB)
-//                        {
-//                            // insert into db
-//                            new MongoDBProcessor(componentName).WriteOne(new Entry
-//                            {
-//                                Timestamp = ent.Timestamp,
-//                                RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
-//                                LevelType = (int)lvlType,
-//                                Component = componentName
-//                            });
-//
-//                            // increment counters
-//                            MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(lvlType);
-//                            MessageContainer.Disk.ComponentCounters[componentName].IncrementCounter(LevelTypes.All);
-//                        }
-//                        else
-//                        {
-//                            // insert into dictionary
-//                            MessageContainer.RAM.TcpMessages[componentName].Value.Add(new Entry
-//                            {
-//                                Timestamp = ent.Timestamp,
-//                                RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
-//                                LevelType = (int)lvlType,
-//                                Component = componentName
-//                            });
-//                        }
+                        // save entry
+                        dbProcessor.WriteOne(new Entry
+                        {
+                            Timestamp = ent.Timestamp,
+                            RenderedMessage = $"{ent.RenderedMessage} {ent.Message} {ent.Exception}",
+                            LevelType = (int) lvlType,
+                            Component = componentName
+                        });
                     }
 
                     // Shutdown and end connection
                     client.Close();
                 } while (!ProcessorMonitorContainer.ComponentStopper[componentName]);
             }
-            catch (Exception)
-            {
-                throw;
-            }
             finally
-            {               
+            {
                 // Stop listening for new clients.
                 server?.Stop();
-                asyncWorker.CancelAsync();
             }
         }
     }

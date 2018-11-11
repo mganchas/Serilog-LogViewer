@@ -1,8 +1,6 @@
 using System.Windows;
-using System.Windows.Input;
 using LogViewer.Components;
 using LogViewer.Components.Detached;
-using LogViewer.ViewModel;
 
 namespace LogViewer.View
 {
