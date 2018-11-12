@@ -216,7 +216,8 @@ namespace LogViewer
                     // if not running, start each component 
                     foreach (var item in Components.Where(x => !x.IsRunning))
                     {
-                        item.StartListenerCommand.Execute();
+                        // TODO: rever como chamar
+                        //item.StartListenerCommand.Execute();
                     }
                 }));
             });

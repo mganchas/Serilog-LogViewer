@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
-using LogViewer.Components.Levels;
 using LogViewer.Configs;
+using LogViewer.Levels;
 using LogViewer.ViewModelHelpers;
 
 namespace LogViewer.Entries.Detached

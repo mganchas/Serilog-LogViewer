@@ -81,5 +81,14 @@
             public const string FileNotFoundComponent = "File not found";
             public const string ComponentTypeMissing = "You must select a component type";
         }
+        
+        public static class StoreTypes
+        {
+            public const string RAM = "RAM";
+            public const string MongoDB = "MongoDB";
+            public const string Sqlite = "Sqlite";
+            public const string SqlServer = "Sql Server";
+            public const string ElasticSearch = "Elastic Search";
+        }
     }
 }

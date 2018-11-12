@@ -388,12 +388,14 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="StoreProcessors\ElasticSearchProcessor.cs" />
+    <Compile Include="StoreProcessors\Helpers\StoreProcessorsHelper.cs" />
     <Compile Include="StoreProcessors\Helpers\StoreTypeProcessorFactory.cs" />
     <Compile Include="StoreProcessors\LocalProcessor.cs" />
     <Compile Include="StoreProcessors\SqlLiteProcessor.cs" />
     <Compile Include="StoreProcessors\SqlServerProcessor.cs" />
     <Compile Include="StoreProcessors\Abstractions\IDbProcessor.cs" />
     <Compile Include="StoreProcessors\MongoDBProcessor.cs" />
+    <Compile Include="StoreProcessors\StoreProcessorsVM.cs" />
     <Compile Include="StoreProcessors\StoreTypes.cs" />
     <Compile Include="Structures\Collections\ObservableDictionary.cs" />
     <Compile Include="Structures\Collections\ObservableSet.cs" />

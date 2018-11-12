@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace LogViewer.Components.Levels
+namespace LogViewer.Levels
 {
     public enum LevelTypes
     {

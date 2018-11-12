@@ -2,9 +2,9 @@
 using System.ComponentModel;
 using System.IO;
 using System.Net;
-using LogViewer.Components.Levels.Helpers;
 using LogViewer.Components.Processors.Abstractions;
 using LogViewer.Entries;
+using LogViewer.Levels.Helpers;
 using LogViewer.StoreProcessors.Abstractions;
 using LogViewer.Structures.Containers;
 using Newtonsoft.Json;
@@ -49,7 +49,7 @@ namespace LogViewer.Components.Processors
                         var lvlType = LevelTypesHelper.GetLevelTypeFromString(ent.Level);
 
                         // save entry
-                        dbProcessor.WriteOne(new Entry
+                        dbProcessor.WriteOne(componentName, new Entry
                         {
                             Timestamp = ent.Timestamp,
                             RenderedMessage = $"{ent.RenderedMessage} {ent.Exception}",

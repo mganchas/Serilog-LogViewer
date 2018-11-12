@@ -7,7 +7,7 @@ namespace LogViewer.Components.Detached
         private string windowTitle;
         public string WindowTitle
         {
-            get { return windowTitle; }
+            get => windowTitle;
             set
             {
                 windowTitle = value;

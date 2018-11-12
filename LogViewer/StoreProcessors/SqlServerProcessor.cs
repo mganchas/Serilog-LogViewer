@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using LogViewer.Components.Levels;
 using LogViewer.Entries.Abstractions;
+using LogViewer.Levels;
 using LogViewer.StoreProcessors.Abstractions;
 
 namespace LogViewer.StoreProcessors
@@ -14,60 +14,60 @@ namespace LogViewer.StoreProcessors
         public SqlServerProcessor()
         {
         }
-        
-        public void WriteOne<T>(T record) where T : IEntry
+
+        public void WriteOne<T>(string collection, T entry) where T : IEntry
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public void WriteMany<T>(IEnumerable<T> entries) where T : IEntry
+        public void WriteMany<T>(string collection, IEnumerable<T> entries) where T : IEntry
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<T> ReadAll<T>() where T : IEntry
+        public IEnumerable<T> ReadAll<T>(string collection) where T : IEntry
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<T> ReadAll<T>(int numberOfRows) where T : IEntry
+        public IEnumerable<T> ReadAll<T>(string collection, int numberOfRows) where T : IEntry
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<T> ReadLevels<T>(IEnumerable<LevelTypes> levels) where T : IEntry
+        public IEnumerable<T> ReadLevels<T>(string collection, IEnumerable<LevelTypes> levels) where T : IEntry
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<T> ReadLevels<T>(IEnumerable<LevelTypes> levels, int numberOfRows) where T : IEntry
+        public IEnumerable<T> ReadLevels<T>(string collection, IEnumerable<LevelTypes> levels, int numberOfRows) where T : IEntry
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<T> ReadLevelsAndText<T>(IEnumerable<LevelTypes> levels, string text) where T : IEntry
+        public IEnumerable<T> ReadLevelsAndText<T>(string collection, IEnumerable<LevelTypes> levels, string text) where T : IEntry
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<T> ReadLevelsAndText<T>(IEnumerable<LevelTypes> levels, string text, int numberOfRows) where T : IEntry
+        public IEnumerable<T> ReadLevelsAndText<T>(string collection, IEnumerable<LevelTypes> levels, string text, int numberOfRows) where T : IEntry
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<T> ReadText<T>(string text) where T : IEntry
+        public IEnumerable<T> ReadText<T>(string collection, string text) where T : IEntry
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<T> ReadText<T>(string text, int numberOfRows) where T : IEntry
+        public IEnumerable<T> ReadText<T>(string collection, string text, int numberOfRows) where T : IEntry
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public void CleanData()
+        public void CleanData(string collection)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

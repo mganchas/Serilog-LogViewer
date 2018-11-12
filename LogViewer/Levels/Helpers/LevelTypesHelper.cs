@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Media;
-using LogViewer.Structures;
 using LogViewer.Structures.Collections;
 
-namespace LogViewer.Components.Levels.Helpers
+namespace LogViewer.Levels.Helpers
 {
     public static class LevelTypesHelper
     {
@@ -19,6 +18,17 @@ namespace LogViewer.Components.Levels.Helpers
                 {LevelTypes.Fatal, Brushes.Green},
                 {LevelTypes.All, Brushes.Black}
             };
+        
+        public static Dictionary<LevelTypes, LevelsVM> LevelVMList { get; } = new Dictionary<LevelTypes, LevelsVM>
+        {
+            {LevelTypes.All, new LevelsVM(LevelTypes.All, true)},
+            {LevelTypes.Verbose, new LevelsVM(LevelTypes.Verbose)},
+            {LevelTypes.Debug, new LevelsVM(LevelTypes.Debug)},
+            {LevelTypes.Information, new LevelsVM(LevelTypes.Information)},
+            {LevelTypes.Warning, new LevelsVM(LevelTypes.Warning)},
+            {LevelTypes.Error, new LevelsVM(LevelTypes.Error)},
+            {LevelTypes.Fatal, new LevelsVM(LevelTypes.Fatal)}
+        };
 
         public static ObservableCounterDictionary<LevelTypes> LevelTypesCounterList { get; } = new ObservableCounterDictionary<LevelTypes>
         {

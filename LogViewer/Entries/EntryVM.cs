@@ -2,10 +2,10 @@
 using System.Globalization;
 using System.Windows.Input;
 using System.Windows.Media;
-using LogViewer.Components.Levels;
-using LogViewer.Components.Levels.Helpers;
 using LogViewer.Configs;
 using LogViewer.Entries.Detached;
+using LogViewer.Levels;
+using LogViewer.Levels.Helpers;
 using LogViewer.View;
 using LogViewer.ViewModelHelpers;
 

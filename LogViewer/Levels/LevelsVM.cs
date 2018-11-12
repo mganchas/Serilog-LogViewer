@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Windows.Media;
-using LogViewer.Components.Levels.Helpers;
+using LogViewer.Levels.Helpers;
 using LogViewer.ViewModelHelpers;
 
-namespace LogViewer.Components.Levels
+namespace LogViewer.Levels
 {
     public class LevelsVM : PropertyChangesNotifier
     {

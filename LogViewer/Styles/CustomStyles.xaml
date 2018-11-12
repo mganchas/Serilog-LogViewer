@@ -228,7 +228,7 @@
                                 <ColumnDefinition Width="auto" />
                             </Grid.ColumnDefinitions>
                             <Image Source="{Binding Image}" x:Name="image" Grid.Column="0" DockPanel.Dock="Left"
-                                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Style="{StaticResource CustomImage}" Height="15" Margin="2.5,0" />
                             <TextBlock Text="{Binding Text}" Grid.Column="1" Margin="2.5,0" VerticalAlignment="Center" />
                             <TextBlock Text="{Binding Counter}" Grid.Column="2" Margin="2.5,0" DockPanel.Dock="Right"
@@ -368,6 +368,40 @@
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <Style x:Key="StoringProcessors" TargetType="{x:Type ListBox}">
+        <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="SelectionMode" Value="Single" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <Border x:Name="brd" BorderBrush="Transparent" BorderThickness="0,0,0,2" CornerRadius="0" Margin="5" Background="Transparent" Cursor="Hand" HorizontalAlignment="Stretch">
+                        <Grid VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Grid.Column="0" Content="{Binding Name}" VerticalAlignment="Center"/>
+                            <Image Grid.Column="1" Style="{StaticResource CustomImage}" Source="{Binding Image}" Margin="5" Height="20" Width="20"/>
+                        </Grid>
+                        
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseDown">
+                                <i:InvokeCommandAction Command="{Binding ExecutionCommand}" CommandParameter="{Binding ExecutionParameter}"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" TargetName="brd" Value="{StaticResource DarkBlue}"/>
+                        </Trigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <Style x:Key="ComponentHeader" TargetType="{x:Type ListBox}">
         <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
@@ -392,7 +426,7 @@
                                     <ColumnDefinition Width="auto" />
                                 </Grid.ColumnDefinitions>
                                 <Image Grid.Column="0" Style="{StaticResource CustomImage}"
-                                       Source="{Binding ComponentImage}" VerticalAlignment="Center" Height="24"
+                                       Source="{Binding ComponentImage}" Height="24"
                                        Width="24" Margin="5" />
                                 <Grid Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center"
                                       Margin="3,0">
@@ -408,49 +442,15 @@
                                 </Grid>
                                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                     <RadioButton x:Name="playButton" Style="{StaticResource ToggleRoundButton}"
-                                            ToolTip="{Binding StartTitle}" Margin="5" Height="30" Width="30"
+                                            Margin="5" Height="30" Width="30"
                                             VerticalAlignment="Center"
                                             Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
                                         <Image Style="{StaticResource CustomImage}" Source="{Binding PlayImage}" Margin="5" />
                                     </RadioButton>
                                     
-                                    <!-- Command="{Binding StartListenerCommand}" -->
-                                    
                                     <Popup AllowsTransparency="True" x:Name="popup_processors" IsOpen="{Binding IsChecked, ElementName=playButton}" StaysOpen="False" PlacementTarget="{Binding ElementName=playButton}" PopupAnimation="Fade">
-                                        <Border BorderBrush="LightGray" BorderThickness="1" Background="White" CornerRadius="0" Width="200" Height="200">
-                                            <Grid Margin="10" Width="Auto" Height="Auto">
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="*"/>
-                                                </Grid.RowDefinitions>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                
-                                                <!-- RAM -->
-                                                <Label Grid.Column="0" Grid.Row="0" Content="RAM" VerticalAlignment="Center"/>
-                                                <Image Grid.Column="1" Grid.Row="0" Style="{StaticResource CustomImage}" Source="{Binding RamImage}" Margin="5"/>
-                                                
-                                                <!-- MongoDB -->
-                                                <Label Grid.Column="0" Grid.Row="1" Content="MongoDB" VerticalAlignment="Center"/>
-                                                <Image Grid.Column="1" Grid.Row="1" Style="{StaticResource CustomImage}" Source="{Binding MongoDBImage}" Margin="5"/>
-                                                
-                                                <!-- Sqlite -->
-                                                <Label Grid.Column="0" Grid.Row="2" Content="Sqlite" VerticalAlignment="Center"/>
-                                                <Image Grid.Column="1" Grid.Row="2" Style="{StaticResource CustomImage}" Source="{Binding SqliteImage}" Margin="5"/>
-                                                
-                                                <!-- Sql Server -->
-                                                <Label Grid.Column="0" Grid.Row="3" Content="Sql Server" VerticalAlignment="Center"/>
-                                                <Image Grid.Column="1" Grid.Row="3" Style="{StaticResource CustomImage}" Source="{Binding SqlServerImage}" Margin="5"/>
-                                                
-                                                <!-- Elastic Search -->
-                                                <Label Grid.Column="0" Grid.Row="4" Content="Elastic Search" VerticalAlignment="Center"/>
-                                                <Image Grid.Column="1" Grid.Row="4" Style="{StaticResource CustomImage}" Source="{Binding ElasticSearchImage}" Margin="5"/>
-                                            </Grid>
+                                        <Border BorderBrush="LightGray" BorderThickness="1" Background="White" CornerRadius="0" Width="200">
+                                            <ListBox Style="{StaticResource StoringProcessors}" ItemsSource="{Binding StoreProcessors}"/>
                                         </Border>
                                     </Popup>
 

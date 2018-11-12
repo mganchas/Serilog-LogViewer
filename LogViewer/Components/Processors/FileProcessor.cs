@@ -2,9 +2,9 @@
 using System.ComponentModel;
 using System.IO;
 using System.Text;
-using LogViewer.Components.Levels.Helpers;
 using LogViewer.Components.Processors.Abstractions;
 using LogViewer.Entries;
+using LogViewer.Levels.Helpers;
 using LogViewer.StoreProcessors.Abstractions;
 using LogViewer.Structures.Containers;
 
@@ -60,7 +60,7 @@ namespace LogViewer.Components.Processors
                                 var lvlType = LevelTypesHelper.GetLevelTypeFromString(lvlRaw);
 
                                 // save entry
-                                dbProcessor.WriteOne(new Entry
+                                dbProcessor.WriteOne(componentName, new Entry
                                 {
                                     Timestamp = DateTime.Parse(prevLines.Substring(0, 29)),
                                     RenderedMessage = prevLines.Substring(levelEnd + 1),
