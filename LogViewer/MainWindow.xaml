@@ -82,8 +82,8 @@
         <!-- Available Actions -->
         <Grid Grid.Row="4" Height="50" Background="{StaticResource Toolbar}">
             <StackPanel HorizontalAlignment="Right" Margin="5" VerticalAlignment="Center" Orientation="Horizontal">
-                <Button Style="{StaticResource RoundButton}" Command="{Binding StartAllCommand}" ToolTip="{Binding StartAllCommand}">
-                    <Image Style="{StaticResource CustomImage}" Source="{Binding StartRAMButtonImage}" Margin="5"/>
+                <Button Style="{StaticResource RoundButton}" Command="{Binding StartAllCommand}" ToolTip="{Binding StartAllTooltip}">
+                    <Image Style="{StaticResource CustomImage}" Source="{Binding StartAllButtonImage}" Margin="5"/>
                 </Button>
                 <Button Style="{StaticResource RoundButton}" Command="{Binding CancelAllCommand}" ToolTip="{Binding CancelAllTooltip}">
                     <Image Style="{StaticResource CustomImage}" Source="{Binding CancelButtonImage}" Margin="5"/>

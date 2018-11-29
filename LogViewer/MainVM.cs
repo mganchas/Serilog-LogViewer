@@ -3,21 +3,20 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Threading;
+using LogViewer.Abstractions;
 using LogViewer.Components;
-using LogViewer.Components.Helpers;
-using LogViewer.Configs;
-using LogViewer.Logging;
-using LogViewer.Structures.Containers;
-using LogViewer.ViewModelHelpers;
+using LogViewer.Containers;
+using LogViewer.Model;
+using LogViewer.Resources;
+using LogViewer.Extensions;
+using LogViewer.Utilities;
 
 namespace LogViewer
 {
     public class MainVM : PropertyChangesNotifier
     {
-        public static string StartRAMButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}";
-        public static string StartDiskButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlay}";
+        public static string StartAllButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImagePlayBlue}";
         public static string ClearButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageClear}";
         public static string ResetButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageReset}";
         public static string CancelButtonImage => $"{Constants.Images.ImagePath}{Constants.Images.ImageCancel}";
@@ -25,8 +24,7 @@ namespace LogViewer
         public static string ComponentTypeLabel => $"{Constants.Labels.ComponentType}:";
         public static string ComponentNameLabel => $"{Constants.Labels.ComponentName}:";
         public static string PathLabel => $"{Constants.Labels.Path}:";
-        public static string StartAllRAMTooltip => Constants.Tooltips.StartAllRAM;
-        public static string StartAllDiskTooltip => Constants.Tooltips.StartAllDisk;
+        public static string StartAllTooltip => Constants.Tooltips.StartAll;
         public static string CancelAllTooltip => Constants.Tooltips.CancelAll;
         public static string ClearAllTooltip => Constants.Tooltips.ClearAll;
         public static string ResetAllTooltip => Constants.Tooltips.ResetAll;
@@ -53,8 +51,8 @@ namespace LogViewer
             }
         }
 
-        private ComponentVM _selectedComponent;
-        public ComponentVM SelectedComponent
+        private ICustomComponent _selectedComponent;
+        public ICustomComponent SelectedComponent
         {
             get => _selectedComponent;
             set
@@ -75,34 +73,34 @@ namespace LogViewer
             }
         }
 
-        public Visibility VisibleComponents => Components == null || Components.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility VisibleComponents => Components == null || Components.Any() ? Visibility.Collapsed : Visibility.Visible;
 
-        public IEnumerable<ComponentSelector> ComponentTypes { get; } = new[]
+        public IEnumerable<ComponentSelectorVM> ComponentTypes { get; } = new[]
         {
-            new ComponentSelector
+            new ComponentSelectorVM
             {
                 Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageFile}",
-                Type = LogViewer.Components.ComponentTypes.File
+                Type = Types.ComponentTypes.File
             },
-            new ComponentSelector
+            new ComponentSelectorVM
             {
                 Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageHttp}",
-                Type = LogViewer.Components.ComponentTypes.Http
+                Type = Types.ComponentTypes.Http
             },
-            new ComponentSelector
+            new ComponentSelectorVM
             {
                 Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageTcp}",
-                Type = LogViewer.Components.ComponentTypes.Tcp
+                Type = Types.ComponentTypes.Tcp
             },
-            new ComponentSelector
+            new ComponentSelectorVM
             {
                 Icon = $"{Constants.Images.ImagePath}{Constants.Images.ImageUdp}",
-                Type = LogViewer.Components.ComponentTypes.Udp
+                Type = Types.ComponentTypes.Udp
             }
         };
 
-        private ComponentSelector _selectedComponentType;
-        public ComponentSelector SelectedComponentType
+        private ComponentSelectorVM _selectedComponentType;
+        public ComponentSelectorVM SelectedComponentType
         {
             get => _selectedComponentType;
             set
@@ -112,7 +110,7 @@ namespace LogViewer
             }
         }
 
-        public ObservableCollection<ComponentVM> Components { get; set; } = new ObservableCollection<ComponentVM>();
+        public ObservableCollection<ICustomComponent> Components { get; set; } = new ObservableCollection<ICustomComponent>();
         public ObservableCollection<LogVM> LogEntries { get; set; } = new ObservableCollection<LogVM>();
 
         #region Commands

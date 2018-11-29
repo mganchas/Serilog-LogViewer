@@ -1,34 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Linq;
 using System.Media;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Threading;
-using LogViewer.Components.Helpers;
-using LogViewer.Components.Processors.Abstractions;
-using LogViewer.Configs;
+using LogViewer.Abstractions;
+using LogViewer.Containers;
 using LogViewer.Entries;
-using LogViewer.Entries.Abstractions;
-using LogViewer.Levels;
-using LogViewer.Levels.Helpers;
-using LogViewer.Logging;
-using LogViewer.StoreProcessors;
-using LogViewer.StoreProcessors.Abstractions;
-using LogViewer.StoreProcessors.Helpers;
-using LogViewer.Structures.Collections;
-using LogViewer.Structures.Containers;
+using LogViewer.Factories;
+using LogViewer.Listeners;
+using LogViewer.Model;
+using LogViewer.Processors;
+using LogViewer.Resources;
+using LogViewer.Types;
+using LogViewer.Utilities;
 using LogViewer.View;
-using LogViewer.ViewModelHelpers;
 
 namespace LogViewer.Components
 {
-    public sealed class ComponentVM : PropertyChangesNotifier
+    public sealed class ComponentVM : PropertyChangesNotifier, ICustomComponent
     {
         public ComponentVM Self => this;
         public string Name { get; }
@@ -37,7 +30,7 @@ namespace LogViewer.Components
         private string ComponentRegisterName => $"{Name.Replace(' ', '_')}";
         private ComponentTypes ComponentType { get; set; }
         private bool IsAllSelected { get; set; } = true;
-        private ComponentFilters SelectionFilters { get; set; }
+        private ComponentFiltersVM SelectionFilters { get; set; }
         private StoreTypes StoreType { get; set; }
         private IDbProcessor DbProcessor { get; set; }
         private IComponentProcessor ComponentProcessor { get; set; }
@@ -65,7 +58,6 @@ namespace LogViewer.Components
         }
 
         private bool _isRunning;
-
         public bool IsRunning
         {
             get => _isRunning;
@@ -79,7 +71,6 @@ namespace LogViewer.Components
         }
 
         private bool _canExport = true;
-
         public bool CanExport
         {
             get => _canExport;
@@ -91,7 +82,6 @@ namespace LogViewer.Components
         }
 
         private bool _allowChanges = true;
-
         public bool AllowChanges
         {
             get => _allowChanges;
@@ -103,7 +93,6 @@ namespace LogViewer.Components
         }
 
         private int _visibleMessagesNr = Constants.Component.DefaultRows;
-
         public int VisibleMessagesNr
         {
             get => _visibleMessagesNr;
@@ -115,7 +104,7 @@ namespace LogViewer.Components
         }
 
         //public List<LogEventsVM> ConsoleMessages { get; }
-        public IEnumerable<StoreProcessorsVM> StoreProcessors { get; set; }
+        public IEnumerable<IStoreProcessor> StoreProcessors { get; set; }
         public Dictionary<LevelTypes, LevelsVM> ComponentLevels { get; }
 
         #region Labels
@@ -172,8 +161,6 @@ namespace LogViewer.Components
         public IEnrichedCommand FilterLevelCommand { get; set; }
         public IEnrichedCommand ExportContentCommand { get; set; }
         private IEnrichedCommand DefaultStartListenerCommand { get; set;  }
-        
-        
         #endregion
 
         public ComponentVM(string name, string path, ComponentTypes componentType)
@@ -184,8 +171,8 @@ namespace LogViewer.Components
             
             RegisterComponent();
             
-            ComponentLevels = LevelTypesHelper.LevelVMList;
-            StoreProcessors = StoreProcessorsHelper.GetStoreProcessorsVMList(DefaultStartListenerCommand);
+            ComponentLevels = LevelsVM.LevelVMList;
+            StoreProcessors = StoreProcessorsHelper.GetStoreProcessorsList(DefaultStartListenerCommand);
         }
 
         private void RegisterComponent()
@@ -216,16 +203,22 @@ namespace LogViewer.Components
                 if (StoreType == StoreTypes.Local)
                 {
                     // set level counters
-                    MessageContainer.Counters.Add(ComponentRegisterName, LevelTypesHelper.LevelTypesCounterList);
-
+                    if (MessageContainer.Counters.ContainsKey(ComponentRegisterName)) {
+                        MessageContainer.Counters.Remove(ComponentRegisterName);
+                    }
+                    MessageContainer.Counters.Add(ComponentRegisterName, LevelsVM.LevelTypesCounterList);
+                        
                     // Add new message queue
+                    if (MessageContainer.Messages.ContainsKey(ComponentRegisterName)) {
+                        MessageContainer.Messages.Remove(ComponentRegisterName);
+                    }
                     MessageContainer.Messages.Add(ComponentRegisterName, new Lazy<ObservableSet<IEntry>>());
-
+                    
+                    var handler = new NotifyCollectionChangedEventHandler((sender, e) => { CollectionChanged(e, sender as ObservableSet<IEntry>); });
+                    // Remove if there was already a handler
+                    MessageContainer.Messages[ComponentRegisterName].Value.CollectionChanged -= handler;
                     // Register collection changed event
-                    MessageContainer.Messages[ComponentRegisterName].Value.CollectionChanged += (sender, e) =>
-                    {
-                        CollectionChanged(e, sender as ObservableSet<IEntry>);
-                    };
+                    MessageContainer.Messages[ComponentRegisterName].Value.CollectionChanged += handler;
                 }
                 
                 StartAction();
@@ -360,7 +353,7 @@ namespace LogViewer.Components
         private void FilterMessages()
         {
             var hasChanges = false;
-            var currFilters = new ComponentFilters
+            var currFilters = new ComponentFiltersVM
             {
                 FilterText = this.FilterText,
                 Levels = ComponentLevels.Values.Where(x => x.IsSelected).Select(x => x.LevelType).ToList()

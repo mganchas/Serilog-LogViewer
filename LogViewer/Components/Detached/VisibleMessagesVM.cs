@@ -1,4 +1,4 @@
-using LogViewer.ViewModelHelpers;
+using LogViewer.Model;
 
 namespace LogViewer.Components.Detached
 {

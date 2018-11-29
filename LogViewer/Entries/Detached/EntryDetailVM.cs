@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Globalization;
-using LogViewer.Configs;
-using LogViewer.Levels;
-using LogViewer.ViewModelHelpers;
+using LogViewer.Model;
+using LogViewer.Resources;
+using LogViewer.Types;
+using LogViewer.Utilities;
 
 namespace LogViewer.Entries.Detached
 {
@@ -36,21 +37,21 @@ namespace LogViewer.Entries.Detached
         private DateTimeOffset _timestamp;
         public DateTimeOffset Timestamp
         {
-            get { return _timestamp; }
+            get => _timestamp;
             set { _timestamp = value; NotifyPropertyChanged(); }
         }
 
         private string _level;
         public string Level
         {
-            get { return _level; }
+            get => _level;
             set { _level = value; NotifyPropertyChanged(); }
         }
 
         private string _message;
         public string Message
         {
-            get { return _message; }
+            get => _message;
             set { _message = value; NotifyPropertyChanged(); }
         }
 

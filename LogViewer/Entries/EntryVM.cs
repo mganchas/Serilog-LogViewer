@@ -2,12 +2,13 @@
 using System.Globalization;
 using System.Windows.Input;
 using System.Windows.Media;
-using LogViewer.Configs;
 using LogViewer.Entries.Detached;
-using LogViewer.Levels;
-using LogViewer.Levels.Helpers;
+using LogViewer.Extensions;
+using LogViewer.Model;
+using LogViewer.Resources;
+using LogViewer.Types;
+using LogViewer.Utilities;
 using LogViewer.View;
-using LogViewer.ViewModelHelpers;
 
 namespace LogViewer.Entries
 {
@@ -17,7 +18,7 @@ namespace LogViewer.Entries
         public DateTimeOffset Timestamp { get; set; }
         public string RenderedMessage { get; set; }
         public LevelTypes LevelType { get; set; }
-        public Brush LevelColor => LevelTypesHelper.GetLevelColor(LevelType);
+        public Brush LevelColor => LevelType.GetLevelColor(LevelsVM.LevelColors);
 
         private static string _openDialogButtonImage;
         public string OpenDialogButtonImage

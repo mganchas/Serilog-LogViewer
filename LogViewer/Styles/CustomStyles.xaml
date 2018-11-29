@@ -315,8 +315,7 @@
         <Setter Property="ItemContainerStyle">
             <Setter.Value>
                 <Style TargetType="ListBoxItem">
-                    <Setter Property="IsSelected"
-                            Value="{Binding Value.IsSelected, UpdateSourceTrigger=PropertyChanged}" />
+                    <Setter Property="IsSelected" Value="{Binding Value.IsSelected, UpdateSourceTrigger=PropertyChanged}" />
                 </Style>
             </Setter.Value>
         </Setter>
@@ -443,8 +442,7 @@
                                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                     <RadioButton x:Name="playButton" Style="{StaticResource ToggleRoundButton}"
                                             Margin="5" Height="30" Width="30"
-                                            VerticalAlignment="Center"
-                                            Visibility="{Binding Path=AllowChanges, Converter={StaticResource BoolToVis}}">
+                                            VerticalAlignment="Center">
                                         <Image Style="{StaticResource CustomImage}" Source="{Binding PlayImage}" Margin="5" />
                                     </RadioButton>
                                     
